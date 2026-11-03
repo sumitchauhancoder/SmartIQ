@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
-import { X, Lock, Mail, UserCheck, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Lock, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 
-export default function AuthModal({ isOpen, onClose }) {
+export default function AuthModal({ isOpen, onClose, initialSignUp = false, onAuthSuccess }) {
   const { signIn, signUp, isConfigured } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(initialSignUp);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    setIsSignUp(initialSignUp);
+    setErrorMsg('');
+    setSuccessMsg('');
+  }, [initialSignUp, isOpen]);
 
   if (!isOpen) return null;
 
@@ -29,19 +36,39 @@ export default function AuthModal({ isOpen, onClose }) {
 
     setLoading(true);
     try {
+      let authData = null;
       if (isSignUp) {
-        await signUp(email, password);
-        setSuccessMsg('Account created successfully! You are now authenticated.');
-        setTimeout(() => {
-          onClose();
-        }, 1500);
+        authData = await signUp(email, password);
+        setSuccessMsg('Account created successfully! Redirecting...');
       } else {
-        await signIn(email, password);
-        setSuccessMsg('Signed in successfully!');
-        setTimeout(() => {
-          onClose();
-        }, 1000);
+        authData = await signIn(email, password);
+        setSuccessMsg('Signed in successfully! Redirecting...');
       }
+
+      // Fetch user role for post-login redirection
+      let userRole = 'user';
+      const userId = authData?.user?.id;
+      if (userId && supabase) {
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+          if (data && data.role) {
+            userRole = data.role.toLowerCase();
+          }
+        } catch (e) {
+          console.warn('[SmartIQ AuthModal] Role fetch error:', e);
+        }
+      }
+
+      setTimeout(() => {
+        onClose();
+        if (onAuthSuccess) {
+          onAuthSuccess(userRole);
+        }
+      }, 700);
     } catch (err) {
       setErrorMsg(err.message || 'Authentication failed. Please check credentials.');
     } finally {
@@ -50,7 +77,7 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/40 max-w-md w-full shadow-2xl relative">
         {/* Close Button */}
         <button
@@ -70,7 +97,7 @@ export default function AuthModal({ isOpen, onClose }) {
         </h3>
         <p className="text-xs text-slate-400 text-center mb-6">
           {isSignUp
-            ? 'Register to save permanent cognitive scorecards and unlock profile history.'
+            ? 'Register to unlock your psychological profile and permanent test history.'
             : 'Access authenticated assessments and administrative control console.'}
         </p>
 

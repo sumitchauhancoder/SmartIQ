@@ -10,11 +10,14 @@ import {
   Clock, 
   Copy, 
   Check, 
-  RefreshCw 
+  RefreshCw,
+  UserCheck
 } from 'lucide-react';
 import { getSessionId } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home({ onStartQuiz }) {
+  const { user } = useAuth();
   const [sessionId, setSessionId] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -36,23 +39,23 @@ export default function Home({ onStartQuiz }) {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      {/* Hero Section */}
-      <div className="text-center max-w-3xl mx-auto pt-6 pb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-700/40 text-indigo-300 text-xs font-semibold mb-6 shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-          <span>Next-Generation Dual Psychometrics</span>
+      {/* Welcome Banner */}
+      <div className="text-center max-w-3xl mx-auto pt-6 pb-8">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/70 border border-indigo-700/50 text-indigo-300 text-xs font-semibold mb-4 shadow-sm">
+          <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Authenticated Hub • {user?.email || 'User Account'}</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-          Map Your <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-emerald-400 bg-clip-text text-transparent">Cognitive & Emotional</span> Architecture
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+          Select Your <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-emerald-400 bg-clip-text text-transparent">Psychometric Assessment</span>
         </h1>
 
-        <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mb-8">
-          SmartIQ combines rigorous deductive problem-solving with emotional resonance testing. Uncover your true mental archetype backed by Groq AI cognitive analytics.
+        <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl mx-auto mb-6">
+          Both assessments are sampled randomly from the cloud question bank. We recommend completing both IQ and EQ modules sequentially to generate your comprehensive AI Mind Archetype.
         </p>
 
-        {/* Anonymous Session Token Card */}
-        <div className="inline-flex flex-wrap items-center justify-center gap-3 p-3 rounded-2xl glass-card border border-slate-800 text-xs text-slate-400 mb-8 max-w-lg mx-auto">
+        {/* Anonymous / Account Session Token Card */}
+        <div className="inline-flex flex-wrap items-center justify-center gap-3 p-3 rounded-2xl glass-card border border-slate-800 text-xs text-slate-400 mb-6 max-w-lg mx-auto">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span className="text-slate-300 font-medium">Session ID:</span>
@@ -78,20 +81,20 @@ export default function Home({ onStartQuiz }) {
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Start Full Dual Assessment CTA */}
         <div>
           <button
             onClick={() => onStartQuiz('iq')}
-            className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/30 transform hover:-translate-y-0.5 transition-all text-base sm:text-lg group"
+            className="inline-flex items-center justify-center gap-3 px-8 py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/30 transform hover:-translate-y-0.5 transition-all text-base group"
           >
-            <span>Begin Dual Assessment</span>
+            <span>Begin Dual Assessment (IQ ➜ EQ)</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>
 
       {/* Assessment Modules Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
         {/* IQ Module Card */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 relative overflow-hidden group hover:border-indigo-500/40 transition-all">
           <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-600/20 transition-all"></div>

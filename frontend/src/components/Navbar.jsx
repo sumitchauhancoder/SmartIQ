@@ -9,23 +9,44 @@ import {
   Award, 
   User, 
   LogOut, 
-  LogIn, 
-  ShieldAlert 
+  LogIn 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0, onOpenAuth }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const { user, role, isAdmin, signOut, isConfigured } = useAuth();
+  const { user, role, isAdmin, signOut } = useAuth();
 
-  const navItems = [
-    { id: 'home', label: 'Home', icon: Brain },
-    { id: 'iq', label: 'IQ Assessment', icon: Sparkles },
-    { id: 'eq', label: 'EQ Assessment', icon: Award },
-    { id: 'results', label: 'Results & Analytics', icon: BarChart3 },
-    { id: 'admin', label: 'Admin Console', icon: Shield, badge: isAdmin ? 'Admin' : null },
-  ];
+  // Navigation Items according to strict RBAC rules:
+  // When logged out: only link to landing dashboard
+  // When logged in as user: Home, IQ, EQ, Results
+  // When logged in as admin: Home, IQ, EQ, Results, Admin Console
+  let navItems = [];
+
+  if (!user) {
+    // Logged Out
+    navItems = [
+      { id: '/', label: 'Overview', icon: Sparkles }
+    ];
+  } else if (!isAdmin) {
+    // Regular User
+    navItems = [
+      { id: 'home', label: 'Home', icon: Brain },
+      { id: 'iq', label: 'IQ Assessment', icon: Sparkles },
+      { id: 'eq', label: 'EQ Assessment', icon: Award },
+      { id: 'results', label: 'Results & Analytics', icon: BarChart3 }
+    ];
+  } else {
+    // Administrator
+    navItems = [
+      { id: 'home', label: 'Home', icon: Brain },
+      { id: 'iq', label: 'IQ Assessment', icon: Sparkles },
+      { id: 'eq', label: 'EQ Assessment', icon: Award },
+      { id: 'results', label: 'Results & Analytics', icon: BarChart3 },
+      { id: 'admin', label: 'Admin Console', icon: Shield, badge: 'Admin' }
+    ];
+  }
 
   const handleNav = (routeId) => {
     onRouteChange(routeId);
@@ -38,7 +59,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div 
-            onClick={() => handleNav('home')} 
+            onClick={() => handleNav(user ? 'home' : '/')} 
             className="flex items-center gap-3 cursor-pointer group select-none"
           >
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 p-[2px] transition-transform duration-300 group-hover:scale-105">
@@ -60,12 +81,12 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentRoute === item.id;
+              const isActive = currentRoute === item.id || (item.id === '/' && (currentRoute === '' || currentRoute === '/'));
               return (
                 <button
                   key={item.id}
                   onClick={() => handleNav(item.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 relative ${
                     isActive
                       ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 shadow-sm shadow-indigo-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -74,7 +95,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
                   <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                   <span>{item.label}</span>
                   {item.badge && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 ml-1">
                       {item.badge}
                     </span>
                   )}
@@ -83,19 +104,21 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
             })}
           </div>
 
-          {/* Right Action Cluster: Anti-Cheat & Auth */}
-          <div className="hidden lg:flex items-center gap-3">
-            {/* Anti-Cheat Shield Status Badge */}
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${
-              tabSwitchCount > 1 
-                ? 'bg-rose-950/60 text-rose-300 border-rose-800/60 animate-pulse'
-                : 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50'
-            }`}>
-              <Shield className="w-3.5 h-3.5" />
-              <span>Anti-Cheat: {tabSwitchCount > 0 ? `${tabSwitchCount} Warning${tabSwitchCount > 1 ? 's' : ''}` : 'Active'}</span>
-            </div>
+          {/* Right Action Cluster */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Anti-Cheat Shield (only active during assessment) */}
+            {user && (currentRoute === 'iq' || currentRoute === 'eq') && (
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${
+                tabSwitchCount > 1 
+                  ? 'bg-rose-950/60 text-rose-300 border-rose-800/60 animate-pulse'
+                  : 'bg-emerald-950/40 text-emerald-400 border-emerald-800/50'
+              }`}>
+                <Shield className="w-3.5 h-3.5" />
+                <span>Anti-Cheat: {tabSwitchCount > 0 ? `${tabSwitchCount} Warning${tabSwitchCount > 1 ? 's' : ''}` : 'Active'}</span>
+              </div>
+            )}
 
-            {/* User Auth Control */}
+            {/* Authenticated State vs Logged Out State */}
             {user ? (
               <div className="relative">
                 <button
@@ -103,7 +126,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
                   className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-slate-900 border border-slate-700 hover:border-slate-600 text-xs text-slate-300 transition-colors"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span className="max-w-[120px] truncate font-medium">{user.email?.split('@')[0]}</span>
+                  <span className="max-w-[130px] truncate font-medium">{user.email?.split('@')[0]}</span>
                   <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
                     isAdmin ? 'bg-indigo-950 text-indigo-300 border border-indigo-700/60' : 'bg-slate-800 text-slate-400'
                   }`}>
@@ -136,30 +159,37 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-950/30 rounded-xl mt-1 text-left transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
+                      <span>Logout</span>
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <button
-                onClick={onOpenAuth}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 transition-all shadow-sm"
+                onClick={() => onOpenAuth(false)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white transition-all shadow-md shadow-indigo-600/20"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>Sign In / Register</span>
+                <span>Sign In / Get Started</span>
               </button>
             )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center gap-2">
-            {!user && (
+            {!user ? (
               <button
-                onClick={onOpenAuth}
-                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600/30 text-indigo-300 border border-indigo-500/40"
+                onClick={() => onOpenAuth(false)}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600/30 text-indigo-300 border border-indigo-500/40"
               >
                 Sign In
+              </button>
+            ) : (
+              <button
+                onClick={() => signOut()}
+                className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-950/40"
+              >
+                Logout
               </button>
             )}
             <button
@@ -179,7 +209,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
           {user && (
             <div className="p-3 mb-2 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-400">Authenticated user</p>
+                <p className="text-xs text-slate-400">Signed in as ({role})</p>
                 <p className="text-sm font-bold text-white truncate max-w-[200px]">{user.email}</p>
               </div>
               <button

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
   Lock, 
-  Key, 
   PlusCircle, 
   Trash2, 
   Edit3, 
@@ -12,9 +11,9 @@ import {
   TrendingUp, 
   AlertTriangle, 
   Search, 
-  CheckCircle2,
   X,
-  UserCheck
+  UserCheck,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   fetchAdminQuestions, 
@@ -25,16 +24,13 @@ import {
 } from '../api';
 import { useAuth } from '../context/AuthContext';
 
-export default function Admin({ onOpenAuth }) {
-  const { user, role, isAdmin, token } = useAuth();
-  const [adminKey, setAdminKey] = useState(() => sessionStorage.getItem('smartiq_admin_key') || '');
-  const [keyInput, setKeyInput] = useState('');
-  const [authenticated, setAuthenticated] = useState(false);
-  const [authError, setAuthError] = useState('');
+export default function Admin({ onOpenAuth, onNavigateHome }) {
+  const { user, role, isAdmin, token, loading: authLoading } = useAuth();
 
   const [stats, setStats] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -54,26 +50,21 @@ export default function Admin({ onOpenAuth }) {
   });
   const [formStatus, setFormStatus] = useState({ message: '', isError: false });
 
-  // Get active credential: User JWT token (if admin) or Admin Key
-  const activeCredential = (isAdmin && token) ? token : adminKey;
-
-  // Auto-authenticate if user has role 'admin' in Supabase Auth
+  // Load dashboard whenever admin status & token are valid
   useEffect(() => {
     if (isAdmin && token) {
-      loadDashboard(token);
-    } else if (adminKey) {
-      loadDashboard(adminKey);
+      loadDashboard();
     }
-  }, [isAdmin, token, adminKey]);
+  }, [isAdmin, token]);
 
-  const loadDashboard = async (credential) => {
-    if (!credential) return;
+  const loadDashboard = async () => {
+    if (!token) return;
     setLoading(true);
-    setAuthError('');
+    setLoadError('');
     try {
       const [questionsRes, statsRes] = await Promise.all([
-        fetchAdminQuestions(credential),
-        fetchAdminStats(credential)
+        fetchAdminQuestions(token),
+        fetchAdminStats(token)
       ]);
 
       if (questionsRes?.status === 'success') {
@@ -82,36 +73,18 @@ export default function Admin({ onOpenAuth }) {
       if (statsRes?.status === 'success') {
         setStats(statsRes.data);
       }
-      setAuthenticated(true);
-      if (credential !== token) {
-        sessionStorage.setItem('smartiq_admin_key', credential);
-      }
     } catch (err) {
       console.error(err);
-      setAuthenticated(false);
-      setAuthError('Authentication failed. Please verify credentials or Supabase administrator role.');
+      setLoadError('Failed loading management dashboard. Please verify connection and administrator permissions.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyLogin = (e) => {
-    e.preventDefault();
-    if (!keyInput.trim()) return;
-    setAdminKey(keyInput.trim());
-    loadDashboard(keyInput.trim());
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem('smartiq_admin_key');
-    setAdminKey('');
-    setAuthenticated(false);
-  };
-
   const handleDelete = async (id) => {
     if (!window.confirm(`Are you sure you want to permanently delete question #${id}?`)) return;
     try {
-      await deleteAdminQuestion(id, activeCredential);
+      await deleteAdminQuestion(id, token);
       setQuestions((prev) => prev.filter((q) => q.id !== id));
     } catch (err) {
       alert('Failed to delete question. Ensure your administrator privileges are active.');
@@ -173,19 +146,17 @@ export default function Admin({ onOpenAuth }) {
       };
 
       if (editingQuestionId) {
-        // Update existing question
-        await updateAdminQuestion(editingQuestionId, payload, activeCredential);
+        await updateAdminQuestion(editingQuestionId, payload, token);
         setFormStatus({ message: 'Question updated successfully!', isError: false });
       } else {
-        // Create new question
-        await createAdminQuestion(payload, activeCredential);
+        await createAdminQuestion(payload, token);
         setFormStatus({ message: 'Question created successfully!', isError: false });
       }
 
       setTimeout(() => {
         setShowFormModal(false);
-        loadDashboard(activeCredential);
-      }, 800);
+        loadDashboard();
+      }, 700);
     } catch (err) {
       setFormStatus({ message: err.message || 'Operation failed.', isError: true });
     }
@@ -200,84 +171,69 @@ export default function Admin({ onOpenAuth }) {
     return matchesCat && matchesSearch;
   });
 
-  // Password / Login Modal (Shown if not authenticated via role or key)
-  if (!authenticated) {
+  // Loading state while auth initializes
+  if (authLoading) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin mb-4"></div>
+        <p className="text-slate-400 font-medium text-sm">Verifying administrator permissions...</p>
+      </div>
+    );
+  }
+
+  // Access Denied Gate: User is NOT an admin
+  if (!isAdmin) {
     return (
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4">
-        <div className="glass-panel p-8 rounded-3xl border border-slate-800 max-w-md w-full shadow-2xl relative">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-700/50 flex items-center justify-center text-indigo-400 mx-auto mb-4">
-            <Lock className="w-6 h-6" />
+        <div className="glass-panel p-8 rounded-3xl border border-rose-500/30 max-w-md w-full shadow-2xl text-center">
+          <div className="w-14 h-14 rounded-2xl bg-rose-950/70 border border-rose-700/50 flex items-center justify-center text-rose-400 mx-auto mb-4">
+            <Lock className="w-7 h-7" />
           </div>
 
-          <h2 className="text-2xl font-bold text-center text-white mb-2">Admin Console</h2>
-          <p className="text-xs text-slate-400 text-center mb-6">
-            Authenticate using your Supabase Administrator account or supply the authorized <code className="text-indigo-400 font-mono">X-Admin-Key</code>.
-          </p>
-
-          {/* Option A: Supabase Sign In */}
-          {user && !isAdmin && (
-            <div className="mb-6 p-4 rounded-2xl bg-amber-950/50 border border-amber-600/40 text-amber-200 text-xs">
-              <p className="font-semibold mb-1">Signed in as: {user.email}</p>
-              <p className="text-slate-300">
-                Your current role is <span className="font-mono text-amber-300">{role}</span>. An <span className="font-mono text-emerald-400">admin</span> role in <code className="font-mono">public.profiles</code> or the Secret Key is required to enter.
-              </p>
-            </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Administrator Access Required</h2>
+          
+          {user ? (
+            <p className="text-xs text-slate-300 leading-relaxed mb-6">
+              You are signed in as <span className="font-mono text-indigo-300 font-semibold">{user.email}</span> with role <span className="font-mono text-amber-300 font-semibold uppercase">{role}</span>. Administrator privileges in Supabase <code className="font-mono bg-slate-900 px-1 py-0.5 rounded">public.profiles</code> are required to view this console.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-300 leading-relaxed mb-6">
+              This area is restricted to authenticated administrators. Please sign in with an account that has the <code className="font-mono text-emerald-400">admin</code> role.
+            </p>
           )}
 
-          {!user && (
-            <div className="mb-6">
+          <div className="space-y-3">
+            {!user ? (
               <button
-                onClick={onOpenAuth}
-                className="w-full py-3 rounded-xl font-bold text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 transition-all flex items-center justify-center gap-2"
+                onClick={() => onOpenAuth(false)}
+                className="w-full py-3 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
               >
                 <UserCheck className="w-4 h-4" />
-                <span>Sign in with Supabase Admin Account</span>
+                <span>Sign In as Administrator</span>
               </button>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
-                <div className="relative flex justify-center text-[10px] uppercase font-mono"><span className="bg-slate-950 px-2 text-slate-500">or enter secret key</span></div>
-              </div>
-            </div>
-          )}
-
-          {/* Option B: Key Input */}
-          <form onSubmit={handleKeyLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Admin Secret Key
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  value={keyInput}
-                  onChange={(e) => setKeyInput(e.target.value)}
-                  placeholder="e.g. smartiq-admin-secret-2026"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                />
-                <Key className="w-4 h-4 text-slate-500 absolute right-3.5 top-3.5" />
-              </div>
-            </div>
-
-            {authError && (
-              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                <span>{authError}</span>
-              </div>
+            ) : (
+              <button
+                onClick={() => onOpenAuth(false)}
+                className="w-full py-2.5 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all border border-slate-700"
+              >
+                Switch Account
+              </button>
             )}
 
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
+              onClick={onNavigateHome}
+              className="w-full py-2.5 rounded-xl font-semibold text-xs text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1.5"
             >
-              {loading ? 'Verifying Credentials...' : 'Authenticate Console'}
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Assessment Hub</span>
             </button>
-          </form>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Admin Dashboard Content (Admin Authorized)
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Header */}
@@ -285,35 +241,35 @@ export default function Admin({ onOpenAuth }) {
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Shield className="w-6 h-6 text-indigo-400" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">SmartIQ Dynamic Admin Console</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">SmartIQ Admin Console</h1>
           </div>
           <p className="text-xs text-slate-400">
-            Real-time Supabase PostgreSQL question CRUD, telemetry bell curves, and anti-cheat audit logs.
+            Persistent cloud question CRUD, performance distributions, and live anti-cheat telemetry.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {user && isAdmin && (
-            <span className="text-xs px-3 py-1.5 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-              Supabase RBAC: {user.email}
-            </span>
-          )}
+          <span className="text-xs px-3 py-1.5 rounded-xl bg-emerald-950/70 text-emerald-300 border border-emerald-800/50 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Admin: {user?.email}</span>
+          </span>
           <button
-            onClick={() => loadDashboard(activeCredential)}
+            onClick={loadDashboard}
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button
-            onClick={handleLogout}
-            className="px-3 py-2 rounded-xl text-xs font-semibold bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-800/50 transition-colors"
-          >
-            Sign Out
-          </button>
         </div>
       </div>
+
+      {loadError && (
+        <div className="mb-6 p-4 rounded-2xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>{loadError}</span>
+        </div>
+      )}
 
       {/* Live Metrics Grid */}
       {stats && (

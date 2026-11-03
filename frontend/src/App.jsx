@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import AuthModal from './components/AuthModal';
+import PublicLanding from './pages/PublicLanding';
 import Home from './pages/Home';
 import IQQuiz from './pages/IQQuiz';
 import EQQuiz from './pages/EQQuiz';
 import Results from './pages/Results';
 import Admin from './pages/Admin';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 function AppContent() {
-  const [currentRoute, setCurrentRoute] = useState(() => {
-    const hash = window.location.hash.replace('#', '');
-    return ['home', 'iq', 'eq', 'results', 'admin'].includes(hash) ? hash : 'home';
-  });
+  const { user, role, isAdmin, loading: authLoading } = useAuth();
 
+  // Normalize initial hash route
+  const getInitialRoute = () => {
+    const rawHash = window.location.hash.replace('#', '').trim();
+    if (['home', 'iq', 'eq', 'results', 'admin'].includes(rawHash)) {
+      return rawHash;
+    }
+    return '/';
+  };
+
+  const [currentRoute, setCurrentRoute] = useState(getInitialRoute);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authInitialSignUp, setAuthInitialSignUp] = useState(false);
+
   const [iqData, setIqData] = useState(() => {
     const saved = sessionStorage.getItem('smartiq_iq_data');
     return saved ? JSON.parse(saved) : null;
@@ -25,22 +35,66 @@ function AppContent() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Sync route with window hash
+  const navigateTo = (route) => {
+    const targetRoute = route === '/' ? '' : route;
+    setCurrentRoute(route);
+    window.location.hash = targetRoute;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenAuth = (isSignUp = false) => {
+    setAuthInitialSignUp(isSignUp);
+    setAuthModalOpen(true);
+  };
+
+  // Sync route with window hash changes
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (['home', 'iq', 'eq', 'results', 'admin'].includes(hash)) {
-        setCurrentRoute(hash);
+      const rawHash = window.location.hash.replace('#', '').trim();
+      if (['home', 'iq', 'eq', 'results', 'admin'].includes(rawHash)) {
+        setCurrentRoute(rawHash);
+      } else {
+        setCurrentRoute('/');
       }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const navigateTo = (route) => {
-    setCurrentRoute(route);
-    window.location.hash = route;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Strict Role-Based Route Guarding & Redirection
+  useEffect(() => {
+    if (authLoading) return;
+
+    const protectedRoutes = ['home', 'iq', 'eq', 'results'];
+
+    if (!user) {
+      // If unauthenticated visitor attempts to access any protected route, redirect to public landing
+      if (protectedRoutes.includes(currentRoute) || currentRoute === 'admin') {
+        navigateTo('/');
+        setAuthModalOpen(true);
+      }
+    } else {
+      // If authenticated user visits root '/', auto-redirect based on role
+      if (currentRoute === '/' || currentRoute === '') {
+        if (isAdmin) {
+          navigateTo('admin');
+        } else {
+          navigateTo('home');
+        }
+      } else if (currentRoute === 'admin' && !isAdmin) {
+        // Non-admin attempting to access /admin -> redirect to user home
+        navigateTo('home');
+      }
+    }
+  }, [user, isAdmin, currentRoute, authLoading]);
+
+  // Post-Login Role-Based Redirection Callback
+  const handleAuthSuccess = (resolvedRole) => {
+    if (resolvedRole === 'admin') {
+      navigateTo('admin');
+    } else {
+      navigateTo('home');
+    }
   };
 
   const handleTabSwitch = () => {
@@ -72,27 +126,38 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Navbar with Supabase Auth controls */}
+      {/* Strict RBAC Navbar */}
       <Navbar
         currentRoute={currentRoute}
         onRouteChange={navigateTo}
         tabSwitchCount={tabSwitchCount}
-        onOpenAuth={() => setAuthModalOpen(true)}
+        onOpenAuth={handleOpenAuth}
       />
 
-      {/* Auth Modal for Sign In / Sign Up */}
+      {/* Auth Modal for Sign In / Sign Up with Post-Login Routing */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
+        initialSignUp={authInitialSignUp}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* Main Content Area */}
       <main className="flex-1">
-        {currentRoute === 'home' && (
+        {/* Public Route (Unauthenticated Welcome Dashboard) */}
+        {(currentRoute === '/' || currentRoute === '') && (
+          <PublicLanding
+            onGetStarted={() => handleOpenAuth(true)}
+            onSignIn={() => handleOpenAuth(false)}
+          />
+        )}
+
+        {/* User Protected Routes */}
+        {user && currentRoute === 'home' && (
           <Home onStartQuiz={navigateTo} />
         )}
 
-        {currentRoute === 'iq' && (
+        {user && currentRoute === 'iq' && (
           <IQQuiz
             onComplete={handleIQComplete}
             onTabSwitch={handleTabSwitch}
@@ -100,7 +165,7 @@ function AppContent() {
           />
         )}
 
-        {currentRoute === 'eq' && (
+        {user && currentRoute === 'eq' && (
           <EQQuiz
             iqData={iqData}
             onComplete={handleEQComplete}
@@ -109,15 +174,19 @@ function AppContent() {
           />
         )}
 
-        {currentRoute === 'results' && (
+        {user && currentRoute === 'results' && (
           <Results
             resultsData={resultsData}
             onRetake={handleRetake}
           />
         )}
 
-        {currentRoute === 'admin' && (
-          <Admin onOpenAuth={() => setAuthModalOpen(true)} />
+        {/* Admin Protected Route */}
+        {user && isAdmin && currentRoute === 'admin' && (
+          <Admin
+            onOpenAuth={() => handleOpenAuth(false)}
+            onNavigateHome={() => navigateTo('home')}
+          />
         )}
       </main>
 
@@ -130,13 +199,17 @@ function AppContent() {
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               LLM Inference: Groq AI Ready
             </span>
-            <span>•</span>
-            <button 
-              onClick={() => navigateTo('admin')}
-              className="text-slate-400 hover:text-slate-200 transition-colors"
-            >
-              Admin Console
-            </button>
+            {user && isAdmin && (
+              <>
+                <span>•</span>
+                <button 
+                  onClick={() => navigateTo('admin')}
+                  className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                >
+                  Admin Console
+                </button>
+              </>
+            )}
           </div>
         </div>
       </footer>
