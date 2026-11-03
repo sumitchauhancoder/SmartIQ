@@ -214,7 +214,14 @@ async def analyze_with_gemini(submission: QuizSubmission) -> Optional[Dict[str, 
     try:
         import google.generativeai as genai
         genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        # Try gemini-3.8-flash then gemini-2.5-flash / gemini-flash-latest
+        for m in ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-flash-latest"]:
+            try:
+                model = genai.GenerativeModel(m)
+                break
+            except Exception:
+                continue
 
         prompt = f"""
 You are an elite psychometrics and cognitive science intelligence engine.
@@ -266,19 +273,24 @@ Incorrect Questions: {json.dumps(submission.incorrect_questions[:4])}
 
 Output ONLY valid JSON with keys: archetype_title, core_summary, cognitive_edge, emotional_profile, growth_habits (array of {{"habit", "frequency", "action"}}), mistake_analyses (array of {{"question", "why_wrong", "cognitive_bias"}}).
 """
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are a professional psychometrics analyst. Respond with pure JSON only."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        content = completion.choices[0].message.content
-        if content:
-            parsed = parse_ai_json(content)
-            if parsed:
-                return parsed
+        # Try active models: openai/gpt-oss-20b with fallback to qwen/qwen3.8-27b
+        for model_id in ["openai/gpt-oss-20b", "qwen/qwen3.8-27b"]:
+            try:
+                completion = client.chat.completions.create(
+                    model=model_id,
+                    messages=[
+                        {"role": "system", "content": "You are a professional psychometrics analyst. Respond with pure JSON only."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                content = completion.choices[0].message.content
+                if content:
+                    parsed = parse_ai_json(content)
+                    if parsed:
+                        return parsed
+            except Exception:
+                continue
     except Exception as e:
         print(f"[SmartIQ] Groq inference failed or bypassed: {e}")
     return None
