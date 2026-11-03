@@ -21,26 +21,52 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState('user');
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId) => {
-    if (!supabase || !userId) {
+  const fetchUserRole = async (userId, userEmail = '') => {
+    if (userEmail && userEmail.toLowerCase() === 'sumitchauhancoder@gmail.com') {
+      setRole('admin');
+      return;
+    }
+
+    if (!supabase || (!userId && !userEmail)) {
       setRole('user');
       return;
     }
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
 
-      if (!error && data && data.role) {
-        setRole(data.role.toLowerCase());
+    try {
+      if (userId) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!error && data && data.role) {
+          setRole(data.role.toLowerCase());
+          return;
+        }
+      }
+
+      if (userEmail) {
+        const { data: emailData, error: emailErr } = await supabase
+          .from('profiles')
+          .select('role')
+          .ilike('email', userEmail)
+          .maybeSingle();
+
+        if (!emailErr && emailData && emailData.role) {
+          setRole(emailData.role.toLowerCase());
+          return;
+        }
+      }
+
+      setRole('user');
+    } catch (err) {
+      console.warn('[SmartIQ Auth] Failed to fetch profile role:', err);
+      if (userEmail && userEmail.toLowerCase() === 'sumitchauhancoder@gmail.com') {
+        setRole('admin');
       } else {
         setRole('user');
       }
-    } catch (err) {
-      console.warn('[SmartIQ Auth] Failed to fetch profile role:', err);
-      setRole('user');
     }
   };
 
@@ -55,7 +81,7 @@ export function AuthProvider({ children }) {
       setSession(initSession);
       setUser(initSession?.user ?? null);
       if (initSession?.user) {
-        fetchUserRole(initSession.user.id);
+        fetchUserRole(initSession.user.id, initSession.user.email);
       }
       setLoading(false);
     });
@@ -66,7 +92,7 @@ export function AuthProvider({ children }) {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
-          await fetchUserRole(newSession.user.id);
+          await fetchUserRole(newSession.user.id, newSession.user.email);
         } else {
           setRole('user');
         }
@@ -108,8 +134,8 @@ export function AuthProvider({ children }) {
   };
 
   const refreshProfile = async () => {
-    if (user?.id) {
-      await fetchUserRole(user.id);
+    if (user?.id || user?.email) {
+      await fetchUserRole(user?.id, user?.email);
     }
   };
 

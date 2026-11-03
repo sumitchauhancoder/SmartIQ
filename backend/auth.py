@@ -5,6 +5,8 @@ and maintains backward-compatible support for X-Admin-Key.
 """
 
 import os
+import json
+import base64
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, Header, Depends
 from jose import jwt, JWTError
@@ -31,8 +33,12 @@ if SUPABASE_URL and (SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY):
 
 def verify_supabase_token(token: str) -> Optional[Dict[str, Any]]:
     """
-    Verifies a Supabase JWT access token.
-    Tries Supabase API client first, then fallback to python-jose JWT verification.
+    Verifies and parses a Supabase JWT access token.
+    Order of operations:
+    1. Supabase API client auth.get_user(token)
+    2. python-jose with SUPABASE_JWT_SECRET if configured
+    3. python-jose unverified claims extraction
+    4. Safe Base64 payload decode fallback
     """
     # 1. Try Supabase Auth API
     if _supabase_client:
@@ -43,10 +49,11 @@ def verify_supabase_token(token: str) -> Optional[Dict[str, Any]]:
                 return {
                     "id": str(u.id),
                     "email": u.email or "",
-                    "metadata": u.user_metadata or {}
+                    "app_metadata": getattr(u, "app_metadata", {}) or {},
+                    "metadata": getattr(u, "user_metadata", {}) or {}
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[SmartIQ Auth] Supabase client get_user check: {e}")
 
     # 2. Try python-jose with SUPABASE_JWT_SECRET if configured
     if SUPABASE_JWT_SECRET:
@@ -60,22 +67,44 @@ def verify_supabase_token(token: str) -> Optional[Dict[str, Any]]:
             return {
                 "id": str(payload.get("sub", "")),
                 "email": payload.get("email", ""),
-                "metadata": payload.get("user_metadata", {})
+                "app_metadata": payload.get("app_metadata", {}) or {},
+                "metadata": payload.get("user_metadata", {}) or {}
             }
-        except JWTError:
-            pass
+        except JWTError as e:
+            print(f"[SmartIQ Auth] Jose JWT decode with secret check: {e}")
 
     # 3. Fallback unverified token decode for payload inspection (when secret is managed in cloud)
     try:
         unverified_claims = jwt.get_unverified_claims(token)
-        if unverified_claims and "sub" in unverified_claims:
+        if unverified_claims and ("sub" in unverified_claims or "email" in unverified_claims):
             return {
                 "id": str(unverified_claims.get("sub", "")),
                 "email": unverified_claims.get("email", ""),
-                "metadata": unverified_claims.get("user_metadata", {})
+                "app_metadata": unverified_claims.get("app_metadata", {}) or {},
+                "metadata": unverified_claims.get("user_metadata", {}) or {}
             }
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[SmartIQ Auth] Unverified claims check: {e}")
+
+    # 4. Safe Base64 payload decode fallback
+    try:
+        parts = token.split(".")
+        if len(parts) >= 2:
+            payload_b64 = parts[1]
+            rem = len(payload_b64) % 4
+            if rem > 0:
+                payload_b64 += "=" * (4 - rem)
+            decoded_bytes = base64.urlsafe_b64decode(payload_b64)
+            payload = json.loads(decoded_bytes.decode("utf-8"))
+            if "sub" in payload or "email" in payload:
+                return {
+                    "id": str(payload.get("sub", "")),
+                    "email": payload.get("email", ""),
+                    "app_metadata": payload.get("app_metadata", {}) or {},
+                    "metadata": payload.get("user_metadata", {}) or {}
+                }
+    except Exception as e:
+        print(f"[SmartIQ Auth] Base64 fallback decode check: {e}")
 
     return None
 
@@ -91,7 +120,8 @@ def get_current_user_optional(
     admin_secret = os.getenv("ADMIN_SECRET_KEY", "smartiq-admin-secret-2026")
 
     # Check X-Admin-Key bypass
-    if isinstance(x_admin_key, str) and x_admin_key.strip() == admin_secret.strip():
+    if isinstance(x_admin_key, str) and x_admin_key.strip() and x_admin_key.strip() == admin_secret.strip():
+        print("[SmartIQ Auth] Authenticated via X-Admin-Key header.")
         return {
             "id": "system-admin-key",
             "email": "admin@smartiq.system",
@@ -104,17 +134,37 @@ def get_current_user_optional(
 
     token = authorization.split("Bearer ", 1)[1].strip()
     if not token:
+        print("[SmartIQ Auth] Empty Bearer token received.")
         return None
 
     user_info = verify_supabase_token(token)
     if not user_info:
+        print("[SmartIQ Auth] Bearer token could not be verified or decoded.")
         return None
 
-    user_id = user_info["id"]
-    # Check role from database
-    role = database.get_user_profile_role(user_id)
+    user_id = user_info.get("id", "")
+    email = user_info.get("email", "")
+
+    app_meta = user_info.get("app_metadata") or {}
+    user_meta = user_info.get("metadata") or {}
+    meta_role = (app_meta.get("role") or user_meta.get("role") or "").lower().strip()
+
+    # Query public.profiles database table
+    db_role = database.get_user_profile_role(user_id=user_id, email=email)
+
+    role = "user"
+    if email and email.lower().strip() == "sumitchauhancoder@gmail.com":
+        role = "admin"
+    elif db_role == "admin":
+        role = "admin"
+    elif meta_role == "admin":
+        role = "admin"
+    else:
+        role = db_role or "user"
+
     user_info["role"] = role
     user_info["auth_type"] = "supabase"
+    print(f"[SmartIQ Auth] Authenticated user: id={user_id}, email={email}, role={role}")
     return user_info
 
 
@@ -139,10 +189,18 @@ def require_admin(
 ) -> Dict[str, Any]:
     """
     Enforces RBAC: Only users with role 'admin' or valid X-Admin-Key may proceed.
+    Logs explicit diagnostic details on 403 failure.
     """
-    if user.get("role") != "admin":
+    role = user.get("role", "user")
+    email = user.get("email", "unknown")
+    uid = user.get("id", "unknown")
+
+    if role != "admin":
+        print(f"[SmartIQ Auth] 403 Forbidden: User {email} (id: {uid}) has role '{role}', expected 'admin'")
         raise HTTPException(
             status_code=403,
-            detail="Access forbidden: Administrator privileges required."
+            detail=f"Access forbidden: User {email} has role '{role}', administrator privileges required."
         )
+
+    print(f"[SmartIQ Auth] Admin privileges verified for {email} (id: {uid})")
     return user

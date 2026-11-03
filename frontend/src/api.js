@@ -5,6 +5,7 @@
  */
 
 import { getFallbackQuestions } from './data/fallbackQuestions';
+import { supabase } from './supabaseClient';
 
 let RAW_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://smartiq-9ilb.onrender.com';
 
@@ -98,16 +99,28 @@ export async function submitAnalysis(payload, token = null) {
 }
 
 /**
- * Generates appropriate authentication headers based on token or admin secret key.
+ * Resolves the active access token and returns appropriate authentication headers.
+ * Prefers the passed token; if missing or stale, fetches the fresh active Supabase session token.
  */
-function getAuthHeaders(tokenOrKey, extraHeaders = {}) {
+async function resolveAuthHeaders(tokenOrKey, extraHeaders = {}) {
   const headers = { ...extraHeaders };
-  if (!tokenOrKey) return headers;
+  let token = tokenOrKey;
 
-  if (typeof tokenOrKey === 'string' && (tokenOrKey.startsWith('ey') || tokenOrKey.length > 40)) {
-    headers['Authorization'] = `Bearer ${tokenOrKey}`;
-  } else {
-    headers['X-Admin-Key'] = tokenOrKey;
+  if (!token && supabase) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      token = session?.access_token;
+    } catch (e) {
+      console.warn('[SmartIQ Admin API] Failed retrieving active session token:', e);
+    }
+  }
+
+  if (token) {
+    if (typeof token === 'string' && (token.startsWith('ey') || token.length > 30)) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      headers['X-Admin-Key'] = token;
+    }
   }
   return headers;
 }
@@ -116,10 +129,13 @@ function getAuthHeaders(tokenOrKey, extraHeaders = {}) {
  * Admin API: Fetch all questions
  */
 export async function fetchAdminQuestions(tokenOrKey) {
-  const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
-    headers: getAuthHeaders(tokenOrKey)
-  });
-  if (!res.ok) throw new Error('Unauthorized or failed to fetch questions');
+  const headers = await resolveAuthHeaders(tokenOrKey, { 'Accept': 'application/json' });
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions`, { headers });
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed fetchAdminQuestions: HTTP ${res.status}`, errorText);
+    throw new Error(`Unauthorized or failed to fetch questions (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 
@@ -127,12 +143,20 @@ export async function fetchAdminQuestions(tokenOrKey) {
  * Admin API: Create question
  */
 export async function createAdminQuestion(questionData, tokenOrKey) {
+  const headers = await resolveAuthHeaders(tokenOrKey, {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
   const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
     method: 'POST',
-    headers: getAuthHeaders(tokenOrKey, { 'Content-Type': 'application/json' }),
+    headers,
     body: JSON.stringify(questionData),
   });
-  if (!res.ok) throw new Error('Failed to create question');
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed createAdminQuestion: HTTP ${res.status}`, errorText);
+    throw new Error(`Failed to create question (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 
@@ -140,12 +164,20 @@ export async function createAdminQuestion(questionData, tokenOrKey) {
  * Admin API: Update existing question (Real-time CRUD)
  */
 export async function updateAdminQuestion(id, questionData, tokenOrKey) {
+  const headers = await resolveAuthHeaders(tokenOrKey, {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
   const res = await fetch(`${API_BASE_URL}/api/admin/questions/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(tokenOrKey, { 'Content-Type': 'application/json' }),
+    headers,
     body: JSON.stringify(questionData),
   });
-  if (!res.ok) throw new Error('Failed to update question');
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed updateAdminQuestion: HTTP ${res.status}`, errorText);
+    throw new Error(`Failed to update question (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 
@@ -153,11 +185,16 @@ export async function updateAdminQuestion(id, questionData, tokenOrKey) {
  * Admin API: Delete question
  */
 export async function deleteAdminQuestion(id, tokenOrKey) {
+  const headers = await resolveAuthHeaders(tokenOrKey, { 'Accept': 'application/json' });
   const res = await fetch(`${API_BASE_URL}/api/admin/questions/${id}`, {
     method: 'DELETE',
-    headers: getAuthHeaders(tokenOrKey)
+    headers,
   });
-  if (!res.ok) throw new Error('Failed to delete question');
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed deleteAdminQuestion: HTTP ${res.status}`, errorText);
+    throw new Error(`Failed to delete question (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 
@@ -165,10 +202,13 @@ export async function deleteAdminQuestion(id, tokenOrKey) {
  * Admin API: Fetch platform statistics
  */
 export async function fetchAdminStats(tokenOrKey) {
-  const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
-    headers: getAuthHeaders(tokenOrKey)
-  });
-  if (!res.ok) throw new Error('Unauthorized or failed to fetch stats');
+  const headers = await resolveAuthHeaders(tokenOrKey, { 'Accept': 'application/json' });
+  const res = await fetch(`${API_BASE_URL}/api/admin/stats`, { headers });
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed fetchAdminStats: HTTP ${res.status}`, errorText);
+    throw new Error(`Unauthorized or failed to fetch stats (${res.status}): ${errorText}`);
+  }
   return res.json();
 }
 

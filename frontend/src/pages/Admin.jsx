@@ -50,15 +50,14 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
   });
   const [formStatus, setFormStatus] = useState({ message: '', isError: false });
 
-  // Load dashboard whenever admin status & token are valid
+  // Load dashboard whenever admin status or token changes
   useEffect(() => {
-    if (isAdmin && token) {
+    if (isAdmin) {
       loadDashboard();
     }
   }, [isAdmin, token]);
 
   const loadDashboard = async () => {
-    if (!token) return;
     setLoading(true);
     setLoadError('');
     try {
@@ -74,8 +73,8 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
         setStats(statsRes.data);
       }
     } catch (err) {
-      console.error(err);
-      setLoadError('Failed loading management dashboard. Please verify connection and administrator permissions.');
+      console.error('[Admin Console] Load failure:', err);
+      setLoadError(err?.message || 'Failed loading management dashboard. Please verify connection and administrator permissions.');
     } finally {
       setLoading(false);
     }

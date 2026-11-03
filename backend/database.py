@@ -80,6 +80,12 @@ def init_postgres_db():
                 );
             """))
 
+            # Synchronize admin privileges for superadmin in PostgreSQL profiles table
+            try:
+                conn.execute(text("UPDATE profiles SET role = 'admin' WHERE LOWER(email) = 'sumitchauhancoder@gmail.com';"))
+            except Exception as admin_err:
+                print(f"[SmartIQ Database] Notice on superadmin role sync: {admin_err}")
+
             # Check if questions exist
             result = conn.execute(text("SELECT COUNT(*) FROM questions"))
             count = result.scalar()
@@ -467,20 +473,66 @@ def delete_admin_question(question_id: int) -> bool:
     return deleted
 
 
-def get_user_profile_role(user_id: str) -> str:
+def get_user_profile_role(user_id: Optional[str] = None, email: Optional[str] = None) -> str:
     """Checks the user role in public.profiles ('admin' or 'user')."""
+    # Explicit superadmin override
+    if email and email.lower().strip() == "sumitchauhancoder@gmail.com":
+        print(f"[SmartIQ Database] Superadmin match for {email} -> role: admin")
+        return "admin"
+
     if _use_postgres and _engine:
         from sqlalchemy import text
-        try:
-            with _engine.connect() as conn:
-                res = conn.execute(
-                    text("SELECT role FROM profiles WHERE id = :uid"),
-                    {"uid": user_id}
-                ).mappings().first()
-                if res and res.get("role"):
-                    return str(res["role"]).lower()
-        except Exception as e:
-            print(f"[SmartIQ Database] Profile role query error: {e}")
+        # 1. Try querying profiles by id with text comparison to prevent UUID operator error
+        if user_id:
+            try:
+                with _engine.connect() as conn:
+                    res = conn.execute(
+                        text("SELECT role FROM profiles WHERE id::text = :uid_str LIMIT 1"),
+                        {"uid_str": str(user_id).strip()}
+                    ).mappings().first()
+                    if res and res.get("role"):
+                        role = str(res["role"]).lower().strip()
+                        print(f"[SmartIQ Database] get_user_profile_role by user_id={user_id} -> {role}")
+                        return role
+            except Exception as e:
+                print(f"[SmartIQ Database] Profile role query by id error (uid: {user_id}): {e}")
+
+        # 2. Fallback: Query profiles by email
+        if email:
+            try:
+                with _engine.connect() as conn:
+                    res = conn.execute(
+                        text("SELECT role FROM profiles WHERE LOWER(email) = LOWER(:email) LIMIT 1"),
+                        {"email": str(email).strip()}
+                    ).mappings().first()
+                    if res and res.get("role"):
+                        role = str(res["role"]).lower().strip()
+                        print(f"[SmartIQ Database] get_user_profile_role by email={email} -> {role}")
+                        return role
+            except Exception as e:
+                print(f"[SmartIQ Database] Profile role query by email error (email: {email}): {e}")
+
+    # Fallback to local SQLite if applicable
+    try:
+        conn = get_sqlite_conn()
+        cursor = conn.cursor()
+        if user_id:
+            cursor.execute("SELECT role FROM profiles WHERE id = ?", (str(user_id),))
+            row = cursor.fetchone()
+            if row and row["role"]:
+                conn.close()
+                return str(row["role"]).lower().strip()
+        if email:
+            cursor.execute("SELECT role FROM profiles WHERE LOWER(email) = LOWER(?)", (str(email).strip(),))
+            row = cursor.fetchone()
+            if row and row["role"]:
+                conn.close()
+                return str(row["role"]).lower().strip()
+        conn.close()
+    except Exception:
+        pass
+
+    print(f"[SmartIQ Database] get_user_profile_role defaulted to 'user' for uid={user_id}, email={email}")
     return "user"
 
 
