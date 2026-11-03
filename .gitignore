@@ -1,0 +1,30 @@
+# Node dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+*.sqlite3
+*.db
+
+# Environment variables
+.env
+.env.production
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
