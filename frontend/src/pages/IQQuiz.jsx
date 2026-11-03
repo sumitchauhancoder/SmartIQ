@@ -10,6 +10,7 @@ import {
 import Timer from '../components/Timer';
 import AntiCheatAlert from '../components/AntiCheatAlert';
 import { fetchQuestions } from '../api';
+import { getFallbackQuestions } from '../data/fallbackQuestions';
 
 export default function IQQuiz({ onComplete, onTabSwitch, tabSwitchCount = 0 }) {
   const [questions, setQuestions] = useState([]);
@@ -42,9 +43,15 @@ export default function IQQuiz({ onComplete, onTabSwitch, tabSwitchCount = 0 }) 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const data = await fetchQuestions('IQ', 5);
-      if (data && data.length > 0) {
-        setQuestions(data);
+      try {
+        const data = await fetchQuestions('IQ', 5);
+        if (data && data.length > 0) {
+          setQuestions(data);
+        } else {
+          setQuestions(getFallbackQuestions('IQ', 5));
+        }
+      } catch (e) {
+        setQuestions(getFallbackQuestions('IQ', 5));
       }
       setLoading(false);
     }

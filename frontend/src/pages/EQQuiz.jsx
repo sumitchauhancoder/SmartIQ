@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import AntiCheatAlert from '../components/AntiCheatAlert';
 import { fetchQuestions, submitAnalysis, getSessionId } from '../api';
+import { getFallbackQuestions } from '../data/fallbackQuestions';
 
 export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount = 0 }) {
   const [questions, setQuestions] = useState([]);
@@ -43,9 +44,15 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const data = await fetchQuestions('EQ', 5);
-      if (data && data.length > 0) {
-        setQuestions(data);
+      try {
+        const data = await fetchQuestions('EQ', 5);
+        if (data && data.length > 0) {
+          setQuestions(data);
+        } else {
+          setQuestions(getFallbackQuestions('EQ', 5));
+        }
+      } catch (e) {
+        setQuestions(getFallbackQuestions('EQ', 5));
       }
       setLoading(false);
     }

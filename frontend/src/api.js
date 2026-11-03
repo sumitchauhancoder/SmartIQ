@@ -1,9 +1,20 @@
 /**
  * SmartIQ API Client & Session Manager
  * Handles API interaction with FastAPI backend and local session state.
+ * Equipped with automatic mobile fallback mechanisms for offline / high-latency connections.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { getFallbackQuestions } from './data/fallbackQuestions';
+
+let RAW_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://smartiq-9ilb.onrender.com';
+
+// Sanitize in case markdown URL syntax was inadvertently supplied
+if (RAW_URL.includes('[') || RAW_URL.includes('(')) {
+  const match = RAW_URL.match(/https?:\/\/[^\s)\]]+/);
+  if (match) RAW_URL = match[0];
+}
+
+export const API_BASE_URL = RAW_URL.replace(/\/+$/, '');
 
 /**
  * Gets or creates an anonymous session UUID stored in localStorage.
@@ -19,36 +30,64 @@ export function getSessionId() {
 
 /**
  * Fetches randomized questions for either 'IQ' or 'EQ'.
+ * Implements a 7s timeout for slow mobile networks and gracefully falls back to local questions.
  */
 export async function fetchQuestions(type, limit = 5) {
   try {
-    const res = await fetch(`${API_BASE}/api/questions?type=${type}&limit=${limit}`);
-    if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-    const data = await res.json();
-    return data.data;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout for mobile connections
+
+    const response = await fetch(`${API_BASE_URL}/api/questions?type=${type}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const list = Array.isArray(data) ? data : (data?.data || []);
+
+    if (Array.isArray(list) && list.length > 0) {
+      return list;
+    }
+    throw new Error('Empty question array returned from server');
   } catch (err) {
-    console.warn(`[SmartIQ] Backend fetch failed for ${type}, using bundled local pool:`, err);
-    return null;
+    console.warn(`[SmartIQ] Failed fetching from API (${err.message}). Using local fallback questions.`);
+    return getFallbackQuestions(type, limit);
   }
 }
 
 /**
  * Sends test results to the backend for LLM mind archetype synthesis.
+ * Uses a 12s timeout for Render free-tier latency before falling back to local deterministic calculation.
  */
 export async function submitAnalysis(payload) {
   try {
-    const res = await fetch(`${API_BASE}/api/analyze`, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(payload),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
+
     if (!res.ok) throw new Error(`Analysis request failed: ${res.status}`);
     const json = await res.json();
-    return json.data;
+    return json.data || json;
   } catch (err) {
-    console.warn('[SmartIQ] Remote LLM analysis failed; falling back to local deterministic engine:', err);
+    console.warn('[SmartIQ] Remote LLM analysis unavailable or timed out; activating local psychometric engine:', err);
     return computeLocalArchetype(payload);
   }
 }
@@ -57,7 +96,7 @@ export async function submitAnalysis(payload) {
  * Admin API: Fetch all questions
  */
 export async function fetchAdminQuestions(adminKey) {
-  const res = await fetch(`${API_BASE}/api/admin/questions`, {
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
     headers: { 'X-Admin-Key': adminKey }
   });
   if (!res.ok) throw new Error('Unauthorized or failed to fetch questions');
@@ -68,7 +107,7 @@ export async function fetchAdminQuestions(adminKey) {
  * Admin API: Create question
  */
 export async function createAdminQuestion(questionData, adminKey) {
-  const res = await fetch(`${API_BASE}/api/admin/questions`, {
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -84,7 +123,7 @@ export async function createAdminQuestion(questionData, adminKey) {
  * Admin API: Delete question
  */
 export async function deleteAdminQuestion(id, adminKey) {
-  const res = await fetch(`${API_BASE}/api/admin/questions/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions/${id}`, {
     method: 'DELETE',
     headers: { 'X-Admin-Key': adminKey }
   });
@@ -96,7 +135,7 @@ export async function deleteAdminQuestion(id, adminKey) {
  * Admin API: Fetch platform statistics
  */
 export async function fetchAdminStats(adminKey) {
-  const res = await fetch(`${API_BASE}/api/admin/stats`, {
+  const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
     headers: { 'X-Admin-Key': adminKey }
   });
   if (!res.ok) throw new Error('Unauthorized or failed to fetch stats');
