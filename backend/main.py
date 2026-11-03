@@ -1,7 +1,8 @@
 """
 SmartIQ Backend API
 FastAPI service managing psychometric tests, anti-cheat audit logs,
-AI Mind Archetype generation (Groq AI / Deterministic fallback), and Admin CRUD operations.
+AI Mind Archetype generation (Groq AI / Deterministic fallback),
+Supabase PostgreSQL persistence, Supabase Auth validation, and Admin CRUD operations with RBAC.
 """
 
 import os
@@ -16,24 +17,24 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 import database
+import auth
 
 load_dotenv()
 
-ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "smartiq-admin-secret-2026")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite database with seed data if empty
+    # Initialize database (Supabase PostgreSQL if DATABASE_URL present, else local SQLite)
     database.init_db()
     yield
 
 
 app = FastAPI(
     title="SmartIQ API",
-    description="Psychometric Assessment & AI Mind Archetype Analytics",
-    version="1.0.0",
+    description="Psychometric Assessment & AI Mind Archetype Analytics with Supabase RBAC",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -57,6 +58,7 @@ app.add_middleware(
 # =============================================================================
 class QuizSubmission(BaseModel):
     session_id: str
+    user_id: Optional[str] = None
     iq_score: int
     iq_breakdown: Dict[str, int] = Field(default_factory=dict)
     eq_score: int
@@ -99,15 +101,6 @@ class ArchetypeAnalysis(BaseModel):
 
 
 # =============================================================================
-# Authentication Dependency
-# =============================================================================
-def verify_admin_key(x_admin_key: Optional[str] = Header(None)):
-    if not x_admin_key or x_admin_key != ADMIN_SECRET_KEY:
-        raise HTTPException(status_code=401, detail="Invalid or missing X-Admin-Key")
-    return True
-
-
-# =============================================================================
 # Local Deterministic Fallback Engine
 # =============================================================================
 def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, Any]:
@@ -118,7 +111,6 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
     iq = submission.iq_score
     eq = submission.eq_score
 
-    # Archetype derivation matrix
     if iq >= 120 and eq >= 115:
         archetype = "The Mastermind Diplomat"
         summary = "You demonstrate rare dual-hemisphere mastery, effortlessly synthesizing complex analytical problem-solving with high-empathy leadership."
@@ -140,7 +132,6 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
         cog_edge = "Methodical step-by-step reasoning with practical risk assessment."
         eq_style = "Steady and reliable emotional demeanor, avoiding reactive impulses during sudden disruptions."
 
-    # Sub-category personalized insights
     growth_habits = [
         {
             "habit": "Dual-N-Back Working Memory Protocol",
@@ -159,7 +150,6 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
         }
     ]
 
-    # Mistake breakdowns
     mistakes = []
     for item in submission.incorrect_questions:
         q_text = item.get("question_text", "Logic Problem")
@@ -199,7 +189,6 @@ def parse_ai_json(raw_text: str) -> Optional[Dict[str, Any]]:
         clean = match.group(1).strip()
     try:
         data = json.loads(clean)
-        # Validate critical keys
         if "archetype_title" in data and "core_summary" in data and "growth_habits" in data:
             return data
     except Exception:
@@ -223,7 +212,6 @@ Incorrect Questions: {json.dumps(submission.incorrect_questions[:4])}
 
 Output ONLY valid JSON with keys: archetype_title, core_summary, cognitive_edge, emotional_profile, growth_habits (array of {{"habit", "frequency", "action"}}), mistake_analyses (array of {{"question", "why_wrong", "cognitive_bias"}}).
 """
-        # Try active models: openai/gpt-oss-20b with fallback to qwen/qwen3.8-27b
         for model_id in ["openai/gpt-oss-20b", "qwen/qwen3.8-27b"]:
             try:
                 completion = client.chat.completions.create(
@@ -255,12 +243,19 @@ def read_root():
     return {
         "platform": "SmartIQ",
         "status": "operational",
-        "version": "1.0.0",
+        "version": "1.1.0",
+        "database": "PostgreSQL (Supabase)" if database._use_postgres else "SQLite (Local Fallback)",
         "ai_providers": {
             "groq_active": bool(GROQ_API_KEY),
             "deterministic_fallback": True
         }
     }
+
+
+@app.get("/api/auth/me")
+async def get_me(user: Dict[str, Any] = Depends(auth.get_current_user)):
+    """Returns the authenticated user's profile and RBAC role."""
+    return {"status": "success", "user": user}
 
 
 @app.get("/api/questions")
@@ -270,7 +265,7 @@ def get_questions(
 ):
     """
     Fetches randomized active questions for the test session.
-    IQ pool guarantees questions across Logic, Math, and Spatial.
+    Pool queries PostgreSQL or SQLite fallback.
     """
     questions = database.get_active_questions(category_type=type, limit=limit, randomize=True)
     return {"status": "success", "count": len(questions), "data": questions}
@@ -280,7 +275,7 @@ def get_questions(
 async def analyze_submission(submission: QuizSubmission):
     """
     Processes test scores, queries Groq -> Local Deterministic Engine,
-    and records the session data into SQLite.
+    and records the session data into PostgreSQL / SQLite.
     """
     # 1. Attempt Groq
     result = await analyze_with_groq(submission)
@@ -289,10 +284,11 @@ async def analyze_submission(submission: QuizSubmission):
     if not result:
         result = generate_deterministic_archetype(submission)
 
-    # Save to SQLite database
+    # Save to database
     try:
         database.record_submission(
             session_id=submission.session_id,
+            user_id=submission.user_id,
             iq_score=submission.iq_score,
             iq_breakdown=submission.iq_breakdown,
             eq_score=submission.eq_score,
@@ -310,18 +306,18 @@ async def analyze_submission(submission: QuizSubmission):
 
 
 # =============================================================================
-# Admin Endpoints (Protected via X-Admin-Key)
+# Admin Endpoints (Protected via Supabase RBAC or X-Admin-Key)
 # =============================================================================
 
 @app.get("/api/admin/questions")
-def get_admin_questions(auth: bool = Depends(verify_admin_key)):
+def get_admin_questions(admin: Dict[str, Any] = Depends(auth.require_admin)):
     """Returns the full master question pool for administrator management."""
     questions = database.get_all_questions_admin()
     return {"status": "success", "count": len(questions), "data": questions}
 
 
 @app.post("/api/admin/questions")
-def create_question(question: AdminQuestion, auth: bool = Depends(verify_admin_key)):
+def create_question(question: AdminQuestion, admin: Dict[str, Any] = Depends(auth.require_admin)):
     """Inserts a new question into the pool."""
     new_id = database.add_admin_question(
         category_type=question.category_type,
@@ -336,8 +332,31 @@ def create_question(question: AdminQuestion, auth: bool = Depends(verify_admin_k
     return {"status": "success", "id": new_id, "message": "Question added successfully"}
 
 
+@app.put("/api/admin/questions/{question_id}")
+def update_question(
+    question_id: int,
+    question: AdminQuestion,
+    admin: Dict[str, Any] = Depends(auth.require_admin)
+):
+    """Updates an existing question in the pool."""
+    updated = database.update_admin_question(
+        question_id=question_id,
+        category_type=question.category_type,
+        sub_category=question.sub_category,
+        question_text=question.question_text,
+        options=question.options,
+        correct_answer_index=question.correct_answer_index,
+        explanation=question.explanation,
+        diagram_svg=question.diagram_svg,
+        points=question.points
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Question not found")
+    return {"status": "success", "message": "Question updated successfully"}
+
+
 @app.delete("/api/admin/questions/{question_id}")
-def delete_question(question_id: int, auth: bool = Depends(verify_admin_key)):
+def delete_question(question_id: int, admin: Dict[str, Any] = Depends(auth.require_admin)):
     """Deletes a question from the pool."""
     deleted = database.delete_admin_question(question_id)
     if not deleted:
@@ -346,7 +365,7 @@ def delete_question(question_id: int, auth: bool = Depends(verify_admin_key)):
 
 
 @app.get("/api/admin/stats")
-def get_admin_stats(auth: bool = Depends(verify_admin_key)):
+def get_admin_stats(admin: Dict[str, Any] = Depends(auth.require_admin)):
     """Returns aggregated platform metrics, distributions, and tab switch frequencies."""
     stats = database.get_admin_stats()
     return {"status": "success", "data": stats}

@@ -67,17 +67,22 @@ export async function fetchQuestions(type, limit = 5) {
  * Sends test results to the backend for LLM mind archetype synthesis.
  * Uses a 12s timeout for Render free-tier latency before falling back to local deterministic calculation.
  */
-export async function submitAnalysis(payload) {
+export async function submitAnalysis(payload, token = null) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE_URL}/api/analyze`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers,
       body: JSON.stringify(payload),
       signal: controller.signal
     });
@@ -93,11 +98,26 @@ export async function submitAnalysis(payload) {
 }
 
 /**
+ * Generates appropriate authentication headers based on token or admin secret key.
+ */
+function getAuthHeaders(tokenOrKey, extraHeaders = {}) {
+  const headers = { ...extraHeaders };
+  if (!tokenOrKey) return headers;
+
+  if (typeof tokenOrKey === 'string' && (tokenOrKey.startsWith('ey') || tokenOrKey.length > 40)) {
+    headers['Authorization'] = `Bearer ${tokenOrKey}`;
+  } else {
+    headers['X-Admin-Key'] = tokenOrKey;
+  }
+  return headers;
+}
+
+/**
  * Admin API: Fetch all questions
  */
-export async function fetchAdminQuestions(adminKey) {
+export async function fetchAdminQuestions(tokenOrKey) {
   const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
-    headers: { 'X-Admin-Key': adminKey }
+    headers: getAuthHeaders(tokenOrKey)
   });
   if (!res.ok) throw new Error('Unauthorized or failed to fetch questions');
   return res.json();
@@ -106,13 +126,10 @@ export async function fetchAdminQuestions(adminKey) {
 /**
  * Admin API: Create question
  */
-export async function createAdminQuestion(questionData, adminKey) {
+export async function createAdminQuestion(questionData, tokenOrKey) {
   const res = await fetch(`${API_BASE_URL}/api/admin/questions`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Admin-Key': adminKey
-    },
+    headers: getAuthHeaders(tokenOrKey, { 'Content-Type': 'application/json' }),
     body: JSON.stringify(questionData),
   });
   if (!res.ok) throw new Error('Failed to create question');
@@ -120,12 +137,25 @@ export async function createAdminQuestion(questionData, adminKey) {
 }
 
 /**
+ * Admin API: Update existing question (Real-time CRUD)
+ */
+export async function updateAdminQuestion(id, questionData, tokenOrKey) {
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(tokenOrKey, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(questionData),
+  });
+  if (!res.ok) throw new Error('Failed to update question');
+  return res.json();
+}
+
+/**
  * Admin API: Delete question
  */
-export async function deleteAdminQuestion(id, adminKey) {
+export async function deleteAdminQuestion(id, tokenOrKey) {
   const res = await fetch(`${API_BASE_URL}/api/admin/questions/${id}`, {
     method: 'DELETE',
-    headers: { 'X-Admin-Key': adminKey }
+    headers: getAuthHeaders(tokenOrKey)
   });
   if (!res.ok) throw new Error('Failed to delete question');
   return res.json();
@@ -134,9 +164,9 @@ export async function deleteAdminQuestion(id, adminKey) {
 /**
  * Admin API: Fetch platform statistics
  */
-export async function fetchAdminStats(adminKey) {
+export async function fetchAdminStats(tokenOrKey) {
   const res = await fetch(`${API_BASE_URL}/api/admin/stats`, {
-    headers: { 'X-Admin-Key': adminKey }
+    headers: getAuthHeaders(tokenOrKey)
   });
   if (!res.ok) throw new Error('Unauthorized or failed to fetch stats');
   return res.json();

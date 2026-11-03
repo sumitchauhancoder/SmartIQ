@@ -11,8 +11,10 @@ import {
 import AntiCheatAlert from '../components/AntiCheatAlert';
 import { fetchQuestions, submitAnalysis, getSessionId } from '../api';
 import { getFallbackQuestions } from '../data/fallbackQuestions';
+import { useAuth } from '../context/AuthContext';
 
 export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount = 0 }) {
+  const { user, token } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -124,6 +126,7 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
 
     const submissionPayload = {
       session_id: sessionId,
+      user_id: user?.id || null,
       iq_score: iqData?.iq_score || 105,
       iq_breakdown: iqData?.iq_breakdown || { Logic: 75, Math: 70, Spatial: 80 },
       eq_score: eqScore,
@@ -133,7 +136,7 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
     };
 
     // Synthesize analysis via Backend (Groq / Fallback)
-    const aiAnalysis = await submitAnalysis(submissionPayload);
+    const aiAnalysis = await submitAnalysis(submissionPayload, token);
 
     setAnalyzing(false);
 

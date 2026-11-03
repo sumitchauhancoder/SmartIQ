@@ -5,25 +5,28 @@ import {
   Key, 
   PlusCircle, 
   Trash2, 
+  Edit3, 
   RefreshCw, 
   BarChart, 
   Users, 
   TrendingUp, 
   AlertTriangle, 
   Search, 
-  Filter,
   CheckCircle2,
-  XCircle,
-  HelpCircle
+  X,
+  UserCheck
 } from 'lucide-react';
 import { 
   fetchAdminQuestions, 
   createAdminQuestion, 
+  updateAdminQuestion, 
   deleteAdminQuestion, 
   fetchAdminStats 
 } from '../api';
+import { useAuth } from '../context/AuthContext';
 
-export default function Admin() {
+export default function Admin({ onOpenAuth }) {
+  const { user, role, isAdmin, token } = useAuth();
   const [adminKey, setAdminKey] = useState(() => sessionStorage.getItem('smartiq_admin_key') || '');
   const [keyInput, setKeyInput] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
@@ -37,8 +40,9 @@ export default function Admin() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // New question form state
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  // Form state for Create / Edit
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [formData, setFormData] = useState({
     category_type: 'IQ',
     sub_category: 'Logic',
@@ -50,20 +54,26 @@ export default function Admin() {
   });
   const [formStatus, setFormStatus] = useState({ message: '', isError: false });
 
-  // Check initial authentication
+  // Get active credential: User JWT token (if admin) or Admin Key
+  const activeCredential = (isAdmin && token) ? token : adminKey;
+
+  // Auto-authenticate if user has role 'admin' in Supabase Auth
   useEffect(() => {
-    if (adminKey) {
+    if (isAdmin && token) {
+      loadDashboard(token);
+    } else if (adminKey) {
       loadDashboard(adminKey);
     }
-  }, [adminKey]);
+  }, [isAdmin, token, adminKey]);
 
-  const loadDashboard = async (key) => {
+  const loadDashboard = async (credential) => {
+    if (!credential) return;
     setLoading(true);
     setAuthError('');
     try {
       const [questionsRes, statsRes] = await Promise.all([
-        fetchAdminQuestions(key),
-        fetchAdminStats(key)
+        fetchAdminQuestions(credential),
+        fetchAdminStats(credential)
       ]);
 
       if (questionsRes?.status === 'success') {
@@ -73,17 +83,19 @@ export default function Admin() {
         setStats(statsRes.data);
       }
       setAuthenticated(true);
-      sessionStorage.setItem('smartiq_admin_key', key);
+      if (credential !== token) {
+        sessionStorage.setItem('smartiq_admin_key', credential);
+      }
     } catch (err) {
       console.error(err);
       setAuthenticated(false);
-      setAuthError('Authentication failed. Please verify your administrative security key.');
+      setAuthError('Authentication failed. Please verify credentials or Supabase administrator role.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = (e) => {
+  const handleKeyLogin = (e) => {
     e.preventDefault();
     if (!keyInput.trim()) return;
     setAdminKey(keyInput.trim());
@@ -99,11 +111,44 @@ export default function Admin() {
   const handleDelete = async (id) => {
     if (!window.confirm(`Are you sure you want to permanently delete question #${id}?`)) return;
     try {
-      await deleteAdminQuestion(id, adminKey);
+      await deleteAdminQuestion(id, activeCredential);
       setQuestions((prev) => prev.filter((q) => q.id !== id));
     } catch (err) {
-      alert('Failed to delete question.');
+      alert('Failed to delete question. Ensure your administrator privileges are active.');
     }
+  };
+
+  const handleOpenCreate = () => {
+    setEditingQuestionId(null);
+    setFormData({
+      category_type: 'IQ',
+      sub_category: 'Logic',
+      question_text: '',
+      options: ['', '', '', ''],
+      correct_answer_index: 0,
+      explanation: '',
+      diagram_svg: ''
+    });
+    setFormStatus({ message: '', isError: false });
+    setShowFormModal(true);
+  };
+
+  const handleOpenEdit = (q) => {
+    setEditingQuestionId(q.id);
+    const opts = Array.isArray(q.options) ? q.options : ['', '', '', ''];
+    while (opts.length < 4) opts.push('');
+
+    setFormData({
+      category_type: q.category_type || 'IQ',
+      sub_category: q.sub_category || 'Logic',
+      question_text: q.question_text || '',
+      options: opts.slice(0, 4),
+      correct_answer_index: q.correct_answer_index !== undefined ? q.correct_answer_index : 0,
+      explanation: q.explanation || '',
+      diagram_svg: q.diagram_svg || ''
+    });
+    setFormStatus({ message: '', isError: false });
+    setShowFormModal(true);
   };
 
   const handleFormOptionChange = (index, value) => {
@@ -112,12 +157,12 @@ export default function Admin() {
     setFormData({ ...formData, options: updated });
   };
 
-  const handleCreateSubmit = async (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
     setFormStatus({ message: '', isError: false });
 
     if (!formData.question_text || formData.options.some((opt) => !opt.trim())) {
-      setFormStatus({ message: 'Please populate question text and all 4 response choices.', isError: true });
+      setFormStatus({ message: 'Please provide question text and all 4 response choices.', isError: true });
       return;
     }
 
@@ -126,23 +171,23 @@ export default function Admin() {
         ...formData,
         diagram_svg: formData.diagram_svg.trim() || null
       };
-      const res = await createAdminQuestion(payload, adminKey);
-      if (res.status === 'success') {
+
+      if (editingQuestionId) {
+        // Update existing question
+        await updateAdminQuestion(editingQuestionId, payload, activeCredential);
+        setFormStatus({ message: 'Question updated successfully!', isError: false });
+      } else {
+        // Create new question
+        await createAdminQuestion(payload, activeCredential);
         setFormStatus({ message: 'Question created successfully!', isError: false });
-        setShowCreateForm(false);
-        setFormData({
-          category_type: 'IQ',
-          sub_category: 'Logic',
-          question_text: '',
-          options: ['', '', '', ''],
-          correct_answer_index: 0,
-          explanation: '',
-          diagram_svg: ''
-        });
-        loadDashboard(adminKey);
       }
+
+      setTimeout(() => {
+        setShowFormModal(false);
+        loadDashboard(activeCredential);
+      }, 800);
     } catch (err) {
-      setFormStatus({ message: err.message || 'Creation failed.', isError: true });
+      setFormStatus({ message: err.message || 'Operation failed.', isError: true });
     }
   };
 
@@ -155,7 +200,7 @@ export default function Admin() {
     return matchesCat && matchesSearch;
   });
 
-  // Password / Login Modal
+  // Password / Login Modal (Shown if not authenticated via role or key)
   if (!authenticated) {
     return (
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center p-4">
@@ -164,12 +209,39 @@ export default function Admin() {
             <Lock className="w-6 h-6" />
           </div>
 
-          <h2 className="text-2xl font-bold text-center text-white mb-2">Admin Intelligence Console</h2>
+          <h2 className="text-2xl font-bold text-center text-white mb-2">Admin Console</h2>
           <p className="text-xs text-slate-400 text-center mb-6">
-            Enter the authorized <code className="text-indigo-400 font-mono">X-Admin-Key</code> to manage psychometric question banks and examine bell curves.
+            Authenticate using your Supabase Administrator account or supply the authorized <code className="text-indigo-400 font-mono">X-Admin-Key</code>.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          {/* Option A: Supabase Sign In */}
+          {user && !isAdmin && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-950/50 border border-amber-600/40 text-amber-200 text-xs">
+              <p className="font-semibold mb-1">Signed in as: {user.email}</p>
+              <p className="text-slate-300">
+                Your current role is <span className="font-mono text-amber-300">{role}</span>. An <span className="font-mono text-emerald-400">admin</span> role in <code className="font-mono">public.profiles</code> or the Secret Key is required to enter.
+              </p>
+            </div>
+          )}
+
+          {!user && (
+            <div className="mb-6">
+              <button
+                onClick={onOpenAuth}
+                className="w-full py-3 rounded-xl font-bold text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 transition-all flex items-center justify-center gap-2"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>Sign in with Supabase Admin Account</span>
+              </button>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800"></div></div>
+                <div className="relative flex justify-center text-[10px] uppercase font-mono"><span className="bg-slate-950 px-2 text-slate-500">or enter secret key</span></div>
+              </div>
+            </div>
+          )}
+
+          {/* Option B: Key Input */}
+          <form onSubmit={handleKeyLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Admin Secret Key
@@ -201,12 +273,6 @@ export default function Admin() {
               {loading ? 'Verifying Credentials...' : 'Authenticate Console'}
             </button>
           </form>
-
-          <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-            <span className="text-[11px] text-slate-500 font-mono">
-              Default Key: smartiq-admin-secret-2026
-            </span>
-          </div>
         </div>
       </div>
     );
@@ -219,16 +285,21 @@ export default function Admin() {
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Shield className="w-6 h-6 text-indigo-400" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">SmartIQ Admin Console</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">SmartIQ Dynamic Admin Console</h1>
           </div>
           <p className="text-xs text-slate-400">
-            Psychometric pool management, live telemetry distributions, and anti-cheat audit logs.
+            Real-time Supabase PostgreSQL question CRUD, telemetry bell curves, and anti-cheat audit logs.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {user && isAdmin && (
+            <span className="text-xs px-3 py-1.5 rounded-xl bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+              Supabase RBAC: {user.email}
+            </span>
+          )}
           <button
-            onClick={() => loadDashboard(adminKey)}
+            onClick={() => loadDashboard(activeCredential)}
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors"
           >
@@ -294,7 +365,7 @@ export default function Admin() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search question text or category..."
+              placeholder="Search questions or sub-category..."
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
             <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
@@ -317,158 +388,174 @@ export default function Admin() {
         </div>
 
         <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
+          onClick={handleOpenCreate}
           className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>{showCreateForm ? 'Cancel Creation' : 'Create New Question'}</span>
+          <span>Create New Question</span>
         </button>
       </div>
 
-      {/* Question Creation Drawer / Form */}
-      {showCreateForm && (
-        <form onSubmit={handleCreateSubmit} className="glass-panel p-6 rounded-3xl border border-indigo-500/40 mb-8 space-y-4">
-          <h3 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-            <PlusCircle className="w-4 h-4 text-indigo-400" />
-            <span>Add New Psychometric Assessment Item</span>
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Assessment Type</label>
-              <select
-                value={formData.category_type}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFormData({
-                    ...formData,
-                    category_type: val,
-                    sub_category: val === 'IQ' ? 'Logic' : 'Self-Awareness'
-                  });
-                }}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+      {/* Create / Edit Question Modal */}
+      {showFormModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+          <form 
+            onSubmit={handleFormSubmit} 
+            className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/40 max-w-2xl w-full shadow-2xl my-8 space-y-4 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                {editingQuestionId ? <Edit3 className="w-4 h-4 text-indigo-400" /> : <PlusCircle className="w-4 h-4 text-emerald-400" />}
+                <span>{editingQuestionId ? `Edit Question #${editingQuestionId}` : 'Add New Question to Cloud Database'}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowFormModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
               >
-                <option value="IQ">IQ (Cognitive)</option>
-                <option value="EQ">EQ (Emotional)</option>
-              </select>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Assessment Type</label>
+                <select
+                  value={formData.category_type}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData({
+                      ...formData,
+                      category_type: val,
+                      sub_category: val === 'IQ' ? 'Logic' : 'Self-Awareness'
+                    });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="IQ">IQ (Cognitive)</option>
+                  <option value="EQ">EQ (Emotional)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Sub-Category</label>
+                <select
+                  value={formData.sub_category}
+                  onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                >
+                  {formData.category_type === 'IQ' ? (
+                    <>
+                      <option value="Logic">Logic</option>
+                      <option value="Math">Math</option>
+                      <option value="Spatial">Spatial</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Self-Awareness">Self-Awareness</option>
+                      <option value="Self-Regulation">Self-Regulation</option>
+                      <option value="Empathy">Empathy</option>
+                    </>
+                  )}
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Sub-Category</label>
-              <select
-                value={formData.sub_category}
-                onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
-              >
-                {formData.category_type === 'IQ' ? (
-                  <>
-                    <option value="Logic">Logic</option>
-                    <option value="Math">Math</option>
-                    <option value="Spatial">Spatial</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="Self-Awareness">Self-Awareness</option>
-                    <option value="Self-Regulation">Self-Regulation</option>
-                    <option value="Empathy">Empathy</option>
-                  </>
-                )}
-              </select>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Question Prompt / Scenario</label>
+              <textarea
+                rows={3}
+                value={formData.question_text}
+                onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
+                placeholder="Enter question text or workplace scenario..."
+                required
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Question Prompt / Scenario</label>
-            <textarea
-              rows={3}
-              value={formData.question_text}
-              onChange={(e) => setFormData({ ...formData, question_text: e.target.value })}
-              placeholder="Enter comprehensive scenario or deductive problem..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {formData.options.map((opt, i) => (
+                <div key={i}>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Option {String.fromCharCode(65 + i)}
+                  </label>
+                  <input
+                    type="text"
+                    value={opt}
+                    onChange={(e) => handleFormOptionChange(i, e.target.value)}
+                    placeholder={`Choice ${String.fromCharCode(65 + i)}`}
+                    required
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {formData.options.map((opt, i) => (
-              <div key={i}>
-                <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                  Option {String.fromCharCode(65 + i)}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  {formData.category_type === 'IQ' ? 'Correct Answer Index' : 'Optimal Answer Index (4-pt Choice)'}
                 </label>
+                <select
+                  value={formData.correct_answer_index}
+                  onChange={(e) => setFormData({ ...formData, correct_answer_index: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value={0}>Option A (Index 0)</option>
+                  <option value={1}>Option B (Index 1)</option>
+                  <option value={2}>Option C (Index 2)</option>
+                  <option value={3}>Option D (Index 3)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Explanation</label>
                 <input
                   type="text"
-                  value={opt}
-                  onChange={(e) => handleFormOptionChange(i, e.target.value)}
-                  placeholder={`Choice ${String.fromCharCode(65 + i)}`}
+                  value={formData.explanation}
+                  onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+                  placeholder="Psychometric reasoning..."
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                {formData.category_type === 'IQ' ? 'Correct Answer Index (0 to 3)' : 'Optimal Answer Index (4-pt Choice)'}
+                Optional Diagram SVG Code (for Spatial puzzles)
               </label>
-              <select
-                value={formData.correct_answer_index}
-                onChange={(e) => setFormData({ ...formData, correct_answer_index: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
-              >
-                <option value={0}>Option A (Index 0)</option>
-                <option value={1}>Option B (Index 1)</option>
-                <option value={2}>Option C (Index 2)</option>
-                <option value={3}>Option D (Index 3)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Explanation</label>
-              <input
-                type="text"
-                value={formData.explanation}
-                onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                placeholder="Psychometric reasoning..."
-                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+              <textarea
+                rows={2}
+                value={formData.diagram_svg}
+                onChange={(e) => setFormData({ ...formData, diagram_svg: e.target.value })}
+                placeholder="<svg viewBox='0 0 200 100'>...</svg>"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-emerald-300 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Optional Diagram SVG Code (for Spatial puzzles)
-            </label>
-            <textarea
-              rows={2}
-              value={formData.diagram_svg}
-              onChange={(e) => setFormData({ ...formData, diagram_svg: e.target.value })}
-              placeholder="<svg viewBox='0 0 200 100'>...</svg>"
-              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-mono text-emerald-300 placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
+            {formStatus.message && (
+              <div className={`p-3 rounded-xl text-xs ${formStatus.isError ? 'bg-rose-950/60 text-rose-300 border border-rose-800' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'}`}>
+                {formStatus.message}
+              </div>
+            )}
 
-          {formStatus.message && (
-            <div className={`p-3 rounded-xl text-xs ${formStatus.isError ? 'bg-rose-950/60 text-rose-300 border border-rose-800' : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800'}`}>
-              {formStatus.message}
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowFormModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
+              >
+                {editingQuestionId ? 'Update Question' : 'Save to Cloud Pool'}
+              </button>
             </div>
-          )}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(false)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
-            >
-              Save Item to Pool
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       )}
 
       {/* Question Table */}
@@ -512,16 +599,25 @@ export default function Admin() {
                       {q.question_text}
                     </td>
                     <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-300">
-                      Option {String.fromCharCode(65 + q.correct_answer_index)}
+                      Option {String.fromCharCode(65 + (q.correct_answer_index ?? 0))}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleDelete(q.id)}
-                        title="Delete Question"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenEdit(q)}
+                          title="Edit Question"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-950/40 transition-colors"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(q.id)}
+                          title="Delete Question"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

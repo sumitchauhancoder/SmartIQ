@@ -1,29 +1,121 @@
 """
 Database management module for SmartIQ.
-Uses SQLite for zero-configuration, reliable persistence of questions, test sessions, and psychometric metrics.
+Supports both Supabase PostgreSQL (via DATABASE_URL) and local SQLite fallback.
+Provides persistent CRUD for questions, user profile RBAC checks, and submission metrics.
 """
 
-import sqlite3
-import json
 import os
+import json
+import sqlite3
 from typing import List, Dict, Any, Optional
+from dotenv import load_dotenv
 from questions_seed import SEEDED_QUESTIONS
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "smartiq.db")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+
+# Normalize connection string for SQLAlchemy (postgres:// -> postgresql://)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+_engine = None
+_use_postgres = False
+
+if DATABASE_URL:
+    try:
+        from sqlalchemy import create_engine, text
+        # Connection pooling configuration for Render / Supabase (pool_pre_ping checks stale connections)
+        _engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10
+        )
+        _use_postgres = True
+        print("[SmartIQ Database] Connected to Supabase PostgreSQL.")
+    except Exception as e:
+        print(f"[SmartIQ Database] Warning: Could not initialize PostgreSQL engine ({e}). Falling back to SQLite.")
+        _use_postgres = False
+
+SQLITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "smartiq.db")
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+def get_sqlite_conn():
+    conn = sqlite3.connect(SQLITE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    """Initializes SQLite tables and seeds default psychometric questions if empty."""
-    conn = get_connection()
+    """Initializes tables and seeds default psychometric questions if empty."""
+    if _use_postgres and _engine:
+        init_postgres_db()
+    else:
+        init_sqlite_db()
+
+
+def init_postgres_db():
+    """Verifies PostgreSQL schema and seeds questions if table is empty."""
+    from sqlalchemy import text
+    try:
+        with _engine.begin() as conn:
+            # Ensure optional columns diagram_svg & points exist gracefully without breaking existing schema
+            conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS diagram_svg TEXT;"))
+            conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS points JSONB;"))
+
+            # Ensure submissions table exists for performance analytics
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS submissions (
+                    id SERIAL PRIMARY KEY,
+                    session_id VARCHAR(100) NOT NULL,
+                    user_id UUID,
+                    iq_score INTEGER NOT NULL,
+                    iq_breakdown JSONB NOT NULL,
+                    eq_score INTEGER NOT NULL,
+                    eq_breakdown JSONB NOT NULL,
+                    tab_switch_count INTEGER DEFAULT 0,
+                    archetype_title VARCHAR(200),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+
+            # Check if questions exist
+            result = conn.execute(text("SELECT COUNT(*) FROM questions"))
+            count = result.scalar()
+
+            if count == 0:
+                print("[SmartIQ Database] Seeding initial questions into PostgreSQL...")
+                insert_stmt = text("""
+                    INSERT INTO questions (
+                        category_type, sub_category, question_text, diagram_svg,
+                        options, correct_answer_index, points, explanation
+                    ) VALUES (
+                        :category_type, :sub_category, :question_text, :diagram_svg,
+                        :options, :correct_answer_index, :points, :explanation
+                    )
+                """)
+                for q in SEEDED_QUESTIONS:
+                    conn.execute(insert_stmt, {
+                        "category_type": q["category_type"],
+                        "sub_category": q["sub_category"],
+                        "question_text": q["question_text"],
+                        "diagram_svg": q.get("diagram_svg"),
+                        "options": json.dumps(q["options"]),
+                        "correct_answer_index": q["correct_answer_index"],
+                        "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] == "EQ" else [0, 0, 0, 0])),
+                        "explanation": q["explanation"]
+                    })
+                print("[SmartIQ Database] Successfully seeded questions into PostgreSQL.")
+    except Exception as e:
+        print(f"[SmartIQ Database] PostgreSQL initialization error: {e}")
+
+
+def init_sqlite_db():
+    """Initializes local SQLite database."""
+    conn = get_sqlite_conn()
     cursor = conn.cursor()
 
-    # Questions Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,11 +132,11 @@ def init_db():
         )
     """)
 
-    # Submissions / Analytics Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT NOT NULL,
+            user_id TEXT,
             iq_score INTEGER NOT NULL,
             iq_breakdown_json TEXT NOT NULL,
             eq_score INTEGER NOT NULL,
@@ -56,7 +148,6 @@ def init_db():
     """)
     conn.commit()
 
-    # Check if questions exist
     cursor.execute("SELECT COUNT(*) as count FROM questions")
     count = cursor.fetchone()["count"]
 
@@ -83,22 +174,62 @@ def init_db():
 
 
 def get_active_questions(category_type: Optional[str] = None, limit: Optional[int] = None, randomize: bool = True) -> List[Dict[str, Any]]:
-    """Fetches active questions, optionally filtered by IQ/EQ and randomized."""
-    conn = get_connection()
-    cursor = conn.cursor()
+    """Fetches questions from PostgreSQL or SQLite."""
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        query = "SELECT * FROM questions WHERE 1=1"
+        params = {}
+        if category_type:
+            query += " AND UPPER(category_type) = :cat"
+            params["cat"] = category_type.upper()
+        if randomize:
+            query += " ORDER BY RANDOM()"
+        else:
+            query += " ORDER BY id ASC"
+        if limit and limit > 0:
+            query += f" LIMIT {int(limit)}"
 
+        with _engine.connect() as conn:
+            rows = conn.execute(text(query), params).mappings().all()
+            questions = []
+            for r in rows:
+                opts = r.get("options")
+                if isinstance(opts, str):
+                    try:
+                        opts = json.loads(opts)
+                    except Exception:
+                        pass
+                pts = r.get("points")
+                if isinstance(pts, str):
+                    try:
+                        pts = json.loads(pts)
+                    except Exception:
+                        pass
+                questions.append({
+                    "id": r.get("id"),
+                    "category_type": r.get("category_type"),
+                    "sub_category": r.get("sub_category"),
+                    "question_text": r.get("question_text"),
+                    "diagram_svg": r.get("diagram_svg"),
+                    "options": opts,
+                    "correct_answer_index": r.get("correct_answer_index"),
+                    "points": pts,
+                    "explanation": r.get("explanation")
+                })
+            return questions
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
+    cursor = conn.cursor()
     query = "SELECT * FROM questions WHERE is_active = 1"
     params = []
-
     if category_type:
         query += " AND category_type = ?"
         params.append(category_type.upper())
-
     if randomize:
         query += " ORDER BY RANDOM()"
     else:
         query += " ORDER BY id ASC"
-
     if limit and limit > 0:
         query += " LIMIT ?"
         params.append(limit)
@@ -124,8 +255,41 @@ def get_active_questions(category_type: Optional[str] = None, limit: Optional[in
 
 
 def get_all_questions_admin() -> List[Dict[str, Any]]:
-    """Fetches all questions for administrative review."""
-    conn = get_connection()
+    """Returns all questions for administrative review."""
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        with _engine.connect() as conn:
+            rows = conn.execute(text("SELECT * FROM questions ORDER BY id DESC")).mappings().all()
+            questions = []
+            for r in rows:
+                opts = r.get("options")
+                if isinstance(opts, str):
+                    try:
+                        opts = json.loads(opts)
+                    except Exception:
+                        pass
+                pts = r.get("points")
+                if isinstance(pts, str):
+                    try:
+                        pts = json.loads(pts)
+                    except Exception:
+                        pass
+                questions.append({
+                    "id": r.get("id"),
+                    "category_type": r.get("category_type"),
+                    "sub_category": r.get("sub_category"),
+                    "question_text": r.get("question_text"),
+                    "diagram_svg": r.get("diagram_svg"),
+                    "options": opts,
+                    "correct_answer_index": r.get("correct_answer_index"),
+                    "points": pts,
+                    "explanation": r.get("explanation"),
+                    "created_at": str(r.get("created_at")) if r.get("created_at") else None
+                })
+            return questions
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM questions ORDER BY id DESC")
     rows = cursor.fetchall()
@@ -143,7 +307,6 @@ def get_all_questions_admin() -> List[Dict[str, Any]]:
             "correct_answer_index": row["correct_answer_index"],
             "points": json.loads(row["points_json"]) if row["points_json"] else None,
             "explanation": row["explanation"],
-            "is_active": bool(row["is_active"]),
             "created_at": str(row["created_at"])
         })
     return questions
@@ -160,12 +323,37 @@ def add_admin_question(
     points: Optional[List[int]] = None
 ) -> int:
     """Inserts a new question into the pool."""
-    conn = get_connection()
-    cursor = conn.cursor()
-
     if points is None:
         points = [1, 2, 3, 4] if category_type.upper() == "EQ" else [0, 0, 0, 0]
 
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        stmt = text("""
+            INSERT INTO questions (
+                category_type, sub_category, question_text, diagram_svg,
+                options, correct_answer_index, points, explanation
+            ) VALUES (
+                :category_type, :sub_category, :question_text, :diagram_svg,
+                :options, :correct_answer_index, :points, :explanation
+            ) RETURNING id
+        """)
+        with _engine.begin() as conn:
+            result = conn.execute(stmt, {
+                "category_type": category_type.upper(),
+                "sub_category": sub_category,
+                "question_text": question_text,
+                "diagram_svg": diagram_svg,
+                "options": json.dumps(options),
+                "correct_answer_index": correct_answer_index,
+                "points": json.dumps(points),
+                "explanation": explanation
+            })
+            new_id = result.scalar()
+            return new_id
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
+    cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO questions (
             category_type, sub_category, question_text, diagram_svg,
@@ -187,15 +375,113 @@ def add_admin_question(
     return new_id
 
 
+def update_admin_question(
+    question_id: int,
+    category_type: str,
+    sub_category: str,
+    question_text: str,
+    options: List[str],
+    correct_answer_index: int,
+    explanation: str,
+    diagram_svg: Optional[str] = None,
+    points: Optional[List[int]] = None
+) -> bool:
+    """Updates an existing question in the pool."""
+    if points is None:
+        points = [1, 2, 3, 4] if category_type.upper() == "EQ" else [0, 0, 0, 0]
+
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        stmt = text("""
+            UPDATE questions SET
+                category_type = :category_type,
+                sub_category = :sub_category,
+                question_text = :question_text,
+                diagram_svg = :diagram_svg,
+                options = :options,
+                correct_answer_index = :correct_answer_index,
+                points = :points,
+                explanation = :explanation
+            WHERE id = :id
+        """)
+        with _engine.begin() as conn:
+            res = conn.execute(stmt, {
+                "id": question_id,
+                "category_type": category_type.upper(),
+                "sub_category": sub_category,
+                "question_text": question_text,
+                "diagram_svg": diagram_svg,
+                "options": json.dumps(options),
+                "correct_answer_index": correct_answer_index,
+                "points": json.dumps(points),
+                "explanation": explanation
+            })
+            return res.rowcount > 0
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE questions SET
+            category_type = ?,
+            sub_category = ?,
+            question_text = ?,
+            diagram_svg = ?,
+            options_json = ?,
+            correct_answer_index = ?,
+            points_json = ?,
+            explanation = ?
+        WHERE id = ?
+    """, (
+        category_type.upper(),
+        sub_category,
+        question_text,
+        diagram_svg,
+        json.dumps(options),
+        correct_answer_index,
+        json.dumps(points),
+        explanation,
+        question_id
+    ))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
+
+
 def delete_admin_question(question_id: int) -> bool:
-    """Soft deletes or removes question from the pool."""
-    conn = get_connection()
+    """Deletes question from the pool."""
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        with _engine.begin() as conn:
+            res = conn.execute(text("DELETE FROM questions WHERE id = :id"), {"id": question_id})
+            return res.rowcount > 0
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM questions WHERE id = ?", (question_id,))
     conn.commit()
     deleted = cursor.rowcount > 0
     conn.close()
     return deleted
+
+
+def get_user_profile_role(user_id: str) -> str:
+    """Checks the user role in public.profiles ('admin' or 'user')."""
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        try:
+            with _engine.connect() as conn:
+                res = conn.execute(
+                    text("SELECT role FROM profiles WHERE id = :uid"),
+                    {"uid": user_id}
+                ).mappings().first()
+                if res and res.get("role"):
+                    return str(res["role"]).lower()
+        except Exception as e:
+            print(f"[SmartIQ Database] Profile role query error: {e}")
+    return "user"
 
 
 def record_submission(
@@ -205,17 +491,46 @@ def record_submission(
     eq_score: int,
     eq_breakdown: Dict[str, int],
     tab_switch_count: int,
-    archetype_title: Optional[str] = None
+    archetype_title: Optional[str] = None,
+    user_id: Optional[str] = None
 ) -> int:
     """Records an anonymized completed test submission for metrics."""
-    conn = get_connection()
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        stmt = text("""
+            INSERT INTO submissions (
+                session_id, user_id, iq_score, iq_breakdown, eq_score, eq_breakdown, tab_switch_count, archetype_title
+            ) VALUES (
+                :session_id, :user_id, :iq_score, :iq_breakdown, :eq_score, :eq_breakdown, :tab_switch_count, :archetype_title
+            ) RETURNING id
+        """)
+        try:
+            with _engine.begin() as conn:
+                res = conn.execute(stmt, {
+                    "session_id": session_id,
+                    "user_id": user_id,
+                    "iq_score": iq_score,
+                    "iq_breakdown": json.dumps(iq_breakdown),
+                    "eq_score": eq_score,
+                    "eq_breakdown": json.dumps(eq_breakdown),
+                    "tab_switch_count": tab_switch_count,
+                    "archetype_title": archetype_title
+                })
+                return res.scalar() or 0
+        except Exception as e:
+            print(f"[SmartIQ Database] Failed recording submission in Postgres: {e}")
+            return 0
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO submissions (
-            session_id, iq_score, iq_breakdown_json, eq_score, eq_breakdown_json, tab_switch_count, archetype_title
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            session_id, user_id, iq_score, iq_breakdown_json, eq_score, eq_breakdown_json, tab_switch_count, archetype_title
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         session_id,
+        user_id,
         iq_score,
         json.dumps(iq_breakdown),
         eq_score,
@@ -231,9 +546,64 @@ def record_submission(
 
 def get_admin_stats() -> Dict[str, Any]:
     """Computes aggregated platform metrics and performance distributions."""
-    conn = get_connection()
-    cursor = conn.cursor()
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        try:
+            with _engine.connect() as conn:
+                total_tests = conn.execute(text("SELECT COUNT(*) FROM submissions")).scalar() or 0
+                if total_tests == 0:
+                    return {
+                        "total_tests": 0,
+                        "average_iq": 100,
+                        "average_eq": 100,
+                        "tab_switch_rate": 0.0,
+                        "iq_distribution": {"below_average": 0, "average": 0, "gifted": 0, "genius": 0},
+                        "recent_submissions": []
+                    }
 
+                avg_row = conn.execute(text("""
+                    SELECT 
+                        AVG(iq_score) as avg_iq,
+                        AVG(eq_score) as avg_eq,
+                        AVG(tab_switch_count) as avg_switches
+                    FROM submissions
+                """)).mappings().first()
+
+                dist_row = conn.execute(text("""
+                    SELECT 
+                        COALESCE(SUM(CASE WHEN iq_score < 90 THEN 1 ELSE 0 END), 0) as below_average,
+                        COALESCE(SUM(CASE WHEN iq_score >= 90 AND iq_score < 115 THEN 1 ELSE 0 END), 0) as average,
+                        COALESCE(SUM(CASE WHEN iq_score >= 115 AND iq_score < 130 THEN 1 ELSE 0 END), 0) as gifted,
+                        COALESCE(SUM(CASE WHEN iq_score >= 130 THEN 1 ELSE 0 END), 0) as genius
+                    FROM submissions
+                """)).mappings().first()
+
+                recent_rows = conn.execute(text("""
+                    SELECT session_id, iq_score, eq_score, tab_switch_count, archetype_title, created_at
+                    FROM submissions
+                    ORDER BY id DESC
+                    LIMIT 10
+                """)).mappings().all()
+
+                return {
+                    "total_tests": total_tests,
+                    "average_iq": round(float(avg_row["avg_iq"] or 100), 1),
+                    "average_eq": round(float(avg_row["avg_eq"] or 100), 1),
+                    "tab_switch_rate": round(float(avg_row["avg_switches"] or 0.0), 2),
+                    "iq_distribution": {
+                        "below_average": int(dist_row["below_average"]),
+                        "average": int(dist_row["average"]),
+                        "gifted": int(dist_row["gifted"]),
+                        "genius": int(dist_row["genius"])
+                    },
+                    "recent_submissions": [dict(r) for r in recent_rows]
+                }
+        except Exception as e:
+            print(f"[SmartIQ Database] Error getting Postgres stats ({e}). Using SQLite fallback.")
+
+    # SQLite Fallback
+    conn = get_sqlite_conn()
+    cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) as total FROM submissions")
     total_tests = cursor.fetchone()["total"]
 
@@ -257,7 +627,6 @@ def get_admin_stats() -> Dict[str, Any]:
     """)
     stats_row = cursor.fetchone()
 
-    # IQ Distribution buckets (Normalized score range ~ 85 - 145)
     cursor.execute("""
         SELECT 
             SUM(CASE WHEN iq_score < 90 THEN 1 ELSE 0 END) as below_average,
@@ -268,7 +637,6 @@ def get_admin_stats() -> Dict[str, Any]:
     """)
     dist_row = cursor.fetchone()
 
-    # Recent submissions
     cursor.execute("""
         SELECT session_id, iq_score, eq_score, tab_switch_count, archetype_title, created_at
         FROM submissions
@@ -276,7 +644,6 @@ def get_admin_stats() -> Dict[str, Any]:
         LIMIT 10
     """)
     recent = [dict(r) for r in cursor.fetchall()]
-
     conn.close()
 
     return {
