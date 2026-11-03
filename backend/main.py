@@ -1,7 +1,7 @@
 """
 SmartIQ Backend API
 FastAPI service managing psychometric tests, anti-cheat audit logs,
-AI Mind Archetype generation (Google Gemini / Groq / Deterministic fallback), and Admin CRUD operations.
+AI Mind Archetype generation (Groq AI / Deterministic fallback), and Admin CRUD operations.
 """
 
 import os
@@ -20,7 +20,6 @@ import database
 load_dotenv()
 
 ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "smartiq-admin-secret-2026")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 
@@ -190,7 +189,7 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
 
 
 # =============================================================================
-# LLM AI Engine (Gemini -> Groq -> Local Fallback)
+# LLM AI Engine (Groq -> Local Deterministic Fallback)
 # =============================================================================
 def parse_ai_json(raw_text: str) -> Optional[Dict[str, Any]]:
     """Cleans markdown fencing and extracts valid JSON dictionary."""
@@ -205,55 +204,6 @@ def parse_ai_json(raw_text: str) -> Optional[Dict[str, Any]]:
             return data
     except Exception:
         pass
-    return None
-
-
-async def analyze_with_gemini(submission: QuizSubmission) -> Optional[Dict[str, Any]]:
-    if not GEMINI_API_KEY:
-        return None
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-
-        # Try gemini-3.8-flash then gemini-2.5-flash / gemini-flash-latest
-        for m in ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-flash-latest"]:
-            try:
-                model = genai.GenerativeModel(m)
-                break
-            except Exception:
-                continue
-
-        prompt = f"""
-You are an elite psychometrics and cognitive science intelligence engine.
-Analyze this user's SmartIQ test results:
-- IQ Score: {submission.iq_score} (Breakdown: {submission.iq_breakdown})
-- EQ Score: {submission.eq_score} (Breakdown: {submission.eq_breakdown})
-- Tab Switch Count (Anti-Cheat): {submission.tab_switch_count}
-- Incorrect Questions Sample: {json.dumps(submission.incorrect_questions[:4])}
-
-Return STRICTLY a JSON object matching this exact schema:
-{{
-  "archetype_title": "String (e.g., 'The Strategic Empathetic Architect')",
-  "core_summary": "Detailed 2-sentence psychological profile...",
-  "cognitive_edge": "Primary mental strength and reasoning style...",
-  "emotional_profile": "EQ behavioral style and interpersonal dynamics...",
-  "growth_habits": [
-    {{"habit": "Title", "frequency": "Daily or Weekly", "action": "Exact actionable exercise"}},
-    {{"habit": "Title", "frequency": "Daily or Weekly", "action": "Exact actionable exercise"}}
-  ],
-  "mistake_analyses": [
-    {{"question": "Question summary", "why_wrong": "Why user's logic failed", "cognitive_bias": "Identified bias, e.g. Availability heuristic"}}
-  ]
-}}
-Do NOT wrap with commentary. Return raw JSON only.
-"""
-        response = model.generate_content(prompt)
-        if response and response.text:
-            parsed = parse_ai_json(response.text)
-            if parsed:
-                return parsed
-    except Exception as e:
-        print(f"[SmartIQ] Gemini inference failed or bypassed: {e}")
     return None
 
 
@@ -307,7 +257,6 @@ def read_root():
         "status": "operational",
         "version": "1.0.0",
         "ai_providers": {
-            "gemini_active": bool(GEMINI_API_KEY),
             "groq_active": bool(GROQ_API_KEY),
             "deterministic_fallback": True
         }
@@ -330,17 +279,13 @@ def get_questions(
 @app.post("/api/analyze")
 async def analyze_submission(submission: QuizSubmission):
     """
-    Processes test scores, queries Gemini -> Groq -> Local Deterministic Engine,
+    Processes test scores, queries Groq -> Local Deterministic Engine,
     and records the session data into SQLite.
     """
-    # 1. Attempt Gemini
-    result = await analyze_with_gemini(submission)
+    # 1. Attempt Groq
+    result = await analyze_with_groq(submission)
 
-    # 2. Attempt Groq fallback
-    if not result:
-        result = await analyze_with_groq(submission)
-
-    # 3. Fallback to local deterministic psychometric engine
+    # 2. Fallback to local deterministic psychometric engine
     if not result:
         result = generate_deterministic_archetype(submission)
 

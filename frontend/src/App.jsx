@@ -120,7 +120,7 @@ export default function App() {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              LLM Inference: Gemini & Groq Ready
+              LLM Inference: Groq AI Ready
             </span>
             <span>•</span>
             <button 

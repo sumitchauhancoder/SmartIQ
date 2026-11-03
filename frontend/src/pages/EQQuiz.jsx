@@ -125,7 +125,7 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
       tab_switch_count: tabSwitchCount
     };
 
-    // Synthesize analysis via Backend (Gemini / Groq / Fallback)
+    // Synthesize analysis via Backend (Groq / Fallback)
     const aiAnalysis = await submitAnalysis(submissionPayload);
 
     setAnalyzing(false);
@@ -149,7 +149,7 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
         </h3>
         <p className="text-slate-400 text-sm max-w-sm">
           {analyzing
-            ? 'Transmitting psychometric dimensions to Google Gemini & Groq cognitive engines...'
+            ? 'Transmitting psychometric dimensions to Groq AI cognitive engine...'
             : 'Calibrating empathy and self-regulation parameters...'}
         </p>
       </div>

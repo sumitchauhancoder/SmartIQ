@@ -48,7 +48,7 @@ export default function Home({ onStartQuiz }) {
         </h1>
 
         <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto mb-8">
-          SmartIQ combines rigorous deductive problem-solving with emotional resonance testing. Uncover your true mental archetype backed by Google Gemini & Groq cognitive analytics.
+          SmartIQ combines rigorous deductive problem-solving with emotional resonance testing. Uncover your true mental archetype backed by Groq AI cognitive analytics.
         </p>
 
         {/* Anonymous Session Token Card */}
@@ -196,8 +196,8 @@ export default function Home({ onStartQuiz }) {
             <Cpu className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-white">Dual AI Inference</h4>
-            <p className="text-xs text-slate-400">Gemini & Groq with offline deterministic engine</p>
+            <h4 className="text-sm font-semibold text-white">Ultra-Fast AI Inference</h4>
+            <p className="text-xs text-slate-400">Groq AI Cloud with offline deterministic engine</p>
           </div>
         </div>
 
