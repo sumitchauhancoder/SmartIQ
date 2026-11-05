@@ -14,7 +14,8 @@ import {
   RefreshCw,
   UserCheck,
   TrendingUp,
-  Layers
+  Layers,
+  Dumbbell
 } from 'lucide-react';
 import { getSessionId } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -94,6 +95,14 @@ export default function Home({ onStartQuiz }) {
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          <button
+            onClick={() => onStartQuiz('gym')}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-indigo-950/80 border border-indigo-600/50 text-indigo-300 hover:bg-indigo-900/50 transition-all"
+          >
+            <Dumbbell className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Cognitive Gym & Drills</span>
+          </button>
 
           {completedCount > 0 && (
             <button

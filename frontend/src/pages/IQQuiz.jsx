@@ -8,7 +8,12 @@ import {
   RotateCcw,
   BarChart3,
   Lightbulb,
-  ShieldCheck
+  ShieldCheck,
+  Play,
+  Clock,
+  Sparkles,
+  Target,
+  Dumbbell
 } from 'lucide-react';
 import Timer from '../components/Timer';
 import AntiCheatAlert from '../components/AntiCheatAlert';
@@ -25,16 +30,17 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [completedData, setCompletedData] = useState(null);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Tab switch & visibility listener
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && !completedData) {
+      if (document.hidden && hasStarted && !completedData) {
         onTabSwitch();
       }
     };
     const handleBlur = () => {
-      if (!completedData) {
+      if (hasStarted && !completedData) {
         onTabSwitch();
       }
     };
@@ -46,9 +52,9 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [onTabSwitch, completedData]);
+  }, [onTabSwitch, hasStarted, completedData]);
 
-  // Load 5 randomized IQ questions
+  // Load 10 randomized IQ questions
   useEffect(() => {
     loadIQQuestions();
   }, []);
@@ -56,20 +62,25 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   const loadIQQuestions = async () => {
     setLoading(true);
     setCompletedData(null);
+    setHasStarted(false);
     setCurrentIndex(0);
     setUserAnswers([]);
     setSelectedOption(null);
     try {
-      const data = await fetchQuestions('IQ', 5);
+      const data = await fetchQuestions('IQ', 10);
       if (data && data.length > 0) {
-        setQuestions(data);
+        setQuestions(data.slice(0, 10));
       } else {
-        setQuestions(getFallbackQuestions('IQ', 5));
+        setQuestions(getFallbackQuestions('IQ', 10));
       }
     } catch (e) {
-      setQuestions(getFallbackQuestions('IQ', 5));
+      setQuestions(getFallbackQuestions('IQ', 10));
     }
     setLoading(false);
+  };
+
+  const handleStartTest = () => {
+    setHasStarted(true);
   };
 
   const handleSelectOption = (idx) => {
@@ -131,8 +142,9 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       }
     });
 
-    // Score scale: baseline 95 + (correctCount * 9) -> 95 to 140
-    const iqScore = Math.min(145, 95 + correctCount * 9);
+    // Score scale: baseline 95 + scaled across 10 questions -> 95 to 145
+    const totalQ = Math.max(1, answers.length);
+    const iqScore = Math.min(145, Math.round(95 + (correctCount / totalQ) * 50));
 
     const iqBreakdown = {};
     Object.keys(subTotals).forEach((cat) => {
@@ -199,6 +211,100 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   }
 
   // =========================================================================
+  // Pre-Test Briefing / Start Gate Screen
+  // =========================================================================
+  if (!hasStarted && !completedData) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-indigo-500/30 relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Module Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 border border-indigo-600/40 text-indigo-300 text-xs font-semibold">
+              <Brain className="w-4 h-4 text-indigo-400" />
+              <span>Module 01 • Cognitive Intelligence</span>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-950 border border-blue-800/60 text-blue-300">
+              Impact Rating: 9 / 10
+            </span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            IQ Cognitive & Deductive Assessment
+          </h1>
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+            The ability to think logically, recognize patterns, execute spatial rotations, and solve abstract mathematical problems without external aids.
+          </p>
+
+          {/* Parameter Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Target className="w-4 h-4" />
+                <span>Test Length</span>
+              </div>
+              <p className="text-xl font-black text-white font-mono">10 Questions</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Deductive & Spatial sequence</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Clock className="w-4 h-4" />
+                <span>Pacing</span>
+              </div>
+              <p className="text-xl font-black text-white font-mono">45s / Question</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Sparkles className="w-4 h-4" />
+                <span>Core Domains</span>
+              </div>
+              <p className="text-xs font-bold text-white mt-1">Logic • Math • Spatial</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Abstract structural mechanics</p>
+            </div>
+          </div>
+
+          {/* Integrity & Rules */}
+          <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-900/40 mb-8 space-y-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 font-bold text-indigo-300">
+              <ShieldCheck className="w-4 h-4 text-indigo-400" />
+              <span>Assessment Protocol & Instructions:</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
+              <li>Each question has a strict 45-second timer. Answers auto-submit when the timer expires.</li>
+              <li>You cannot backtrack or alter an answer once submitted.</li>
+              <li>Tab switches or window minimizations are flagged by the system anti-cheat engine.</li>
+              <li>Calculators and external web searches are prohibited to preserve psychometric validity.</li>
+            </ul>
+          </div>
+
+          {/* Start CTA Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <button
+              onClick={() => onNavigate('home')}
+              className="text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              ← Back to Assessment Hub
+            </button>
+
+            <button
+              onClick={handleStartTest}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-500 hover:from-indigo-500 hover:to-sky-400 shadow-xl shadow-indigo-600/30 transform hover:-translate-y-0.5 transition-all"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              <span>Start IQ Assessment (10 Questions)</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
   // Independent Completion Report View
   // =========================================================================
   if (completedData) {
@@ -215,7 +321,7 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-600/40 text-indigo-300 text-xs font-semibold mb-3">
                 <Brain className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Cognitive Intelligence Module Completed</span>
+                <span>Cognitive Intelligence Module Completed (10/10 Questions)</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
                 IQ Score: <span className="text-indigo-400 font-mono">{iq_score}</span>
@@ -283,24 +389,32 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <button
-            onClick={loadIQQuestions}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Retake IQ Assessment</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadIQQuestions}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Retake IQ Test</span>
+            </button>
+            <button
+              onClick={() => onNavigate('gym', 'IQ')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-950/60 border border-indigo-700/60 hover:bg-indigo-900/40 text-indigo-300 transition-all"
+            >
+              <Dumbbell className="w-4 h-4 text-indigo-400" />
+              <span>Train IQ in Gym</span>
+            </button>
+          </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate('eq')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-rose-800/60 hover:bg-rose-950/40 text-rose-300 transition-all"
+              onClick={() => onNavigate('results', 'IQ')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-indigo-700/60 text-indigo-300 hover:bg-indigo-950/40 transition-all"
             >
-              <span>Take EQ Test (Emotional)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>View IQ Analysis</span>
             </button>
             <button
-              onClick={() => onNavigate('results')}
+              onClick={() => onNavigate('results', 'ALL')}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 shadow-lg shadow-indigo-600/20 transition-all"
             >
               <BarChart3 className="w-4 h-4" />

@@ -30,10 +30,10 @@ export function getSessionId() {
 }
 
 /**
- * Fetches randomized questions for either 'IQ' or 'EQ'.
+ * Fetches randomized questions for 'IQ', 'EQ', 'SQ', or 'AQ'.
  * Implements a 7s timeout for slow mobile networks and gracefully falls back to local questions.
  */
-export async function fetchQuestions(type, limit = 5) {
+export async function fetchQuestions(type, limit = 10) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout for mobile connections

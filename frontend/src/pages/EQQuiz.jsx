@@ -9,7 +9,11 @@ import {
   RotateCcw,
   BarChart3,
   Heart,
-  ShieldCheck
+  ShieldCheck,
+  Play,
+  Clock,
+  Target,
+  Dumbbell
 } from 'lucide-react';
 import Timer from '../components/Timer';
 import AntiCheatAlert from '../components/AntiCheatAlert';
@@ -26,16 +30,17 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [completedData, setCompletedData] = useState(null);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Tab switch & visibility listener
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && !completedData) {
+      if (document.hidden && hasStarted && !completedData) {
         onTabSwitch();
       }
     };
     const handleBlur = () => {
-      if (!completedData) {
+      if (hasStarted && !completedData) {
         onTabSwitch();
       }
     };
@@ -47,9 +52,9 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [onTabSwitch, completedData]);
+  }, [onTabSwitch, hasStarted, completedData]);
 
-  // Load 5 randomized EQ questions
+  // Load 10 randomized EQ questions
   useEffect(() => {
     loadEQQuestions();
   }, []);
@@ -57,20 +62,25 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   const loadEQQuestions = async () => {
     setLoading(true);
     setCompletedData(null);
+    setHasStarted(false);
     setCurrentIndex(0);
     setUserAnswers([]);
     setSelectedOption(null);
     try {
-      const data = await fetchQuestions('EQ', 5);
+      const data = await fetchQuestions('EQ', 10);
       if (data && data.length > 0) {
-        setQuestions(data);
+        setQuestions(data.slice(0, 10));
       } else {
-        setQuestions(getFallbackQuestions('EQ', 5));
+        setQuestions(getFallbackQuestions('EQ', 10));
       }
     } catch (e) {
-      setQuestions(getFallbackQuestions('EQ', 5));
+      setQuestions(getFallbackQuestions('EQ', 10));
     }
     setLoading(false);
+  };
+
+  const handleStartTest = () => {
+    setHasStarted(true);
   };
 
   const handleSelectOption = (idx) => {
@@ -124,8 +134,9 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       totalPoints += ans.points_earned;
     });
 
-    // Score scale: baseline 85 + (totalPoints / 20) * 55 -> 85 to 140
-    const eqScore = Math.min(145, Math.round(85 + (totalPoints / (answers.length * 4)) * 55));
+    // Score scale: baseline 85 + scaled dynamic points -> 85 to 145
+    const maxPossible = Math.max(1, answers.length * 4);
+    const eqScore = Math.min(145, Math.round(85 + (totalPoints / maxPossible) * 55));
 
     const eqBreakdown = {};
     Object.keys(subTotals).forEach((cat) => {
@@ -173,7 +184,7 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     return (
       <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4"></div>
-        <p className="text-slate-400 font-medium text-sm">Compiling Emotional Acuity Scenarios...</p>
+        <p className="text-slate-400 font-medium text-sm">Compiling Emotional Psychometric Items...</p>
       </div>
     );
   }
@@ -182,10 +193,104 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     return (
       <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4 text-center">
         <div className="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-700/60 flex items-center justify-center text-rose-400 mb-4 animate-pulse">
-          <Heart className="w-8 h-8" />
+          <HeartHandshake className="w-8 h-8" />
         </div>
         <h3 className="text-xl font-bold text-white mb-2">Analyzing Emotional Intelligence (EQ)</h3>
-        <p className="text-slate-400 text-sm max-w-sm">Evaluating affective empathy, somatic regulation, and social de-escalation acuity...</p>
+        <p className="text-slate-400 text-sm max-w-sm">Synthesizing affective attunement, conflict resolution instinct, and somatic awareness...</p>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // Pre-Test Briefing / Start Gate Screen
+  // =========================================================================
+  if (!hasStarted && !completedData) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-rose-500/30 relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Module Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/80 border border-rose-600/40 text-rose-300 text-xs font-semibold">
+              <Award className="w-4 h-4 text-rose-400" />
+              <span>Module 02 • Emotional Quotient</span>
+            </div>
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-950 border border-rose-800/60 text-rose-300">
+              Impact Rating: 9.3 / 10
+            </span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            EQ Emotional Intelligence Assessment
+          </h1>
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
+            The ability to accurately perceive, understand, and regulate internal emotions, navigate interpersonal friction, and communicate with deep active empathy.
+          </p>
+
+          {/* Parameter Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Target className="w-4 h-4" />
+                <span>Test Length</span>
+              </div>
+              <p className="text-xl font-black text-white font-mono">10 Scenarios</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Real-world interpersonal dilemmas</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Clock className="w-4 h-4" />
+                <span>Pacing</span>
+              </div>
+              <p className="text-xl font-black text-white font-mono">45s / Question</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
+              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
+                <Sparkles className="w-4 h-4" />
+                <span>Core Domains</span>
+              </div>
+              <p className="text-xs font-bold text-white mt-1">Self-Awareness • Regulation • Empathy</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Psychology & relationships</p>
+            </div>
+          </div>
+
+          {/* Integrity & Rules */}
+          <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-900/40 mb-8 space-y-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 font-bold text-rose-300">
+              <ShieldCheck className="w-4 h-4 text-rose-400" />
+              <span>Assessment Protocol & Instructions:</span>
+            </div>
+            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
+              <li>Select the response that most genuinely reflects how you would respond in authentic reality.</li>
+              <li>Scenarios test nuanced relational maturity and composure under interpersonal tension.</li>
+              <li>Each question has a 45-second timer. Answers auto-submit when the timer expires.</li>
+              <li>You cannot modify responses once submitted.</li>
+            </ul>
+          </div>
+
+          {/* Start CTA Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <button
+              onClick={() => onNavigate('home')}
+              className="text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              ← Back to Assessment Hub
+            </button>
+
+            <button
+              onClick={handleStartTest}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-rose-600 via-rose-500 to-pink-500 hover:from-rose-500 hover:to-pink-400 shadow-xl shadow-rose-600/30 transform hover:-translate-y-0.5 transition-all"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              <span>Start EQ Assessment (10 Questions)</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -207,7 +312,7 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-950/80 border border-rose-600/40 text-rose-300 text-xs font-semibold mb-3">
                 <Heart className="w-3.5 h-3.5 text-rose-400" />
-                <span>Emotional Intelligence Module Completed</span>
+                <span>Emotional Intelligence Module Completed (10/10 Questions)</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
                 EQ Score: <span className="text-rose-400 font-mono">{eq_score}</span>
@@ -275,24 +380,32 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <button
-            onClick={loadEQQuestions}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Retake EQ Assessment</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadEQQuestions}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Retake EQ Test</span>
+            </button>
+            <button
+              onClick={() => onNavigate('gym', 'EQ')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-rose-950/60 border border-rose-700/60 hover:bg-rose-900/40 text-rose-300 transition-all"
+            >
+              <Dumbbell className="w-4 h-4 text-rose-400" />
+              <span>Train EQ in Gym</span>
+            </button>
+          </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate('sq')}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-amber-800/60 hover:bg-amber-950/40 text-amber-300 transition-all"
+              onClick={() => onNavigate('results', 'EQ')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-rose-700/60 text-rose-300 hover:bg-rose-950/40 transition-all"
             >
-              <span>Take SQ Test (Spiritual)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>View EQ Analysis</span>
             </button>
             <button
-              onClick={() => onNavigate('results')}
+              onClick={() => onNavigate('results', 'ALL')}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 shadow-lg shadow-rose-600/20 transition-all"
             >
               <BarChart3 className="w-4 h-4" />
@@ -359,7 +472,7 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       {/* Question Card */}
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl mb-6 relative">
         <span className="text-[11px] font-mono text-rose-400/80 uppercase tracking-widest block mb-2">
-          Interpersonal & Emotional Intelligence Scenario
+          Psychometric Scenario & Dilemma
         </span>
 
         <h2 className="text-lg sm:text-xl font-bold text-white leading-relaxed mb-6">
@@ -397,8 +510,8 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       {/* Footer Navigation */}
       <div className="flex items-center justify-between">
         <div className="text-xs text-slate-500 flex items-center gap-1.5">
-          <HeartHandshake className="w-3.5 h-3.5 text-rose-400" />
-          <span>Select the response representing highest empathetic acuity & composure</span>
+          <Heart className="w-3.5 h-3.5 text-rose-400" />
+          <span>Select the response that best reflects your genuine emotional response</span>
         </div>
 
         <button

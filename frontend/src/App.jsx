@@ -8,6 +8,7 @@ import EQQuiz from './pages/EQQuiz';
 import SQQuiz from './pages/SQQuiz';
 import AQQuiz from './pages/AQQuiz';
 import Results from './pages/Results';
+import CognitiveGym from './pages/CognitiveGym';
 import Admin from './pages/Admin';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -17,13 +18,15 @@ function AppContent() {
   // Normalize initial hash route
   const getInitialRoute = () => {
     const rawHash = window.location.hash.replace('#', '').trim();
-    if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'admin'].includes(rawHash)) {
+    if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin'].includes(rawHash)) {
       return rawHash;
     }
     return '/';
   };
 
   const [currentRoute, setCurrentRoute] = useState(getInitialRoute);
+  const [resultsTab, setResultsTab] = useState('ALL');
+  const [gymPillar, setGymPillar] = useState('IQ');
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialSignUp, setAuthInitialSignUp] = useState(false);
@@ -74,7 +77,13 @@ function AppContent() {
     }
   });
 
-  const navigateTo = (route) => {
+  const navigateTo = (route, subParam = null) => {
+    if (route === 'results' && subParam) {
+      setResultsTab(subParam);
+    }
+    if (route === 'gym' && subParam) {
+      setGymPillar(subParam);
+    }
     const targetRoute = route === '/' ? '' : route;
     setCurrentRoute(route);
     window.location.hash = targetRoute;
@@ -90,7 +99,7 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const rawHash = window.location.hash.replace('#', '').trim();
-      if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'admin'].includes(rawHash)) {
+      if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin'].includes(rawHash)) {
         setCurrentRoute(rawHash);
       } else {
         setCurrentRoute('/');
@@ -104,7 +113,7 @@ function AppContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    const protectedRoutes = ['home', 'iq', 'eq', 'sq', 'aq', 'results'];
+    const protectedRoutes = ['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym'];
 
     if (!user) {
       if (protectedRoutes.includes(currentRoute) || currentRoute === 'admin') {
@@ -232,6 +241,14 @@ function AppContent() {
             sqData={sqData}
             aqData={aqData}
             onNavigate={navigateTo}
+            initialTab={resultsTab}
+          />
+        )}
+
+        {user && currentRoute === 'gym' && (
+          <CognitiveGym
+            onNavigate={navigateTo}
+            initialPillar={gymPillar}
           />
         )}
 

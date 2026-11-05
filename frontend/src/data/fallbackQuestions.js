@@ -1271,7 +1271,7 @@ export const FALLBACK_QUESTIONS = [
 /**
  * Returns a randomized subset of fallback questions for any test category ('IQ', 'EQ', 'SQ', 'AQ').
  */
-export function getFallbackQuestions(type, limit = 5) {
+export function getFallbackQuestions(type, limit = 10) {
   const filtered = FALLBACK_QUESTIONS.filter(
     (q) => !type || q.category_type.toUpperCase() === type.toUpperCase()
   );

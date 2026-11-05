@@ -434,8 +434,8 @@ async def get_me(user: Dict[str, Any] = Depends(auth.get_current_user)):
 
 @app.get("/api/questions")
 def get_questions(
-    type: Optional[str] = Query(None, description="Quiz module type: 'IQ' or 'EQ'"),
-    limit: Optional[int] = Query(5, description="Number of questions to return")
+    type: Optional[str] = Query(None, description="Quiz module type: 'IQ', 'EQ', 'SQ', or 'AQ'"),
+    limit: Optional[int] = Query(10, description="Number of questions to return")
 ):
     """
     Fetches randomized active questions for the test session.

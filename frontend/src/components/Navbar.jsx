@@ -11,7 +11,8 @@ import {
   LogOut, 
   LogIn,
   Compass,
-  Zap
+  Zap,
+  Dumbbell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -39,6 +40,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
       { id: 'eq', label: 'EQ Test', icon: Award, color: 'text-rose-400' },
       { id: 'sq', label: 'SQ Test', icon: Compass, color: 'text-amber-400' },
       { id: 'aq', label: 'AQ Test', icon: Zap, color: 'text-emerald-400' },
+      { id: 'gym', label: 'Gym', icon: Dumbbell, color: 'text-purple-400' },
       { id: 'results', label: '4D Matrix', icon: BarChart3 }
     ];
   } else {
@@ -49,6 +51,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
       { id: 'eq', label: 'EQ Test', icon: Award, color: 'text-rose-400' },
       { id: 'sq', label: 'SQ Test', icon: Compass, color: 'text-amber-400' },
       { id: 'aq', label: 'AQ Test', icon: Zap, color: 'text-emerald-400' },
+      { id: 'gym', label: 'Gym', icon: Dumbbell, color: 'text-purple-400' },
       { id: 'results', label: '4D Matrix', icon: BarChart3 },
       { id: 'admin', label: 'Admin', icon: Shield, badge: 'Admin' }
     ];
