@@ -25,6 +25,7 @@ import {
   XCircle 
 } from 'lucide-react';
 import PerformanceChart from '../components/PerformanceChart';
+import ScoreSpectrumRuler from '../components/ScoreSpectrumRuler';
 
 // Empirical Gaussian Normal Psychometrics (Global Mean = 100, Std Dev = 15)
 function calculatePsychometrics(score) {
@@ -392,6 +393,9 @@ export default function Results({
           </div>
         </div>
 
+        {/* Visual Score Spectrum Ruler (Where You Stand Compared to the World) */}
+        <ScoreSpectrumRuler score={score} title={title} />
+
         {/* Sub-Dimension Breakdown Progress Bars */}
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl">
           <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
@@ -638,6 +642,15 @@ export default function Results({
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Overall Unified 4D Score Spectrum Ruler (Where You Stand Across All 4 Dimensions) */}
+          <div className="mb-8">
+            <ScoreSpectrumRuler 
+              score={Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} 
+              title="Unified 4D Composite Intelligence" 
+              isOverall={true} 
+            />
           </div>
 
           {/* 4 Pillars Status Cards Grid */}
