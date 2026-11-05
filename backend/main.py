@@ -436,12 +436,13 @@ Output ONLY valid JSON with keys:
 - mistake_analyses: array of {{"question": string, "why_wrong": string, "cognitive_bias": string}}
 """
         for model_id in [
+            "qwen/qwen3.8-27b",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
             "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
             "llama3-70b-8192",
-            "mixtral-8x7b-32768",
-            "openai/gpt-oss-20b",
-            "qwen/qwen3.8-27b"
+            "mixtral-8x7b-32768"
         ]:
             try:
                 completion = client.chat.completions.create(
@@ -467,7 +468,7 @@ Output ONLY valid JSON with keys:
 # API Endpoints
 # =============================================================================
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {
         "platform": "Enigma",
@@ -664,6 +665,9 @@ async def chat_with_intelligence_ai(request: ChatRequest):
                 groq_messages.append({"role": m.role, "content": m.content})
 
             models = [
+                "qwen/qwen3.8-27b",
+                "openai/gpt-oss-120b",
+                "openai/gpt-oss-20b",
                 "llama-3.3-70b-versatile",
                 "llama-3.1-8b-instant",
                 "llama3-70b-8192",
