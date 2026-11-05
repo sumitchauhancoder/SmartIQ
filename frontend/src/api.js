@@ -444,3 +444,86 @@ export function computeLocalArchetype(submission) {
     mistake_analyses: mistakes,
   };
 }
+
+/**
+ * Sends chat messages to Groq via backend /api/chat.
+ * Implements mobile-safe 8s timeout with rich local cognitive engine fallback.
+ */
+export async function sendChatMessage(messages, userContext = {}) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        messages,
+        user_context: userContext
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.response) {
+        return {
+          response: data.response,
+          model: data.model || 'Groq Llama 3.3',
+          source: data.source || 'groq'
+        };
+      }
+    }
+  } catch (err) {
+    console.warn(`[SmartIQ] Backend chat unavailable (${err.message}). Using local intelligence mentor engine.`);
+  }
+
+  // Local fallback response generator
+  const lastMsg = (messages[messages.length - 1]?.content || '').toLowerCase();
+  const iq = userContext.iq_score;
+  const eq = userContext.eq_score;
+  const sq = userContext.sq_score;
+  const aq = userContext.aq_score;
+
+  if (lastMsg.includes('aq') || lastMsg.includes('adapt') || lastMsg.includes('ai') || lastMsg.includes('pivot') || lastMsg.includes('crisis')) {
+    return {
+      response: `### Adaptability Quotient (AQ) • Peak 10/10 Impact\n\n**AQ is your velocity of cognitive adjustment under radical disruption.** While IQ calculates and EQ connects, AQ dictates whether you thrive when the rules of the game change.\n\n**Core Pillars of AQ:**\n- **The 'What If...?' Agility Habit:** Regularly run counter-factual simulations on your career or projects. Ask: *'If our primary tool/revenue was wiped out tomorrow, what is our pivot in 48 hours?'*\n- **Deliberate Unlearning:** Alvin Toffler famously noted: *'The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn.'*\n- **Antifragile Posture (Nassim Taleb):** Don't just resist shock; design your workflows so volatility makes you smarter and more capable.\n\n${aq ? `*Your current AQ Score is **${aq}**.* ` : ''}Try the **Crisis Simulator drill** in our Cognitive Gym to train your pivot instincts!`,
+      model: 'SmartIQ Local Mentor',
+      source: 'local'
+    };
+  }
+
+  if (lastMsg.includes('sq') || lastMsg.includes('stoic') || lastMsg.includes('control') || lastMsg.includes('meaning') || lastMsg.includes('epictetus')) {
+    return {
+      response: `### Spiritual Quotient (SQ) & Stoic Intelligence • 8/10 Impact\n\n**SQ is not about dogma; it is the capacity for existential purpose, core values, and unshakeable inner wholeness.**\n\n**Foundational Stoic Principles for SQ:**\n- **The Dichotomy of Control (Epictetus):** Divide reality into what is within your volition (opinions, virtues, choices, craft) and what is not (reputation, economy, weather, others' actions). Suffer only for your own character.\n- **Amor Fati (Loving Fate):** Don't just endure adversity; actively embrace each event as fuel for virtue and self-realization.\n- **Viktor Frankl's Logotherapy:** *'Those who have a 'why' to live, can bear with almost any 'how'.'* Clarify your moral cardinal north star before entering external chaos.\n\n${sq ? `*Your current SQ Score is **${sq}**.* ` : ''}Visit the **Stoic Sanctuary** in our Cognitive Gym to test yourself on the Dichotomy of Control Sorter!`,
+      model: 'SmartIQ Local Mentor',
+      source: 'local'
+    };
+  }
+
+  if (lastMsg.includes('eq') || lastMsg.includes('empath') || lastMsg.includes('emotion') || lastMsg.includes('conflict') || lastMsg.includes('listen')) {
+    return {
+      response: `### Emotional Quotient (EQ) • 9.3/10 Impact\n\n**EQ is the neurobiological mastery of self-awareness, somatic regulation, and interpersonal resonance.** In high-stakes leadership, emotional composure consistently outperforms raw computational IQ.\n\n**High-Leverage EQ Protocols:**\n- **10-Minute Nightly Emotional Journal:** Note two moments where your autonomic nervous system spiked. What was the somatic sensation? What need was underneath?\n- **The Somatic Sigh:** Two quick nasal inhales followed by a prolonged, unforced mouth exhale drops heart rate and halts amygdala hijacking within 40 seconds.\n- **Active Nonviolent Listening (NVC):** Before providing a counter-argument, reflect back the other person's core emotion: *'It sounds like you're feeling anxious about the delivery timeline.'*\n\n${eq ? `*Your current EQ Score is **${eq}**.* ` : ''}Practice our **Empathy Lab scenarios** in the Cognitive Gym to refine your conflict responses!`,
+      model: 'SmartIQ Local Mentor',
+      source: 'local'
+    };
+  }
+
+  if (lastMsg.includes('iq') || lastMsg.includes('logic') || lastMsg.includes('math') || lastMsg.includes('bayes') || lastMsg.includes('puzzle')) {
+    return {
+      response: `### Intelligence Quotient (IQ) • 9/10 Impact\n\n**IQ represents raw computational deduction, pattern mechanics, working memory, and Bayesian probability processing.**\n\n**Scientific Ways to Train IQ:**\n- **Bayesian Updating:** Continually adjust your probability confidence as new facts arrive rather than maintaining binary dogmatic beliefs.\n- **Working Memory Sprints:** Engage with timed chess tactical puzzles, sudoku, and mental arithmetic to strengthen prefrontal cortex arborization.\n- **Feynman Technique:** Can you explain the abstract concept to a 10-year-old using simple sensory analogies? If not, you don't truly grasp it.\n\n${iq ? `*Your current IQ Score is **${iq}**.* ` : ''}Try our **Rapid Deductive Math Duel** in the Cognitive Gym for a high-intensity 30-second focus sprint!`,
+      model: 'SmartIQ Local Mentor',
+      source: 'local'
+    };
+  }
+
+  return {
+    response: `### SmartIQ Cognitive Intelligence Assistant (Groq Ready)\n\nWelcome! I am your AI Intelligence Mentor, specialized in the **4 Dimensions of Human Capability**:\n\n- **IQ (Cognitive • 9/10):** Abstract reasoning, logic trees, Bayesian statistics & spatial manipulation.\n- **EQ (Emotional • 9.3/10):** Affective empathy, somatic self-regulation & nonviolent communication.\n- **SQ (Spiritual • 8/10):** Existential purpose, core values & Epictetus' Dichotomy of Control.\n- **AQ (Adaptability • 10/10):** Crisis velocity, AI paradigm assimilation & deliberate unlearning.\n\n${(iq || eq || sq || aq) ? `**Your Profile Metrics:** IQ: ${iq || '--'} • EQ: ${eq || '--'} • SQ: ${sq || '--'} • AQ: ${aq || '--'}\n\n` : ''}Ask me anything about improving a specific quotient, analyzing your scores, exploring Stoicism, or mastering crisis agility!`,
+    model: 'SmartIQ Local Mentor',
+    source: 'local'
+  };
+}

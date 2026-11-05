@@ -10,6 +10,7 @@ import AQQuiz from './pages/AQQuiz';
 import Results from './pages/Results';
 import CognitiveGym from './pages/CognitiveGym';
 import Admin from './pages/Admin';
+import IntelligenceChatbot from './components/IntelligenceChatbot';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function AppContent() {
@@ -284,6 +285,9 @@ function AppContent() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Side Intelligence Chatbot (Powered by Groq) */}
+      <IntelligenceChatbot />
     </div>
   );
 }

@@ -105,6 +105,16 @@ class ArchetypeAnalysis(BaseModel):
     mistake_analyses: List[MistakeAnalysis]
 
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+    user_context: Optional[Dict[str, Any]] = None
+
+
 # =============================================================================
 # Local Deterministic Fallback Engine (IQ, EQ, SQ, AQ & 4D Synthesis)
 # =============================================================================
@@ -386,7 +396,14 @@ Output ONLY valid JSON with keys:
 - growth_habits: array of {{"habit": string, "frequency": string, "action": string}} (3 tailored habits inspired by the 4 intelligence principles)
 - mistake_analyses: array of {{"question": string, "why_wrong": string, "cognitive_bias": string}}
 """
-        for model_id in ["openai/gpt-oss-20b", "qwen/qwen3.8-27b"]:
+        for model_id in [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "llama3-70b-8192",
+            "mixtral-8x7b-32768",
+            "openai/gpt-oss-20b",
+            "qwen/qwen3.8-27b"
+        ]:
             try:
                 completion = client.chat.completions.create(
                     model=model_id,
@@ -481,6 +498,170 @@ async def analyze_submission(submission: QuizSubmission):
     return {
         "status": "success",
         "data": result
+    }
+
+
+# =============================================================================
+# Direct Chatbot Endpoint (Powered by Groq LLM with Resilient Local Engine)
+# =============================================================================
+def generate_smart_chat_fallback(query: str, context: Optional[Dict[str, Any]] = None) -> str:
+    """Local high-intellect fallback responses when Groq API key is absent or offline."""
+    q = (query or "").lower()
+    ctx = context or {}
+    iq = ctx.get("iq_score")
+    eq = ctx.get("eq_score")
+    sq = ctx.get("sq_score")
+    aq = ctx.get("aq_score")
+
+    if any(k in q for k in ["aq", "adaptability", "disruption", "unlearn", "pivot", "crisis", "ai"]):
+        return (
+            "### Adaptability Quotient (AQ) • Peak 10/10 Impact\n\n"
+            "**AQ is your velocity of cognitive adjustment under radical disruption.** While IQ calculates and EQ connects, AQ dictates whether you thrive when the rules of the game change.\n\n"
+            "**Core Pillars of AQ:**\n"
+            "- **The 'What If...?' Agility Habit:** Regularly run counter-factual simulations on your career or projects. Ask: *'If our primary tool/revenue was wiped out tomorrow, what is our pivot in 48 hours?'*\n"
+            "- **Deliberate Unlearning:** Alvin Toffler famously noted: *'The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn.'*\n"
+            "- **Antifragile Posture (Nassim Taleb):** Don't just resist shock (robustness); design your workflows so volatility makes you smarter and more capable.\n\n"
+            + (f"*Your current recorded AQ Score is **{aq}**.* " if aq else "")
+            + "Try the **Crisis Simulator drill** in our Cognitive Gym to train your pivot instincts!"
+        )
+
+    if any(k in q for k in ["sq", "stoic", "spiritual", "meaning", "epictetus", "control", "amor fati", "frankl"]):
+        return (
+            "### Spiritual Quotient (SQ) & Stoic Intelligence • 8/10 Impact\n\n"
+            "**SQ is not about dogma; it is the capacity for existential purpose, core values, and unshakeable inner wholeness.**\n\n"
+            "**Foundational Stoic Principles for SQ:**\n"
+            "- **The Dichotomy of Control (Epictetus):** Divide reality into what is within your volition (opinions, virtues, choices, craft) and what is not (reputation, economy, weather, others' actions). Suffer only for your own character.\n"
+            "- **Amor Fati (Loving Fate):** Don't just endure adversity; actively embrace each event as fuel for virtue and self-realization.\n"
+            "- **Viktor Frankl's Logotherapy:** *'Those who have a 'why' to live, can bear with almost any 'how'.'* Clarify your moral cardinal north star before entering external chaos.\n\n"
+            + (f"*Your current recorded SQ Score is **{sq}**.* " if sq else "")
+            + "Visit the **Stoic Sanctuary** in our Cognitive Gym to test yourself on the Dichotomy of Control Sorter!"
+        )
+
+    if any(k in q for k in ["eq", "empathy", "emotion", "feeling", "listen", "relationship", "conflict"]):
+        return (
+            "### Emotional Quotient (EQ) • 9.3/10 Impact\n\n"
+            "**EQ is the neurobiological mastery of self-awareness, somatic regulation, and interpersonal resonance.** In high-stakes leadership, emotional composure consistently outperforms raw computational IQ.\n\n"
+            "**High-Leverage EQ Protocols:**\n"
+            "- **10-Minute Nightly Emotional Journal:** Note two moments where your autonomic nervous system spiked. What was the somatic sensation? What need was underneath?\n"
+            "- **The Somatic Sigh (Physiological Regulation):** Two quick nasal inhales followed by a prolonged, unforced mouth exhale drops heart rate and halts amygdala hijacking within 40 seconds.\n"
+            "- **Active Nonviolent Listening (NVC):** Before providing a counter-argument, reflect back the other person's core emotion: *'It sounds like you're feeling anxious about the delivery timeline.'*\n\n"
+            + (f"*Your current recorded EQ Score is **{eq}**.* " if eq else "")
+            + "Practice our **Empathy Lab scenarios** in the Cognitive Gym to refine your conflict responses!"
+        )
+
+    if any(k in q for k in ["iq", "logic", "math", "pattern", "spatial", "bayes", "chess", "sudoku", "puzzle"]):
+        return (
+            "### Intelligence Quotient (IQ) • 9/10 Impact\n\n"
+            "**IQ represents raw computational deduction, pattern mechanics, working memory, and Bayesian probability processing.**\n\n"
+            "**Scientific Ways to Train IQ:**\n"
+            "- **Bayesian Updating:** Continually adjust your probability confidence as new facts arrive rather than maintaining binary dogmatic beliefs.\n"
+            "- **Working Memory Sprints:** Engage with timed chess tactical puzzles, sudoku, and mental arithmetic to strengthen prefrontal cortex arborization.\n"
+            "- **Feynman Technique:** Can you explain the abstract concept to a 10-year-old using simple sensory analogies? If not, you don't truly grasp it.\n\n"
+            + (f"*Your current recorded IQ Score is **{iq}**.* " if iq else "")
+            + "Try our **Rapid Deductive Math Duel** in the Cognitive Gym for a high-intensity 30-second focus sprint!"
+        )
+
+    if any(k in q for k in ["routine", "gym", "train", "improve", "daily", "exercise", "habit"]):
+        return (
+            "### The 4D Daily Cognitive Protocol\n\n"
+            "Here is the daily 20-minute master routine derived from our psychometric research:\n\n"
+            "1. **Morning (SQ • 5 mins):** Epictetus audit. Write down 3 looming tasks and label what is strictly within your control vs what is external.\n"
+            "2. **Midday (IQ & AQ • 10 mins):** Run a 30-second logic sprint in our Cognitive Gym, followed by one 'What If...?' scenario regarding your current industry.\n"
+            "3. **Night (EQ • 5 mins):** Nightly emotional reflection journal. Review interpersonal conversations and note where you maintained non-defensive empathy.\n\n"
+            "Consistency compounds neuroplasticity. Which of the 4 quotients would you like to target first today?"
+        )
+
+    return (
+        "### SmartIQ Cognitive Intelligence Assistant\n\n"
+        "Welcome! I am your AI Intelligence Mentor powered by Groq, specialized in the **4 Dimensions of Human Capability**:\n\n"
+        "- **IQ (Cognitive • 9/10):** Abstract reasoning, logic trees, Bayesian statistics & spatial manipulation.\n"
+        "- **EQ (Emotional • 9.3/10):** Affective empathy, somatic self-regulation & nonviolent communication.\n"
+        "- **SQ (Spiritual • 8/10):** Existential purpose, core values & Epictetus' Dichotomy of Control.\n"
+        "- **AQ (Adaptability • 10/10):** Crisis velocity, AI paradigm assimilation & deliberate unlearning.\n\n"
+        + (f"**Your Current Metrics:** IQ: {iq or '--'} • EQ: {eq or '--'} • SQ: {sq or '--'} • AQ: {aq or '--'}\n\n" if (iq or eq or sq or aq) else "")
+        + "Ask me anything about improving a specific quotient, analyzing your scores, exploring Stoicism, or mastering crisis agility!"
+    )
+
+
+@app.post("/api/chat")
+async def chat_with_intelligence_ai(request: ChatRequest):
+    """
+    Direct Groq chat endpoint for Intelligence & Cognition guidance.
+    Provides expert insights on IQ, EQ, SQ, AQ, neuroplasticity, and mental training.
+    """
+    system_prompt = (
+        "You are SmartIQ AI, an elite, articulate, and scientifically grounded cognitive mentor and intelligence scientist powered by Groq. "
+        "You specialize in the 4 Dimensions of Human Intelligence:\n"
+        "1. IQ (Cognitive Intelligence): Logic, deductive reasoning, mathematical patterns, spatial visualization, Bayesian thinking. (Impact: 9/10)\n"
+        "2. EQ (Emotional Quotient): Self-awareness, somatic regulation, active listening, nonviolent communication, empathetic resonance. (Impact: 9.3/10)\n"
+        "3. SQ (Spiritual Quotient & Stoicism): Finding existential meaning, inner wholeness, core moral values, and Epictetus' Dichotomy of Control (separating what is in your power from what is not, Amor Fati). (Impact: 8/10)\n"
+        "4. AQ (Adaptability Quotient): Crisis velocity, psychological resilience, AI & tech disruption assimilation, rapid unlearning and relearning, OODA loops, and Nassim Taleb's Antifragile mindset. (Impact: 10/10 Peak)\n\n"
+        "Instructions:\n"
+        "- Deliver clear, inspiring, practical, and intellectually engaging answers.\n"
+        "- Use markdown formatting (bolding key concepts, bullet lists) for readability.\n"
+        "- If user context is provided with their scores or archetype, tailor your insights directly to their metrics.\n"
+        "- If asked for exercises, provide concrete, actionable drills from the Cognitive Gym.\n"
+        "- Keep answers punchy and focused (typically 2-4 structured paragraphs or concise bullet points)."
+    )
+
+    if request.user_context:
+        ctx = request.user_context
+        system_prompt += (
+            f"\n\nActive User Profile Context:\n"
+            f"- IQ Score: {ctx.get('iq_score', 'Not tested')}\n"
+            f"- EQ Score: {ctx.get('eq_score', 'Not tested')}\n"
+            f"- SQ Score: {ctx.get('sq_score', 'Not tested')}\n"
+            f"- AQ Score: {ctx.get('aq_score', 'Not tested')}\n"
+            f"- Current Archetype: {ctx.get('archetype_title', 'Exploring Dimensions')}"
+        )
+
+    # 1. Attempt Groq
+    if GROQ_API_KEY:
+        try:
+            from groq import Groq
+            client = Groq(api_key=GROQ_API_KEY)
+
+            groq_messages = [{"role": "system", "content": system_prompt}]
+            for m in request.messages[-8:]:
+                groq_messages.append({"role": m.role, "content": m.content})
+
+            models = [
+                "llama-3.3-70b-versatile",
+                "llama-3.1-8b-instant",
+                "llama3-70b-8192",
+                "mixtral-8x7b-32768"
+            ]
+
+            for model_id in models:
+                try:
+                    completion = client.chat.completions.create(
+                        model=model_id,
+                        messages=groq_messages,
+                        max_tokens=800,
+                        temperature=0.7
+                    )
+                    reply = completion.choices[0].message.content
+                    if reply and reply.strip():
+                        return {
+                            "status": "success",
+                            "response": reply.strip(),
+                            "model": model_id,
+                            "source": "groq"
+                        }
+                except Exception as inner_err:
+                    print(f"[SmartIQ Chat] Model {model_id} error: {inner_err}")
+                    continue
+        except Exception as e:
+            print(f"[SmartIQ Chat] Groq client failed: {e}")
+
+    # 2. Resilient Intelligent Fallback (if Groq down or no key)
+    user_query = request.messages[-1].content if request.messages else ""
+    fallback_reply = generate_smart_chat_fallback(user_query, request.user_context)
+    return {
+        "status": "success",
+        "response": fallback_reply,
+        "model": "smartiq-cognitive-engine",
+        "source": "local-fallback"
     }
 
 
