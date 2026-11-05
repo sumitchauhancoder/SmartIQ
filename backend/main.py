@@ -120,8 +120,8 @@ class ChatRequest(BaseModel):
 # =============================================================================
 def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, Any]:
     """
-    Fallback deterministic psychometric calculation engine.
-    Supports individual independent evaluations (IQ, EQ, SQ, AQ) and holistic 4D synthesis.
+    Empirical psychometric calculation engine grounded in standardized Gaussian norms (mu=100, sigma=15).
+    Delivers honest, unvarnished scientific evaluations without subjective flattery or unfounded assumptions.
     """
     test_type = (submission.test_type or "COMBINED").upper()
     iq = submission.iq_score or 100
@@ -129,199 +129,219 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
     sq = submission.sq_score or 100
     aq = submission.aq_score or 100
 
-    # 1. SQ Independent Evaluation
+    def calc_z(val: float) -> str:
+        z = (val - 100) / 15.0
+        return f"+{z:.2f}σ" if z >= 0 else f"{z:.2f}σ"
+
+    # 1. SQ Independent Evaluation (Zohar-Marshall & Epictetian Stoic Norms)
     if test_type == "SQ":
+        z_str = calc_z(sq)
         if sq >= 125:
-            archetype = "The Sovereign Stoic Sage"
-            summary = "You embody exceptional spiritual resilience, finding profound existential purpose and unshakeable equanimity in the face of external storms."
-            edge = "Epictetus-grade dichotomy of control; mastery over internal judgment, moral integrity, and deep existential grounding."
-            eq_style = "Serene emotional stillness; immune to flattery or slander, driven by cardinal virtue and inner wholeness."
+            archetype = "Superior Stoic Ethicist"
+            summary = f"With an SQ of {sq} ({z_str}, top 5% of standardized norms), your moral reasoning and existential grounding operate at an advanced psychometric tier. You demonstrate rigorous command over Epictetus' dichotomy of control, though you must beware of potential stoic detachment or intellectual isolation from less grounded peers."
+            edge = "Epictetian dichotomy of control, internal locus of evaluation, and consistent ethical alignment under moral ambiguity."
+            eq_style = "High existential equanimity; resilient against external praise or blame."
         elif sq >= 110:
-            archetype = "The Purpose-Driven Philosopher"
-            summary = "You possess strong moral clarity, consistently aligning your actions with personal values and seeking meaningful impact over ephemeral trends."
-            edge = "Existential meaning-making and reflective self-examination under moral ambiguity."
-            eq_style = "Grounded composure with a steady ethical compass and respect for timeless philosophical wisdom."
+            archetype = "High-Average Purpose Practitioner"
+            summary = f"Scoring {sq} ({z_str}, top 25% of population) places you in the high-average tier above the 100 population baseline. You maintain clear personal principles and purpose alignment, though acute stress or complex ethical dilemmas occasionally induce temporary existential doubt."
+            edge = "Conscious values alignment, reflective self-inquiry, and steady moral agency."
+            eq_style = "Grounded ethical composure with a developing capacity for classical stoic stillness."
+        elif sq >= 90:
+            archetype = "Normative Pragmatic Realist"
+            summary = f"Scoring {sq} ({z_str}, 50th–74th percentile) aligns squarely with the global population average (mean: 100). You hold everyday functional ethics, but your equanimity fluctuates under sudden external adversity, and you are vulnerable to chasing external approval when your internal compass is unexamined."
+            edge = "Pragmatic, common-sense moral functioning within structured, familiar boundaries."
+            eq_style = "Variable composure; emotional peace remains dependent on favorable external circumstances."
         else:
-            archetype = "The Seeking Realist"
-            summary = "You approach life with practical grounding, maintaining functional ethics while exploring deeper philosophical frameworks."
-            edge = "Pragmatic balance between real-world constraints and moral responsibility."
-            eq_style = "Sensible and grounded; benefits from daily quietude and deeper study of classical Stoic principles."
+            archetype = "Vulnerable Externalizer"
+            summary = f"With an SQ of {sq} ({z_str}, below population average), your results indicate significant vulnerability to external volatility. You exhibit a reactive locus of control, leaving your emotional well-being fragile when outside conditions deteriorate."
+            edge = "Basic functional ethics that require systematic grounding in stoic principles."
+            eq_style = "Prone to externalizing blame and existential frustration under sustained pressure."
 
         growth_habits = [
             {
-                "habit": "Premeditatio Malorum & Amor Fati",
-                "frequency": "Daily (Morning)",
-                "action": "Visualize potential obstacles without anxiety; embrace whatever unfolds as fuel for moral excellence."
+                "habit": "Epictetian Control Audit",
+                "frequency": "Daily (Evening)",
+                "action": "Write down 3 events from today. Explicitly partition them into 'Within My Will' vs 'Outside My Will' to reinforce internal sovereignty."
             },
             {
-                "habit": "Value-Alignment Audit",
+                "habit": "Premeditatio Malorum Practice",
+                "frequency": "Weekly",
+                "action": "Mentally rehearse a potential adversity without anxiety, training your psyche to respond with virtue rather than reactive panic."
+            },
+            {
+                "habit": "Values-Action Alignment Review",
                 "frequency": "Weekly (Sunday)",
-                "action": "Review your weekly decisions against your core virtues: Wisdom, Courage, Justice, and Temperance."
-            },
-            {
-                "habit": "Contemplative Quietude",
-                "frequency": "Daily (10-15 mins)",
-                "action": "Unplug completely from digital noise; practice silent reflection, journaling, or classical philosophy reading."
+                "action": "Audit your weekly calendar against cardinal virtues (Wisdom, Courage, Justice, Temperance) to identify moral friction."
             }
         ]
 
-    # 2. AQ Independent Evaluation
+    # 2. AQ Independent Evaluation (Paul Stoltz CORE & Antifragility Models)
     elif test_type == "AQ":
+        z_str = calc_z(aq)
         if aq >= 125:
-            archetype = "The Fluid Disruption Pioneer"
-            summary = "You demonstrate peerless adaptability, operating with lightning pivot velocity, joy under ambiguity, and rapid unlearning/relearning mastery."
-            edge = "Instinctive 'What If...?' reframing, zero-latency crisis navigation, and effortless synthesis of revolutionary technologies like AI."
-            eq_style = "High psychological safety in chaos; transforms catastrophic disruption into creative breakthrough leverage."
+            archetype = "Superior Adaptive Strategist"
+            summary = f"An AQ of {aq} ({z_str}, top 5% of empirical norms) indicates superior change velocity and crisis resilience. You unlearn and pivot with rapid cognitive fluidity, though you risk pivoting prematurely before exhausting current systems."
+            edge = "Rapid cognitive unlearning, hypothesis inversion under crisis, and high tolerance for ambiguity."
+            eq_style = "Psychologically antifragile; metabolizes environmental disruption as strategic fuel."
         elif aq >= 110:
-            archetype = "The Agile Strategic Navigator"
-            summary = "You metabolize change smoothly, proactively adjusting strategies and embracing emerging workflows before disruption forces a pivot."
-            edge = "Flexible mental model swapping and strong resilience during unexpected organizational shifts."
-            eq_style = "Adaptable and steady; comfortably unlearns obsolete protocols to assimilate modern paradigms."
+            archetype = "High-Average Agile Navigator"
+            summary = f"Scoring {aq} ({z_str}, top 25% of population) places you reliably above the 100 population baseline. You adjust smoothly to structural pivots and assimilate new technologies (e.g. AI workflows) with minimal disruption friction."
+            edge = "Calculated pivot execution and active unlearning of outdated protocols."
+            eq_style = "Calm under operational shifts; occasional hesitation when abandoning established masteries."
+        elif aq >= 90:
+            archetype = "Normative Incremental Adapter"
+            summary = f"Scoring {aq} ({z_str}, 50th–74th percentile) places your adaptability directly within the global population average (mean: 100). You manage routine operational updates comfortably, but your pivot velocity slows noticeably during acute, unstructured disruption, revealing a natural inclination to cling to familiar habits."
+            edge = "Reliable incremental adaptation once a safe precedent and tested roadmap are established."
+            eq_style = "Cautious composure; benefits from deliberate micro-exposure to ambiguous situations."
         else:
-            archetype = "The Methodical Adapter"
-            summary = "You prefer structured evolution over sudden upheaval, adapting reliably once new frameworks have been tested and demonstrated."
-            edge = "Deliberate, thorough transition management that avoids reckless over-rotation."
-            eq_style = "Grounded caution; thrives when given clear transition milestones and micro-experimental sandboxes."
+            archetype = "Rigid Protocol Anchor"
+            summary = f"With an AQ of {aq} ({z_str}, below population average), your results diagnose significant disruption friction. When external rules shift suddenly, you exhibit hesitation, defense of legacy habits, and elevated stress responses."
+            edge = "High fidelity to rigid, established workflows, but vulnerable to technological or market obsolescence."
+            eq_style = "Paralysis and defensive resistance when forced to operate outside established routines."
 
         growth_habits = [
             {
-                "habit": "The 'What If...?' Simulation",
-                "frequency": "Daily (10 mins)",
-                "action": "Challenge one standard operational assumption by asking 'What if this constraint disappeared or reversed?'"
-            },
-            {
-                "habit": "Voluntary Novelty Immersion",
-                "frequency": "Weekly",
-                "action": "Intentionally test an unfamiliar tool, study an alien discipline, or explore new technology to keep mental plasticity sharp."
-            },
-            {
-                "habit": "Rapid 48-Hour Micro-Experiment",
+                "habit": "Assumption Inversion Drill",
                 "frequency": "Bi-Weekly",
-                "action": "Test an emerging idea with zero-friction lean prototypes rather than debating hypotheses theoretically."
-            }
-        ]
-
-    # 3. IQ Independent Evaluation
-    elif test_type == "IQ":
-        if iq >= 125:
-            archetype = "The Deep-System Logician"
-            summary = "Your mental architecture operates at elite analytical velocity, isolating complex relational patterns and structural syllogisms effortlessly."
-            edge = "High-dimensional abstraction, spatial mental transformation, and rapid algorithmic fallacy elimination."
-            eq_style = "Hyper-rational and precise; excels when problem domains are clearly defined and structured."
-        elif iq >= 110:
-            archetype = "The Deductive Architect"
-            summary = "You demonstrate sharp structural reasoning and robust mathematical modeling across complex operational environments."
-            edge = "Methodical pattern isolation and reliable deductive risk assessment."
-            eq_style = "Clear and objective; thrives in data-rich analytical challenges."
-        else:
-            archetype = "The Pragmatic Analyst"
-            summary = "You apply balanced, common-sense problem solving with dependable real-world analytical execution."
-            edge = "Practical problem resolution without unnecessary theoretical convolution."
-            eq_style = "Direct and focused on tangible outcomes."
-
-        growth_habits = [
-            {
-                "habit": "Combinatorial Puzzle Training",
-                "frequency": "Daily (15 mins)",
-                "action": "Solve tactical chess puzzles, sudoku, or spatial matrix problems to elevate working memory capacity."
+                "action": "Identify one core workflow assumption and intentionally design a viable alternative assuming that rule is completely revoked."
             },
             {
-                "habit": "First-Principles Mental Modeling",
+                "habit": "Deliberate Novelty Immersion",
                 "frequency": "Weekly",
-                "action": "Break down an engineering or business problem into its fundamental axioms before synthesizing solutions."
+                "action": "Engage with an unfamiliar software tool or intellectual domain for 30 minutes to exercise neuroplastic cognitive flexibility."
             },
             {
-                "habit": "Bayesian Probability Calibration",
-                "frequency": "Weekly",
-                "action": "Quantify your confidence in your predictions (e.g. 70%) and track calibration accuracy over time."
-            }
-        ]
-
-    # 4. EQ Independent Evaluation
-    elif test_type == "EQ":
-        if eq >= 125:
-            archetype = "The Resonant Diplomat"
-            summary = "You possess extraordinary interpersonal acuity, effortlessly reading emotional undercurrents, de-escalating friction, and cultivating deep trust."
-            edge = "Hyper-attuned affective empathy, emotional self-regulation under duress, and master-level social orchestration."
-            eq_style = "Profound psychological warmth; creates immediate safety and inspires high-retention collaboration."
-        elif eq >= 110:
-            archetype = "The Empathetic Harmonizer"
-            summary = "You demonstrate strong situational awareness, validating others' perspectives while maintaining your own emotional balance."
-            edge = "Constructive conflict resolution and active non-verbal cue decoding."
-            eq_style = "Attentive and composed; bridges divergent personality styles with ease."
-        else:
-            archetype = "The Practical Communicator"
-            summary = "You approach social dynamics with straightforward honesty and functional communication."
-            edge = "Direct, unpretentious interaction focused on shared objectives."
-            eq_style = "Steady; benefits from deeper active listening and emotional journaling."
-
-        growth_habits = [
-            {
-                "habit": "10-Minute Nightly Emotional Journal",
-                "frequency": "Daily (Night)",
-                "action": "Write down key interpersonal moments from the day, identifying somatic cues and emotional triggers."
-            },
-            {
-                "habit": "Active Listening Protocol",
-                "frequency": "Daily (Real-time)",
-                "action": "In your next 3 conversations, summarize the other person's core feeling before offering any solution."
-            },
-            {
-                "habit": "Somatic Pause Under Pressure",
-                "frequency": "When Triggered",
-                "action": "Take 3 deep box breaths to prevent amygdala hijack before reacting to criticism or conflict."
-            }
-        ]
-
-    # 5. Holistic 4D Matrix Synthesis (Combined)
-    else:
-        avg_score = (iq + eq + sq + aq) / 4
-        if avg_score >= 120 and (sq >= 115 and aq >= 115):
-            archetype = "The Transcendent Sovereign Polymath"
-            summary = "A rare multidimensional cognitive powerhouse. You synthesize analytical deduction (IQ), human resonance (EQ), stoic grounding (SQ), and fluid pivot velocity (AQ)."
-            edge = "Complete cognitive equilibrium: architecting complex systems while anchoring teams with purpose and navigating radical disruption."
-            eq_style = "Imperturbable inner peace combined with dynamic charisma and limitless adaptability."
-        elif iq >= 115 and aq >= 115:
-            archetype = "The Agile Algorithmic Disruptor"
-            summary = "You excel at the convergence of pure logic and rapid adaptability, mastering new paradigms and tech shifts (AI, engineering) before others notice."
-            edge = "Lightning-fast conceptual unlearning/relearning coupled with rigorous structural modeling."
-            eq_style = "Fast-paced, innovative, and resilient against sudden environmental shocks."
-        elif sq >= 115 and eq >= 115:
-            archetype = "The Resonant Stoic Visionary"
-            summary = "You unite profound human empathy with classical stoic purpose, leading through moral authority, compassion, and existential clarity."
-            edge = "Unshakeable values, restorative conflict mitigation, and deep cultural/philosophical stewardship."
-            eq_style = "Magnanimous and centered; an empathetic anchor in times of societal turbulence."
-        elif aq >= 115 and eq >= 115:
-            archetype = "The Fluid Crisis Leader"
-            summary = "You excel when chaos strikes, maintaining high emotional safety and pivoting group strategy seamlessly under high stakes."
-            edge = "De-escalation under acute ambiguity and rapid collective mobilization."
-            eq_style = "Inspiring and flexible; turning organizational panic into focused execution."
-        elif iq >= 115 and sq >= 115:
-            archetype = "The Theoretical Moral Architect"
-            summary = "You blend first-principles logic with deep philosophical rigor, designing systems that are both mathematically sound and ethically grounded."
-            edge = "High abstract deduction anchored in immutable cardinal virtues."
-            eq_style = "Reflective, principled, and intellectually uncompromising."
-        else:
-            archetype = "The Balanced 4D Integrator"
-            summary = "You demonstrate healthy equilibrium across all four intelligence quotients, maintaining steady execution without severe blind spots."
-            edge = "Well-rounded versatility across logic, emotion, existential purpose, and adaptability."
-            eq_style = "Dependable and grounded across diverse personal and professional domains."
-
-        growth_habits = [
-            {
-                "habit": "4D Multidimensional Audit",
-                "frequency": "Weekly",
-                "action": "Assess your week across 4 pillars: Did I think clearly (IQ)? Relate deeply (EQ)? Stay grounded (SQ)? Adapt quickly (AQ)?"
-            },
-            {
-                "habit": "Stoic Premeditation & 'What If?' Synthesis",
-                "frequency": "Bi-Weekly",
-                "action": "Simulate a severe potential crisis: plan your tactical pivot (AQ) while anchoring your inner peace (SQ)."
-            },
-            {
-                "habit": "Cross-Disciplinary Learning Sprints",
+                "habit": "Rapid Lean Prototyping",
                 "frequency": "Monthly",
-                "action": "Study an intersection: e.g. AI ethics (IQ+SQ), leadership psychology (EQ+AQ), or computational linguistics."
+                "action": "Test an emerging concept with a zero-cost 24-hour prototype rather than waiting for 100% data certainty."
+            }
+        ]
+
+    # 3. IQ Independent Evaluation (Cattell-Horn-Carroll Gf & Gq Theory)
+    elif test_type == "IQ":
+        z_str = calc_z(iq)
+        if iq >= 125:
+            archetype = "Superior Analytical Logician"
+            summary = f"With a score of {iq} ({z_str}, top 5% of standardized cognitive distributions), you demonstrate superior deductive precision and working memory capacity. You deconstruct multi-layered mathematical and spatial patterns with high velocity, though you must guard against over-rationalizing human variables."
+            edge = "High-dimensional abstraction, spatial transformation, and systematic algorithmic deduction."
+            eq_style = "Rigorous, objective, and analytically uncompromising."
+        elif iq >= 110:
+            archetype = "High-Average Deductive Modeler"
+            summary = f"An IQ of {iq} ({z_str}, top 25% of population) places your cognitive capabilities firmly above the 100 population baseline. You exhibit dependable logical modeling and statistical deduction, with isolated susceptibility to complex cognitive trick puzzles under strict time limits."
+            edge = "Structured pattern recognition, numerical deduction, and disciplined risk evaluation."
+            eq_style = "Fact-based and clear; thrives in well-scoped analytical environments."
+        elif iq >= 90:
+            archetype = "Normative Pragmatic Analyst"
+            summary = f"Scoring {iq} ({z_str}, 50th–74th percentile) aligns directly with the global population average (mean: 100). You possess sound common-sense problem-solving ability, but your processing accuracy drops when confronted with abstract logic traps, spatial inversions, or rapid time pressure."
+            edge = "Pragmatic, real-world reasoning and dependable standard execution."
+            eq_style = "Direct and focused on tangible outcomes; vulnerable to heuristic cognitive shortcuts under strain."
+        else:
+            archetype = "Concrete Applied Thinker"
+            summary = f"With an IQ of {iq} ({z_str}, below population average), your cognitive performance indicates measurable friction in abstract deduction and rapid mental calculation. Structured memory and reasoning drills are recommended to strengthen processing velocity."
+            edge = "Practical execution in familiar hands-on tasks with minimal theoretical convolution."
+            eq_style = "Prefers concrete examples over abstract symbolic logic."
+
+        growth_habits = [
+            {
+                "habit": "Working Memory Matrix Training",
+                "frequency": "Daily (15 mins)",
+                "action": "Train on combinatorial puzzles, dual n-back exercises, or chess endgames to expand working memory capacity."
+            },
+            {
+                "habit": "First-Principles Deconstruction",
+                "frequency": "Weekly",
+                "action": "Break one complex problem down into its irreducible factual axioms before generating prospective solutions."
+            },
+            {
+                "habit": "Bayesian Calibration Audit",
+                "frequency": "Weekly",
+                "action": "Assign numerical confidence percentages (e.g. 80%) to your weekly analytical forecasts and track accuracy against outcomes."
+            }
+        ]
+
+    # 4. EQ Independent Evaluation (Mayer-Salovey-Caruso & Bar-On EQ-i)
+    elif test_type == "EQ":
+        z_str = calc_z(eq)
+        if eq >= 125:
+            archetype = "Superior Empathic Orchestrator"
+            summary = f"An EQ of {eq} ({z_str}, top 5% of empirical norms) demonstrates exceptional interpersonal perception, affective self-regulation, and non-defensive communication. You effortlessly navigate high-friction social tensions, though you must protect against secondary emotional fatigue."
+            edge = "Deep affective empathy, immediate somatic de-escalation, and accurate social dynamic modeling."
+            eq_style = "High emotional warmth and psychological safety under intense interpersonal friction."
+        elif eq >= 110:
+            archetype = "High-Average Resonant Communicator"
+            summary = f"Scoring {eq} ({z_str}, top 25% of population) places you well above the 100 population baseline. You read social cues accurately and defuse defensiveness effectively, though prolonged personal conflict can still challenge your composure."
+            edge = "Active empathetic listening, constructive conflict resolution, and balanced self-awareness."
+            eq_style = "Composed, attentive, and socially attuned across diverse working styles."
+        elif eq >= 90:
+            archetype = "Normative Empathetic Realist"
+            summary = f"Scoring {eq} ({z_str}, 50th–74th percentile) places your emotional intelligence directly within the global population average (mean: 100). You manage standard interpersonal interactions functionally, but you remain susceptible to defensive ego-reactivity, somatic tension, and communicative withdrawal when feeling judged or attacked."
+            edge = "Functional everyday empathy and cooperative social behavior within low-stress settings."
+            eq_style = "Adequate day-to-day composure; vulnerable to amygdala hijack and defensiveness under public criticism."
+        else:
+            archetype = "Reactive Interpersonal Deflector"
+            summary = f"With an EQ of {eq} ({z_str}, below population average), your results diagnose significant emotional friction. You tend to respond defensively or shut down when faced with feedback, impairing psychological safety and collaborative outcomes."
+            edge = "Direct communication, but requires active training in somatic regulation and perspective-taking."
+            eq_style = "Prone to reactive defensiveness, guilt-tripping, or emotional stonewalling under pressure."
+
+        growth_habits = [
+            {
+                "habit": "Somatic Reset Protocol",
+                "frequency": "When Triggered",
+                "action": "Execute 3 physiological sighs (double inhale, slow exhale) to disengage the sympathetic fight-or-flight response before speaking."
+            },
+            {
+                "habit": "Active Empathetic Mirroring",
+                "frequency": "Daily",
+                "action": "In conflict, accurately reflect the other party's emotional state ('It sounds like you are feeling overwhelmed...') before offering logic."
+            },
+            {
+                "habit": "Nightly Emotional Calibration",
+                "frequency": "Daily (Night)",
+                "action": "Journal for 10 minutes on today's social interactions, identifying triggers where ego defensiveness superseded empathy."
+            }
+        ]
+
+    # 5. Holistic 4D Matrix Synthesis (Combined IQ, EQ, SQ, AQ)
+    else:
+        avg_score = (iq + eq + sq + aq) / 4.0
+        z_str = calc_z(avg_score)
+
+        if avg_score >= 120 and (sq >= 115 and aq >= 115):
+            archetype = "Superior Multidimensional Polymath"
+            summary = f"With a balanced composite score of {avg_score:.1f} ({z_str}, top 9% of standardized normal distributions), your cognitive profile demonstrates superior cross-domain equilibrium. You combine analytical deduction (IQ: {iq}), emotional sovereignty (EQ: {eq}), stoic purpose (SQ: {sq}), and fluid adaptation (AQ: {aq}). Honest risk diagnosis: beware of cognitive impatience and over-reliance on individual capability."
+            edge = "Rare four-dimensional equilibrium: rigorous systems analysis, calm empathy, existential grounding, and high-velocity unlearning."
+            eq_style = "Centered equanimity, dynamic situational versatility, and intellectual resilience."
+        elif avg_score >= 110:
+            archetype = "High-Average Analytical Integrator"
+            summary = f"With a composite score of {avg_score:.1f} ({z_str}, top 25% of population), your performance sits comfortably above the global population average (mean: 100). You demonstrate dependable multi-domain capability across problem solving and adaptability, with minor isolated vulnerabilities when cognitive load and interpersonal tension peak simultaneously."
+            edge = "Disciplined structural deduction and constructive operational adaptability across varying conditions."
+            eq_style = "Consistently composed with solid situational awareness and grounded ethical alignment."
+        elif avg_score >= 90:
+            archetype = "Normative Pragmatic Integrator"
+            summary = f"Your composite score of {avg_score:.1f} ({z_str}, 50th–74th percentile) lies directly within the global population average (mean: 100, σ: 15). You possess a reliable baseline of everyday competence across logic, social dynamics, and adaptability. However, an honest scientific appraisal indicates noticeable susceptibility to time pressure, emotional defensiveness when challenged, and reluctance to rapidly abandon familiar routines. Daily targeted drills in the Cognitive Gym are recommended to elevate your baseline into the high-average tier."
+            edge = "Dependable common-sense problem solving and steady execution within established, predictable domains."
+            eq_style = "Functionally steady in standard conditions; prone to cognitive fatigue, defensive reactivity, or pivot latency under severe volatility."
+        else:
+            archetype = "Emerging Foundational Practitioner"
+            summary = f"With a composite score of {avg_score:.1f} ({z_str}, below population average), your performance reveals across-the-board friction across abstract logic, stress regulation, or change velocity. Dedicated neuroplastic training across all 4 pillars is required to establish a robust baseline."
+            edge = "Practical hands-on execution that requires systematic cognitive and emotional fortification."
+            eq_style = "Elevated reactivity and stress vulnerability when operational or interpersonal demands escalate."
+
+        growth_habits = [
+            {
+                "habit": "4D Cognitive Audit",
+                "frequency": "Weekly",
+                "action": "Evaluate your week across 4 metrics: Logic accuracy (IQ), Empathic regulation (EQ), Stoic control (SQ), and Pivot velocity (AQ)."
+            },
+            {
+                "habit": "Cognitive Gym Sprint Drill",
+                "frequency": "3x Weekly",
+                "action": "Complete the 10-question shuffled sprint in the Gym to build neuroplastic processing speed and working memory."
+            },
+            {
+                "habit": "Stoic Crisis Simulation",
+                "frequency": "Bi-Weekly",
+                "action": "Simulate a severe potential disruption: plan your tactical pivot (AQ) while anchoring your inner peace (SQ)."
             }
         ]
 
@@ -332,15 +352,15 @@ def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, An
         c_opt = item.get("correct_option", "True Answer")
         mistakes.append({
             "question": q_text[:90] + ("..." if len(q_text) > 90 else ""),
-            "why_wrong": f"You selected '{u_opt}', whereas the verified optimal answer is '{c_opt}'.",
-            "cognitive_bias": "Heuristic shortcut, reactive emotional framing, or time pressure miscalculation."
+            "why_wrong": f"You selected '{u_opt}', whereas empirical psychometric standards verify '{c_opt}' as the optimal solution.",
+            "cognitive_bias": "Heuristic availability shortcut, premature conclusion under time constraint, or emotional framing bias."
         })
 
     if not mistakes:
         mistakes.append({
-            "question": "Flawless Performance",
-            "why_wrong": "Zero errors detected in this assessment session.",
-            "cognitive_bias": "None; exceptional calibration and psychological composure."
+            "question": "Zero Errors Detected",
+            "why_wrong": "All 10 items resolved with verified psychometric accuracy.",
+            "cognitive_bias": "None; exceptional calibration and psychological composure under time constraint."
         })
 
     return {
@@ -379,21 +399,40 @@ async def analyze_with_groq(submission: QuizSubmission) -> Optional[Dict[str, An
         client = Groq(api_key=GROQ_API_KEY)
 
         prompt = f"""
-Analyze this user's psychometric assessment across the 4 Dimensions of Intelligence:
-Test Type Evaluated: {submission.test_type or "COMBINED"}
+You are a senior psychometrician and cognitive neuroscientist conducting a rigorous scientific evaluation based on standardized psychometrics (Cattell-Horn-Carroll theory, Mayer-Salovey-Caruso EQ, Zohar-Marshall SQ, Stoltz AQ).
+
+STANDARDIZED POPULATION BENCHMARKS:
+- Global Population Mean (μ): 100
+- Standard Deviation (σ): 15 (Standard Normal Bell Curve)
+- Scores 90-109: NORMATIVE POPULATION AVERAGE (50th-74th percentile). Represents median human baseline. DO NOT use hyperbolic praise (e.g. do not call a 100-107 score an 'elite pioneer' or 'mastermind').
+- Scores 110-119: HIGH AVERAGE (75th-89th percentile). Measurable edge above population baseline.
+- Scores 120-129: SUPERIOR (90th-97th percentile). Strong competitive aptitude.
+- Scores 130+: VERY SUPERIOR (98th+ percentile). High statistical outlier.
+- Scores 80-89: LOW AVERAGE (9th-24th percentile). Notable cognitive or emotional friction.
+- Scores < 80: BELOW AVERAGE (<9th percentile). Deficit requiring structured training.
+
+USER ASSESSMENT RESULTS:
+- Test Type Evaluated: {submission.test_type or "COMBINED"}
 - IQ (Cognitive Intelligence): {submission.iq_score or "N/A"} (Breakdown: {submission.iq_breakdown})
 - EQ (Emotional Quotient): {submission.eq_score or "N/A"} (Breakdown: {submission.eq_breakdown})
 - SQ (Spiritual Quotient & Stoicism): {submission.sq_score or "N/A"} (Breakdown: {submission.sq_breakdown})
 - AQ (Adaptability Quotient & Crisis Velocity): {submission.aq_score or "N/A"} (Breakdown: {submission.aq_breakdown})
-Tab Switch Count: {submission.tab_switch_count}
-Incorrect Questions Sample: {json.dumps(submission.incorrect_questions[:4])}
+- Tab Switch Count: {submission.tab_switch_count}
+- Incorrect Items: {json.dumps(submission.incorrect_questions[:4])}
+
+SCIENTIFIC METHODOLOGY & HONEST REVIEW GUIDELINES:
+1. Deliver an HONEST, UNVARNISHED, OBJECTIVE psychometric diagnostic.
+2. Explicitly compare the user's score to the empirical 100 population baseline.
+3. If scores are in the average range (90-109), state clearly that they align with the median human average. Acknowledge baseline competency, but explicitly diagnose cognitive vulnerabilities, emotional reactivity under pressure, or reluctance to pivot.
+4. Avoid horoscope-like assumptions about their personality, career, or intentions. Base all statements strictly on the psychometric data.
+5. Identify real cognitive biases evidenced by their missed questions.
 
 Output ONLY valid JSON with keys:
-- archetype_title: string (compelling archetype title)
-- core_summary: string (3-4 sentences synthesizing their unique strengths)
-- cognitive_edge: string (their sharpest intellectual/tactical differentiator)
-- emotional_profile: string (their emotional, spiritual, and adaptability demeanor)
-- growth_habits: array of {{"habit": string, "frequency": string, "action": string}} (3 tailored habits inspired by the 4 intelligence principles)
+- archetype_title: string (Scientifically grounded title, e.g. "Normative Pragmatic Analyst", "High-Average Resonant Communicator", "Superior Adaptive Strategist", "Emerging Foundational Thinker")
+- core_summary: string (3-4 sentences of honest, objective psychometric evaluation comparing performance to the 100 population mean)
+- cognitive_edge: string (Honest diagnosis of their cognitive and tactical operational style, including potential failure modes)
+- emotional_profile: string (Honest diagnosis of their emotional regulation, stoic composure, and adaptability demeanor under pressure)
+- growth_habits: array of {{"habit": string, "frequency": string, "action": string}} (3 actionable, evidence-based neuroplastic training protocols)
 - mistake_analyses: array of {{"question": string, "why_wrong": string, "cognitive_bias": string}}
 """
         for model_id in [
@@ -408,7 +447,7 @@ Output ONLY valid JSON with keys:
                 completion = client.chat.completions.create(
                     model=model_id,
                     messages=[
-                        {"role": "system", "content": "You are a world-class psychometrics analyst and cognitive scientist. Respond with pure JSON only."},
+                        {"role": "system", "content": "You are a senior psychometrics director and cognitive scientist. Provide an unvarnished, honest, scientific psychometric evaluation. Respond with pure JSON only."},
                         {"role": "user", "content": prompt}
                     ],
                     response_format={"type": "json_object"}
@@ -425,7 +464,6 @@ Output ONLY valid JSON with keys:
     return None
 
 
-# =============================================================================
 # API Endpoints
 # =============================================================================
 

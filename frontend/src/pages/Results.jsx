@@ -26,6 +26,62 @@ import {
 } from 'lucide-react';
 import PerformanceChart from '../components/PerformanceChart';
 
+// Empirical Gaussian Normal Psychometrics (Global Mean = 100, Std Dev = 15)
+function calculatePsychometrics(score) {
+  const numScore = Number(score) || 100;
+  const zScore = (numScore - 100) / 15.0;
+
+  // Standard normal CDF approximation (Abramowitz & Stegun formula)
+  const absZ = Math.abs(zScore);
+  const t = 1.0 / (1.0 + 0.2316419 * absZ);
+  const d = 0.3989422804014327 * Math.exp(-absZ * absZ / 2.0);
+  let cdf = 1.0 - d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  if (zScore < 0) cdf = 1.0 - cdf;
+
+  const percentile = Math.min(99, Math.max(1, Math.round(cdf * 100)));
+
+  let classification = '';
+  let badgeColor = '';
+  let honestDiagnostic = '';
+
+  if (numScore >= 130) {
+    classification = 'Very Superior (Top 2% Globally)';
+    badgeColor = 'border-purple-500/50 text-purple-300 bg-purple-950/60';
+    honestDiagnostic = 'Statistically exceptional capability (Z ≥ +2.0σ). Highly proficient working memory and pattern abstraction; vulnerability lies in analytical impatience or dismissing simpler heuristics.';
+  } else if (numScore >= 120) {
+    classification = 'Superior (Top 9% Globally)';
+    badgeColor = 'border-indigo-500/50 text-indigo-300 bg-indigo-950/60';
+    honestDiagnostic = 'Measurable strategic advantage (Z ≥ +1.33σ). Well above the global baseline; maintain cognitive humility against premature closure on complex problems.';
+  } else if (numScore >= 110) {
+    classification = 'High Average (Top 25% Globally)';
+    badgeColor = 'border-blue-500/50 text-blue-300 bg-blue-950/60';
+    honestDiagnostic = 'Solid performance above global population average (Z = +' + zScore.toFixed(2) + 'σ). Dependable problem solving, with isolated processing bottlenecks emerging under acute time pressure.';
+  } else if (numScore >= 90) {
+    classification = 'Normative Average (Global Population Median)';
+    badgeColor = 'border-emerald-500/50 text-emerald-300 bg-emerald-950/60';
+    honestDiagnostic = 'Standard population baseline (Mean: 100, σ: 15). Reliable everyday functional capability. An unvarnished evaluation reveals susceptibility to cognitive fatigue, emotional reactivity, and heuristic shortcuts when stakes rise.';
+  } else if (numScore >= 80) {
+    classification = 'Low Average (Below Global Baseline)';
+    badgeColor = 'border-amber-500/50 text-amber-300 bg-amber-950/60';
+    honestDiagnostic = 'Below global population median (Z = ' + zScore.toFixed(2) + 'σ). Demonstrates friction in abstract pattern deduction or stress regulation; structured deliberate drills are recommended.';
+  } else {
+    classification = 'Significantly Below Average';
+    badgeColor = 'border-rose-500/50 text-rose-300 bg-rose-950/60';
+    honestDiagnostic = 'Acute psychometric vulnerability (Z < -1.33σ). Targeted neuroplastic rehabilitation in the Cognitive Gym is strongly advised.';
+  }
+
+  return {
+    zScore: (zScore >= 0 ? '+' : '') + zScore.toFixed(2),
+    percentile,
+    classification,
+    badgeColor,
+    honestDiagnostic,
+    populationMean: 100,
+    populationStdDev: 15
+  };
+}
+
+
 export default function Results({ 
   resultsData, 
   iqData: propIQ, 
@@ -243,7 +299,8 @@ export default function Results({
     const ai = testData.ai_analysis || {};
     const answers = testData[`${type.toLowerCase()}_answers`] || [];
     const incorrect = testData.incorrect_questions || [];
-    const percentile = Math.min(99, Math.round(50 + ((score - 100) / 15) * 34));
+    const metrics = calculatePsychometrics(score);
+    const percentile = metrics.percentile;
 
     return (
       <div className="space-y-8 animate-fadeIn">
@@ -257,9 +314,19 @@ export default function Results({
                 {icon}
                 <span className="text-slate-200">{title} • 10 Questions Evaluated</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
-                Score: <span className="font-mono text-indigo-400">{score}</span>
-              </h2>
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                  Score: <span className="font-mono text-indigo-400">{score}</span>
+                </h2>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full border ${metrics.badgeColor}`}>
+                  {metrics.classification}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mb-2">
+                <span>Global Mean Benchmark: <strong>100</strong> (σ = 15)</span>
+                <span>•</span>
+                <span className="font-mono text-indigo-300">Z-Score: {metrics.zScore}σ</span>
+              </div>
               <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
                 {ai.core_summary || `Evaluates your psychometric performance across ${domains}.`}
               </p>
@@ -268,15 +335,18 @@ export default function Results({
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-slate-800 min-w-[140px] text-center">
+            <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-slate-800 min-w-[145px] text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
                 Percentile Rank
               </span>
               <span className="text-3xl font-black text-white font-mono">
-                {percentile}%
+                {metrics.percentile}th
               </span>
-              <span className="text-[11px] text-emerald-400 mt-1 font-semibold">
-                Top {Math.max(1, 100 - percentile)}% Worldwide
+              <span className="text-[11px] text-slate-300 mt-1 font-semibold">
+                {score >= 100 ? `Top ${Math.max(1, 100 - metrics.percentile)}% Globally` : `${metrics.percentile}% Below Median`}
+              </span>
+              <span className="text-[10px] text-slate-500 mt-0.5">
+                Baseline Median: 50th
               </span>
             </div>
           </div>
@@ -301,6 +371,22 @@ export default function Results({
               </span>
               <p className="text-xs sm:text-sm text-slate-300">
                 {ai.emotional_profile || 'Exhibits grounded clarity, calm execution under time constraints, and strong pattern mastery.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Objective Psychometric Review Card */}
+          <div className="mt-4 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-indigo-950/80 border border-indigo-800/60 text-indigo-400 shrink-0 mt-0.5">
+              <Brain className="w-4 h-4" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-white">Objective Psychometric Diagnostic</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Empirical Gaussian Standard</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {metrics.honestDiagnostic}
               </p>
             </div>
           </div>
@@ -512,6 +598,18 @@ export default function Results({
                 <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
                   {archetype}
                 </h1>
+                <div className="flex flex-wrap items-center gap-3 my-3 text-xs">
+                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>Global Population Mean: <strong>100</strong> (σ = 15)</span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-indigo-300 font-mono font-semibold">
+                    Composite Average: {Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} pts
+                  </span>
+                  <span className="text-slate-400">
+                    Scientific Standard: Cattell-Horn-Carroll & Gaussian Norms
+                  </span>
+                </div>
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
                   {summary}
                 </p>
