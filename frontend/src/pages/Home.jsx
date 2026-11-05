@@ -5,13 +5,9 @@ import {
   Award, 
   Compass,
   Zap,
-  ShieldCheck, 
   ArrowRight, 
   BarChart3, 
   Clock, 
-  Copy, 
-  Check, 
-  RefreshCw,
   UserCheck,
   TrendingUp,
   Layers,
@@ -25,13 +21,10 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { getSessionId } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home({ onStartQuiz }) {
   const { user } = useAuth();
-  const [sessionId, setSessionId] = useState('');
-  const [copied, setCopied] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
 
   // Check which modules have been completed
@@ -92,7 +85,6 @@ export default function Home({ onStartQuiz }) {
   ];
 
   useEffect(() => {
-    setSessionId(getSessionId());
     try {
       setIqRecord(JSON.parse(localStorage.getItem('enigma_iq_data') || localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('enigma_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null'));
       setEqRecord(JSON.parse(localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'));
@@ -100,18 +92,6 @@ export default function Home({ onStartQuiz }) {
       setAqRecord(JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'));
     } catch (e) {}
   }, []);
-
-  const handleCopySession = () => {
-    navigator.clipboard.writeText(sessionId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleRegenerateSession = () => {
-    const newId = 'usr_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
-    localStorage.setItem('smartiq_session_id', newId);
-    setSessionId(newId);
-  };
 
   const completedCount = [iqRecord, eqRecord, sqRecord, aqRecord].filter(Boolean).length;
   const currentQuote = intelligenceQuotes[quoteIndex];
@@ -141,30 +121,8 @@ export default function Home({ onStartQuiz }) {
           Explore and measure each dimension of human capability independently with 10 calibrated questions each. Complete individual tests at your own pace, or synthesize your complete 4D Multidimensional Matrix.
         </p>
 
-        {/* Session ID Chip & Action Shortcuts */}
+        {/* Action Shortcuts */}
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card border border-slate-800 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="text-slate-300 font-medium">Session ID:</span>
-            <span className="font-mono text-indigo-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-              {sessionId || 'Initializing...'}
-            </span>
-            <button
-              onClick={handleCopySession}
-              title="Copy Session ID"
-              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
-            >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-            <button
-              onClick={handleRegenerateSession}
-              title="Regenerate"
-              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
           <button
             onClick={() => onStartQuiz('gym')}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-indigo-950/80 border border-indigo-600/50 text-indigo-300 hover:bg-indigo-900/50 transition-all"
