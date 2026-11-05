@@ -56,7 +56,7 @@ def init_db():
 
 
 def init_postgres_db():
-    """Verifies PostgreSQL schema and seeds questions if table is empty."""
+    """Verifies PostgreSQL schema and seeds questions across IQ, EQ, SQ, and AQ if not already present."""
     from sqlalchemy import text
     try:
         with _engine.begin() as conn:
@@ -64,21 +64,47 @@ def init_postgres_db():
             conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS diagram_svg TEXT;"))
             conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS points JSONB;"))
 
-            # Ensure submissions table exists for performance analytics
+            # Update category_type check constraint to accommodate all 4 intelligences: IQ, EQ, SQ, AQ
+            try:
+                conn.execute(text("ALTER TABLE questions DROP CONSTRAINT IF EXISTS questions_category_type_check;"))
+                conn.execute(text("ALTER TABLE questions ADD CONSTRAINT questions_category_type_check CHECK (category_type IN ('IQ', 'EQ', 'SQ', 'AQ'));"))
+            except Exception as cat_err:
+                print(f"[SmartIQ Database] Category constraint update notice: {cat_err}")
+
+            # Ensure submissions table exists for multidimensional performance analytics
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS submissions (
                     id SERIAL PRIMARY KEY,
                     session_id VARCHAR(100) NOT NULL,
                     user_id UUID,
-                    iq_score INTEGER NOT NULL,
-                    iq_breakdown JSONB NOT NULL,
-                    eq_score INTEGER NOT NULL,
-                    eq_breakdown JSONB NOT NULL,
+                    iq_score INTEGER,
+                    iq_breakdown JSONB,
+                    eq_score INTEGER,
+                    eq_breakdown JSONB,
+                    sq_score INTEGER,
+                    sq_breakdown JSONB,
+                    aq_score INTEGER,
+                    aq_breakdown JSONB,
+                    test_type VARCHAR(50) DEFAULT 'COMBINED',
                     tab_switch_count INTEGER DEFAULT 0,
                     archetype_title VARCHAR(200),
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );
             """))
+
+            # Ensure newly added quotient columns exist in existing table installations
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN IF NOT EXISTS sq_score INTEGER;"))
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN IF NOT EXISTS sq_breakdown JSONB;"))
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN IF NOT EXISTS aq_score INTEGER;"))
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN IF NOT EXISTS aq_breakdown JSONB;"))
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN IF NOT EXISTS test_type VARCHAR(50) DEFAULT 'COMBINED';"))
+            try:
+                conn.execute(text("ALTER TABLE submissions ALTER COLUMN iq_score DROP NOT NULL;"))
+                conn.execute(text("ALTER TABLE submissions ALTER COLUMN iq_breakdown DROP NOT NULL;"))
+                conn.execute(text("ALTER TABLE submissions ALTER COLUMN eq_score DROP NOT NULL;"))
+                conn.execute(text("ALTER TABLE submissions ALTER COLUMN eq_breakdown DROP NOT NULL;"))
+            except Exception:
+                pass
 
             # Synchronize admin privileges for superadmin in PostgreSQL profiles table
             try:
@@ -86,22 +112,23 @@ def init_postgres_db():
             except Exception as admin_err:
                 print(f"[SmartIQ Database] Notice on superadmin role sync: {admin_err}")
 
-            # Check if questions exist
-            result = conn.execute(text("SELECT COUNT(*) FROM questions"))
-            count = result.scalar()
-
-            if count == 0:
-                print("[SmartIQ Database] Seeding initial questions into PostgreSQL...")
-                insert_stmt = text("""
-                    INSERT INTO questions (
-                        category_type, sub_category, question_text, diagram_svg,
-                        options, correct_answer_index, points, explanation
-                    ) VALUES (
-                        :category_type, :sub_category, :question_text, :diagram_svg,
-                        :options, :correct_answer_index, :points, :explanation
-                    )
-                """)
-                for q in SEEDED_QUESTIONS:
+            # Seed questions that don't already exist in the pool
+            insert_stmt = text("""
+                INSERT INTO questions (
+                    category_type, sub_category, question_text, diagram_svg,
+                    options, correct_answer_index, points, explanation
+                ) VALUES (
+                    :category_type, :sub_category, :question_text, :diagram_svg,
+                    :options, :correct_answer_index, :points, :explanation
+                )
+            """)
+            seeded_count = 0
+            for q in SEEDED_QUESTIONS:
+                exists = conn.execute(
+                    text("SELECT 1 FROM questions WHERE question_text = :qtext LIMIT 1"),
+                    {"qtext": q["question_text"]}
+                ).scalar()
+                if not exists:
                     conn.execute(insert_stmt, {
                         "category_type": q["category_type"],
                         "sub_category": q["sub_category"],
@@ -109,16 +136,18 @@ def init_postgres_db():
                         "diagram_svg": q.get("diagram_svg"),
                         "options": json.dumps(q["options"]),
                         "correct_answer_index": q["correct_answer_index"],
-                        "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] == "EQ" else [0, 0, 0, 0])),
+                        "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
                         "explanation": q["explanation"]
                     })
-                print("[SmartIQ Database] Successfully seeded questions into PostgreSQL.")
+                    seeded_count += 1
+            if seeded_count > 0:
+                print(f"[SmartIQ Database] Seeded {seeded_count} new questions into PostgreSQL.")
     except Exception as e:
         print(f"[SmartIQ Database] PostgreSQL initialization error: {e}")
 
 
 def init_sqlite_db():
-    """Initializes local SQLite database."""
+    """Initializes local SQLite database with 4-dimensional intelligence support."""
     conn = get_sqlite_conn()
     cursor = conn.cursor()
 
@@ -143,10 +172,15 @@ def init_sqlite_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT NOT NULL,
             user_id TEXT,
-            iq_score INTEGER NOT NULL,
-            iq_breakdown_json TEXT NOT NULL,
-            eq_score INTEGER NOT NULL,
-            eq_breakdown_json TEXT NOT NULL,
+            iq_score INTEGER,
+            iq_breakdown_json TEXT,
+            eq_score INTEGER,
+            eq_breakdown_json TEXT,
+            sq_score INTEGER,
+            sq_breakdown_json TEXT,
+            aq_score INTEGER,
+            aq_breakdown_json TEXT,
+            test_type TEXT DEFAULT 'COMBINED',
             tab_switch_count INTEGER DEFAULT 0,
             archetype_title TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -154,11 +188,33 @@ def init_sqlite_db():
     """)
     conn.commit()
 
-    cursor.execute("SELECT COUNT(*) as count FROM questions")
-    count = cursor.fetchone()["count"]
+    # Ensure missing columns in existing SQLite submissions table
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN sq_score INTEGER")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN sq_breakdown_json TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN aq_score INTEGER")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN aq_breakdown_json TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE submissions ADD COLUMN test_type TEXT DEFAULT 'COMBINED'")
+    except Exception:
+        pass
+    conn.commit()
 
-    if count == 0:
-        for q in SEEDED_QUESTIONS:
+    seeded_count = 0
+    for q in SEEDED_QUESTIONS:
+        cursor.execute("SELECT 1 FROM questions WHERE question_text = ? LIMIT 1", (q["question_text"],))
+        if not cursor.fetchone():
             cursor.execute("""
                 INSERT INTO questions (
                     category_type, sub_category, question_text, diagram_svg,
@@ -171,10 +227,13 @@ def init_sqlite_db():
                 q.get("diagram_svg"),
                 json.dumps(q["options"]),
                 q["correct_answer_index"],
-                json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] == "EQ" else [0, 0, 0, 0])),
+                json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
                 q["explanation"]
             ))
+            seeded_count += 1
+    if seeded_count > 0:
         conn.commit()
+        print(f"[SmartIQ Database] Seeded {seeded_count} new questions into SQLite.")
 
     conn.close()
 
@@ -330,7 +389,7 @@ def add_admin_question(
 ) -> int:
     """Inserts a new question into the pool."""
     if points is None:
-        points = [1, 2, 3, 4] if category_type.upper() == "EQ" else [0, 0, 0, 0]
+        points = [1, 2, 3, 4] if category_type.upper() in ("EQ", "SQ", "AQ") else [0, 0, 0, 0]
 
     if _use_postgres and _engine:
         from sqlalchemy import text
@@ -394,7 +453,7 @@ def update_admin_question(
 ) -> bool:
     """Updates an existing question in the pool."""
     if points is None:
-        points = [1, 2, 3, 4] if category_type.upper() == "EQ" else [0, 0, 0, 0]
+        points = [1, 2, 3, 4] if category_type.upper() in ("EQ", "SQ", "AQ") else [0, 0, 0, 0]
 
     if _use_postgres and _engine:
         from sqlalchemy import text
@@ -538,22 +597,37 @@ def get_user_profile_role(user_id: Optional[str] = None, email: Optional[str] = 
 
 def record_submission(
     session_id: str,
-    iq_score: int,
-    iq_breakdown: Dict[str, int],
-    eq_score: int,
-    eq_breakdown: Dict[str, int],
-    tab_switch_count: int,
+    iq_score: Optional[int] = None,
+    iq_breakdown: Optional[Dict[str, int]] = None,
+    eq_score: Optional[int] = None,
+    eq_breakdown: Optional[Dict[str, int]] = None,
+    sq_score: Optional[int] = None,
+    sq_breakdown: Optional[Dict[str, int]] = None,
+    aq_score: Optional[int] = None,
+    aq_breakdown: Optional[Dict[str, int]] = None,
+    test_type: Optional[str] = "COMBINED",
+    tab_switch_count: int = 0,
     archetype_title: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> int:
-    """Records an anonymized completed test submission for metrics."""
+    """Records an anonymized completed test submission for metrics across any of the 4 intelligences."""
     if _use_postgres and _engine:
         from sqlalchemy import text
         stmt = text("""
             INSERT INTO submissions (
-                session_id, user_id, iq_score, iq_breakdown, eq_score, eq_breakdown, tab_switch_count, archetype_title
+                session_id, user_id, 
+                iq_score, iq_breakdown, 
+                eq_score, eq_breakdown, 
+                sq_score, sq_breakdown, 
+                aq_score, aq_breakdown, 
+                test_type, tab_switch_count, archetype_title
             ) VALUES (
-                :session_id, :user_id, :iq_score, :iq_breakdown, :eq_score, :eq_breakdown, :tab_switch_count, :archetype_title
+                :session_id, :user_id, 
+                :iq_score, :iq_breakdown, 
+                :eq_score, :eq_breakdown, 
+                :sq_score, :sq_breakdown, 
+                :aq_score, :aq_breakdown, 
+                :test_type, :tab_switch_count, :archetype_title
             ) RETURNING id
         """)
         try:
@@ -562,9 +636,14 @@ def record_submission(
                     "session_id": session_id,
                     "user_id": user_id,
                     "iq_score": iq_score,
-                    "iq_breakdown": json.dumps(iq_breakdown),
+                    "iq_breakdown": json.dumps(iq_breakdown) if iq_breakdown else None,
                     "eq_score": eq_score,
-                    "eq_breakdown": json.dumps(eq_breakdown),
+                    "eq_breakdown": json.dumps(eq_breakdown) if eq_breakdown else None,
+                    "sq_score": sq_score,
+                    "sq_breakdown": json.dumps(sq_breakdown) if sq_breakdown else None,
+                    "aq_score": aq_score,
+                    "aq_breakdown": json.dumps(aq_breakdown) if aq_breakdown else None,
+                    "test_type": test_type or "COMBINED",
                     "tab_switch_count": tab_switch_count,
                     "archetype_title": archetype_title
                 })
@@ -578,15 +657,25 @@ def record_submission(
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO submissions (
-            session_id, user_id, iq_score, iq_breakdown_json, eq_score, eq_breakdown_json, tab_switch_count, archetype_title
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            session_id, user_id, 
+            iq_score, iq_breakdown_json, 
+            eq_score, eq_breakdown_json, 
+            sq_score, sq_breakdown_json, 
+            aq_score, aq_breakdown_json, 
+            test_type, tab_switch_count, archetype_title
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         session_id,
         user_id,
         iq_score,
-        json.dumps(iq_breakdown),
+        json.dumps(iq_breakdown) if iq_breakdown else None,
         eq_score,
-        json.dumps(eq_breakdown),
+        json.dumps(eq_breakdown) if eq_breakdown else None,
+        sq_score,
+        json.dumps(sq_breakdown) if sq_breakdown else None,
+        aq_score,
+        json.dumps(aq_breakdown) if aq_breakdown else None,
+        test_type or "COMBINED",
         tab_switch_count,
         archetype_title
     ))
@@ -597,18 +686,30 @@ def record_submission(
 
 
 def get_admin_stats() -> Dict[str, Any]:
-    """Computes aggregated platform metrics and performance distributions."""
+    """Computes aggregated platform metrics and performance distributions across IQ, EQ, SQ, and AQ."""
     if _use_postgres and _engine:
         from sqlalchemy import text
         try:
             with _engine.connect() as conn:
                 total_tests = conn.execute(text("SELECT COUNT(*) FROM submissions")).scalar() or 0
+                
+                # Question counts per category
+                q_counts = conn.execute(text("""
+                    SELECT category_type, COUNT(*) as count 
+                    FROM questions 
+                    GROUP BY category_type
+                """)).mappings().all()
+                pool_distribution = {str(r["category_type"]).upper(): int(r["count"]) for r in q_counts}
+
                 if total_tests == 0:
                     return {
                         "total_tests": 0,
                         "average_iq": 100,
                         "average_eq": 100,
+                        "average_sq": 100,
+                        "average_aq": 100,
                         "tab_switch_rate": 0.0,
+                        "pool_distribution": pool_distribution,
                         "iq_distribution": {"below_average": 0, "average": 0, "gifted": 0, "genius": 0},
                         "recent_submissions": []
                     }
@@ -617,21 +718,23 @@ def get_admin_stats() -> Dict[str, Any]:
                     SELECT 
                         AVG(iq_score) as avg_iq,
                         AVG(eq_score) as avg_eq,
+                        AVG(sq_score) as avg_sq,
+                        AVG(aq_score) as avg_aq,
                         AVG(tab_switch_count) as avg_switches
                     FROM submissions
                 """)).mappings().first()
 
                 dist_row = conn.execute(text("""
                     SELECT 
-                        COALESCE(SUM(CASE WHEN iq_score < 90 THEN 1 ELSE 0 END), 0) as below_average,
-                        COALESCE(SUM(CASE WHEN iq_score >= 90 AND iq_score < 115 THEN 1 ELSE 0 END), 0) as average,
-                        COALESCE(SUM(CASE WHEN iq_score >= 115 AND iq_score < 130 THEN 1 ELSE 0 END), 0) as gifted,
-                        COALESCE(SUM(CASE WHEN iq_score >= 130 THEN 1 ELSE 0 END), 0) as genius
+                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 90 THEN 1 ELSE 0 END), 0) as below_average,
+                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 90 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 115 THEN 1 ELSE 0 END), 0) as average,
+                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 115 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 130 THEN 1 ELSE 0 END), 0) as gifted,
+                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 130 THEN 1 ELSE 0 END), 0) as genius
                     FROM submissions
                 """)).mappings().first()
 
                 recent_rows = conn.execute(text("""
-                    SELECT session_id, iq_score, eq_score, tab_switch_count, archetype_title, created_at
+                    SELECT session_id, iq_score, eq_score, sq_score, aq_score, test_type, tab_switch_count, archetype_title, created_at
                     FROM submissions
                     ORDER BY id DESC
                     LIMIT 10
@@ -641,7 +744,10 @@ def get_admin_stats() -> Dict[str, Any]:
                     "total_tests": total_tests,
                     "average_iq": round(float(avg_row["avg_iq"] or 100), 1),
                     "average_eq": round(float(avg_row["avg_eq"] or 100), 1),
+                    "average_sq": round(float(avg_row["avg_sq"] or 100), 1),
+                    "average_aq": round(float(avg_row["avg_aq"] or 100), 1),
                     "tab_switch_rate": round(float(avg_row["avg_switches"] or 0.0), 2),
+                    "pool_distribution": pool_distribution,
                     "iq_distribution": {
                         "below_average": int(dist_row["below_average"]),
                         "average": int(dist_row["average"]),
@@ -659,13 +765,20 @@ def get_admin_stats() -> Dict[str, Any]:
     cursor.execute("SELECT COUNT(*) as total FROM submissions")
     total_tests = cursor.fetchone()["total"]
 
+    cursor.execute("SELECT category_type, COUNT(*) as count FROM questions GROUP BY category_type")
+    q_counts = cursor.fetchall()
+    pool_distribution = {str(r["category_type"]).upper(): int(r["count"]) for r in q_counts}
+
     if total_tests == 0:
         conn.close()
         return {
             "total_tests": 0,
             "average_iq": 100,
             "average_eq": 100,
+            "average_sq": 100,
+            "average_aq": 100,
             "tab_switch_rate": 0.0,
+            "pool_distribution": pool_distribution,
             "iq_distribution": {"below_average": 0, "average": 0, "gifted": 0, "genius": 0},
             "recent_submissions": []
         }
@@ -674,6 +787,8 @@ def get_admin_stats() -> Dict[str, Any]:
         SELECT 
             AVG(iq_score) as avg_iq,
             AVG(eq_score) as avg_eq,
+            AVG(sq_score) as avg_sq,
+            AVG(aq_score) as avg_aq,
             AVG(tab_switch_count) as avg_switches
         FROM submissions
     """)
@@ -681,13 +796,39 @@ def get_admin_stats() -> Dict[str, Any]:
 
     cursor.execute("""
         SELECT 
-            SUM(CASE WHEN iq_score < 90 THEN 1 ELSE 0 END) as below_average,
-            SUM(CASE WHEN iq_score >= 90 AND iq_score < 115 THEN 1 ELSE 0 END) as average,
-            SUM(CASE WHEN iq_score >= 115 AND iq_score < 130 THEN 1 ELSE 0 END) as gifted,
-            SUM(CASE WHEN iq_score >= 130 THEN 1 ELSE 0 END) as genius
+            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 90 THEN 1 ELSE 0 END) as below_average,
+            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 90 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 115 THEN 1 ELSE 0 END) as average,
+            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 115 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 130 THEN 1 ELSE 0 END) as gifted,
+            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 130 THEN 1 ELSE 0 END) as genius
         FROM submissions
     """)
     dist_row = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT session_id, iq_score, eq_score, sq_score, aq_score, test_type, tab_switch_count, archetype_title, created_at
+        FROM submissions
+        ORDER BY id DESC
+        LIMIT 10
+    """)
+    recent = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    return {
+        "total_tests": total_tests,
+        "average_iq": round(stats_row["avg_iq"] or 100, 1) if stats_row["avg_iq"] else 100,
+        "average_eq": round(stats_row["avg_eq"] or 100, 1) if stats_row["avg_eq"] else 100,
+        "average_sq": round(stats_row["avg_sq"] or 100, 1) if stats_row["avg_sq"] else 100,
+        "average_aq": round(stats_row["avg_aq"] or 100, 1) if stats_row["avg_aq"] else 100,
+        "tab_switch_rate": round(stats_row["avg_switches"] or 0.0, 2) if stats_row["avg_switches"] else 0.0,
+        "pool_distribution": pool_distribution,
+        "iq_distribution": {
+            "below_average": dist_row["below_average"] or 0,
+            "average": dist_row["average"] or 0,
+            "gifted": dist_row["gifted"] or 0,
+            "genius": dist_row["genius"] or 0
+        },
+        "recent_submissions": recent
+    }
 
     cursor.execute("""
         SELECT session_id, iq_score, eq_score, tab_switch_count, archetype_title, created_at

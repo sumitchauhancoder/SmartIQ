@@ -5,6 +5,8 @@ import PublicLanding from './pages/PublicLanding';
 import Home from './pages/Home';
 import IQQuiz from './pages/IQQuiz';
 import EQQuiz from './pages/EQQuiz';
+import SQQuiz from './pages/SQQuiz';
+import AQQuiz from './pages/AQQuiz';
 import Results from './pages/Results';
 import Admin from './pages/Admin';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -15,7 +17,7 @@ function AppContent() {
   // Normalize initial hash route
   const getInitialRoute = () => {
     const rawHash = window.location.hash.replace('#', '').trim();
-    if (['home', 'iq', 'eq', 'results', 'admin'].includes(rawHash)) {
+    if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'admin'].includes(rawHash)) {
       return rawHash;
     }
     return '/';
@@ -26,13 +28,50 @@ function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authInitialSignUp, setAuthInitialSignUp] = useState(false);
 
+  // 4 Independent Intelligence States
   const [iqData, setIqData] = useState(() => {
-    const saved = sessionStorage.getItem('smartiq_iq_data');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('smartiq_iq_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
+
+  const [eqData, setEqData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('smartiq_eq_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [sqData, setSqData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('smartiq_sq_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [aqData, setAqData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('smartiq_aq_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   const [resultsData, setResultsData] = useState(() => {
-    const saved = sessionStorage.getItem('smartiq_results_data');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem('smartiq_results_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
 
   const navigateTo = (route) => {
@@ -51,7 +90,7 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const rawHash = window.location.hash.replace('#', '').trim();
-      if (['home', 'iq', 'eq', 'results', 'admin'].includes(rawHash)) {
+      if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'admin'].includes(rawHash)) {
         setCurrentRoute(rawHash);
       } else {
         setCurrentRoute('/');
@@ -65,16 +104,14 @@ function AppContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    const protectedRoutes = ['home', 'iq', 'eq', 'results'];
+    const protectedRoutes = ['home', 'iq', 'eq', 'sq', 'aq', 'results'];
 
     if (!user) {
-      // If unauthenticated visitor attempts to access any protected route, redirect to public landing
       if (protectedRoutes.includes(currentRoute) || currentRoute === 'admin') {
         navigateTo('/');
         setAuthModalOpen(true);
       }
     } else {
-      // If authenticated user visits root '/', auto-redirect based on role
       if (currentRoute === '/' || currentRoute === '') {
         if (isAdmin) {
           navigateTo('admin');
@@ -82,7 +119,6 @@ function AppContent() {
           navigateTo('home');
         }
       } else if (currentRoute === 'admin' && !isAdmin) {
-        // Non-admin attempting to access /admin -> redirect to user home
         navigateTo('home');
       }
     }
@@ -98,30 +134,25 @@ function AppContent() {
   };
 
   const handleTabSwitch = () => {
-    if (currentRoute === 'iq' || currentRoute === 'eq') {
+    if (['iq', 'eq', 'sq', 'aq'].includes(currentRoute)) {
       setTabSwitchCount((prev) => prev + 1);
     }
   };
 
   const handleIQComplete = (data) => {
     setIqData(data);
-    sessionStorage.setItem('smartiq_iq_data', JSON.stringify(data));
-    navigateTo('eq');
   };
 
-  const handleEQComplete = (combinedData) => {
-    setResultsData(combinedData);
-    sessionStorage.setItem('smartiq_results_data', JSON.stringify(combinedData));
-    navigateTo('results');
+  const handleEQComplete = (data) => {
+    setEqData(data);
   };
 
-  const handleRetake = (quizType = 'iq') => {
-    setTabSwitchCount(0);
-    if (quizType === 'iq') {
-      setIqData(null);
-      sessionStorage.removeItem('smartiq_iq_data');
-    }
-    navigateTo(quizType);
+  const handleSQComplete = (data) => {
+    setSqData(data);
+  };
+
+  const handleAQComplete = (data) => {
+    setAqData(data);
   };
 
   return (
@@ -134,7 +165,7 @@ function AppContent() {
         onOpenAuth={handleOpenAuth}
       />
 
-      {/* Auth Modal for Sign In / Sign Up with Post-Login Routing */}
+      {/* Auth Modal for Sign In / Sign Up */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -160,6 +191,7 @@ function AppContent() {
         {user && currentRoute === 'iq' && (
           <IQQuiz
             onComplete={handleIQComplete}
+            onNavigate={navigateTo}
             onTabSwitch={handleTabSwitch}
             tabSwitchCount={tabSwitchCount}
           />
@@ -167,8 +199,26 @@ function AppContent() {
 
         {user && currentRoute === 'eq' && (
           <EQQuiz
-            iqData={iqData}
             onComplete={handleEQComplete}
+            onNavigate={navigateTo}
+            onTabSwitch={handleTabSwitch}
+            tabSwitchCount={tabSwitchCount}
+          />
+        )}
+
+        {user && currentRoute === 'sq' && (
+          <SQQuiz
+            onComplete={handleSQComplete}
+            onNavigate={navigateTo}
+            onTabSwitch={handleTabSwitch}
+            tabSwitchCount={tabSwitchCount}
+          />
+        )}
+
+        {user && currentRoute === 'aq' && (
+          <AQQuiz
+            onComplete={handleAQComplete}
+            onNavigate={navigateTo}
             onTabSwitch={handleTabSwitch}
             tabSwitchCount={tabSwitchCount}
           />
@@ -177,7 +227,11 @@ function AppContent() {
         {user && currentRoute === 'results' && (
           <Results
             resultsData={resultsData}
-            onRetake={handleRetake}
+            iqData={iqData}
+            eqData={eqData}
+            sqData={sqData}
+            aqData={aqData}
+            onNavigate={navigateTo}
           />
         )}
 
@@ -193,7 +247,7 @@ function AppContent() {
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 SmartIQ Platform • Supabase Cloud & Dual Psychometrics Engine</p>
+          <p>© 2026 SmartIQ Platform • 4D Multidimensional Intelligence Matrix (IQ • EQ • SQ • AQ)</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>

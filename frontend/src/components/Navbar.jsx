@@ -9,7 +9,9 @@ import {
   Award, 
   User, 
   LogOut, 
-  LogIn 
+  LogIn,
+  Compass,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,8 +22,8 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
 
   // Navigation Items according to strict RBAC rules:
   // When logged out: only link to landing dashboard
-  // When logged in as user: Home, IQ, EQ, Results
-  // When logged in as admin: Home, IQ, EQ, Results, Admin Console
+  // When logged in as user: Hub, IQ, EQ, SQ, AQ, 4D Matrix
+  // When logged in as admin: Hub, IQ, EQ, SQ, AQ, 4D Matrix, Admin Console
   let navItems = [];
 
   if (!user) {
@@ -32,19 +34,23 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
   } else if (!isAdmin) {
     // Regular User
     navItems = [
-      { id: 'home', label: 'Home', icon: Brain },
-      { id: 'iq', label: 'IQ Assessment', icon: Sparkles },
-      { id: 'eq', label: 'EQ Assessment', icon: Award },
-      { id: 'results', label: 'Results & Analytics', icon: BarChart3 }
+      { id: 'home', label: 'Hub', icon: Brain },
+      { id: 'iq', label: 'IQ Test', icon: Sparkles, color: 'text-blue-400' },
+      { id: 'eq', label: 'EQ Test', icon: Award, color: 'text-rose-400' },
+      { id: 'sq', label: 'SQ Test', icon: Compass, color: 'text-amber-400' },
+      { id: 'aq', label: 'AQ Test', icon: Zap, color: 'text-emerald-400' },
+      { id: 'results', label: '4D Matrix', icon: BarChart3 }
     ];
   } else {
     // Administrator
     navItems = [
-      { id: 'home', label: 'Home', icon: Brain },
-      { id: 'iq', label: 'IQ Assessment', icon: Sparkles },
-      { id: 'eq', label: 'EQ Assessment', icon: Award },
-      { id: 'results', label: 'Results & Analytics', icon: BarChart3 },
-      { id: 'admin', label: 'Admin Console', icon: Shield, badge: 'Admin' }
+      { id: 'home', label: 'Hub', icon: Brain },
+      { id: 'iq', label: 'IQ Test', icon: Sparkles, color: 'text-blue-400' },
+      { id: 'eq', label: 'EQ Test', icon: Award, color: 'text-rose-400' },
+      { id: 'sq', label: 'SQ Test', icon: Compass, color: 'text-amber-400' },
+      { id: 'aq', label: 'AQ Test', icon: Zap, color: 'text-emerald-400' },
+      { id: 'results', label: '4D Matrix', icon: BarChart3 },
+      { id: 'admin', label: 'Admin', icon: Shield, badge: 'Admin' }
     ];
   }
 
@@ -107,7 +113,7 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
           {/* Right Action Cluster */}
           <div className="hidden md:flex items-center gap-3">
             {/* Anti-Cheat Shield (only active during assessment) */}
-            {user && (currentRoute === 'iq' || currentRoute === 'eq') && (
+            {user && (currentRoute === 'iq' || currentRoute === 'eq' || currentRoute === 'sq' || currentRoute === 'aq') && (
               <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${
                 tabSwitchCount > 1 
                   ? 'bg-rose-950/60 text-rose-300 border-rose-800/60 animate-pulse'

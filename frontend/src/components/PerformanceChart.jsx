@@ -15,66 +15,90 @@ import {
   Legend,
   Cell
 } from 'recharts';
-import { Radar as RadarIcon, BarChart2 } from 'lucide-react';
+import { Radar as RadarIcon, BarChart2, Shield } from 'lucide-react';
 
-export default function PerformanceChart({ iqBreakdown = {}, eqBreakdown = {}, iqScore = 100, eqScore = 100 }) {
+export default function PerformanceChart({
+  iqScore = null,
+  eqScore = null,
+  sqScore = null,
+  aqScore = null,
+  iqBreakdown = {},
+  eqBreakdown = {},
+  sqBreakdown = {},
+  aqBreakdown = {}
+}) {
   const [chartType, setChartType] = useState('radar'); // 'radar' or 'bar'
 
-  // Normalize sub-scores for the 6-dimensional radar chart (scaled 0-100 or relative index)
-  // IQ dimensions typically scale based on accuracy in Logic, Math, Spatial
-  // EQ dimensions scale based on competency points in Self-Awareness, Self-Regulation, Empathy
+  // Default benchmarks if scores not yet recorded
+  const safeIQ = iqScore || 100;
+  const safeEQ = eqScore || 100;
+  const safeSQ = sqScore || 100;
+  const safeAQ = aqScore || 100;
+
+  // 8-Axis Full Spectrum Radar Data
   const radarData = [
     {
-      dimension: 'Deductive Logic',
-      score: iqBreakdown['Logic'] || Math.round((iqScore / 140) * 100),
+      dimension: 'Deductive Logic (IQ)',
+      score: iqBreakdown['Logic'] || Math.round((safeIQ / 140) * 100),
       benchmark: 70,
       fullMark: 100,
     },
     {
-      dimension: 'Quantitative Math',
-      score: iqBreakdown['Math'] || Math.round((iqScore / 140) * 100),
+      dimension: 'Spatial & Math (IQ)',
+      score: Math.round(((iqBreakdown['Math'] || 70) + (iqBreakdown['Spatial'] || 70)) / 2),
       benchmark: 70,
       fullMark: 100,
     },
     {
-      dimension: 'Spatial Abstract',
-      score: iqBreakdown['Spatial'] || Math.round((iqScore / 140) * 100),
+      dimension: 'Affective Empathy (EQ)',
+      score: eqBreakdown['Empathy'] || Math.round((safeEQ / 140) * 100),
       benchmark: 70,
       fullMark: 100,
     },
     {
-      dimension: 'Self-Awareness',
-      score: eqBreakdown['Self-Awareness'] || Math.round((eqScore / 140) * 100),
+      dimension: 'Self-Regulation (EQ)',
+      score: eqBreakdown['Self-Regulation'] || Math.round((safeEQ / 140) * 100),
       benchmark: 70,
       fullMark: 100,
     },
     {
-      dimension: 'Self-Regulation',
-      score: eqBreakdown['Self-Regulation'] || Math.round((eqScore / 140) * 100),
+      dimension: 'Stoic Equanimity (SQ)',
+      score: sqBreakdown['Philosophy & Stoicism'] || Math.round((safeSQ / 140) * 100),
       benchmark: 70,
       fullMark: 100,
     },
     {
-      dimension: 'Social Empathy',
-      score: eqBreakdown['Empathy'] || Math.round((eqScore / 140) * 100),
+      dimension: 'Purpose & Values (SQ)',
+      score: sqBreakdown['Purpose & Meaning'] || Math.round((safeSQ / 140) * 100),
+      benchmark: 70,
+      fullMark: 100,
+    },
+    {
+      dimension: 'Crisis Velocity (AQ)',
+      score: aqBreakdown['Crisis Management & Resilience'] || Math.round((safeAQ / 140) * 100),
+      benchmark: 70,
+      fullMark: 100,
+    },
+    {
+      dimension: 'Unlearning & AI (AQ)',
+      score: Math.round(((aqBreakdown['AI & Tech Disruption'] || 75) + (aqBreakdown['Unlearning & Agility'] || 75)) / 2),
       benchmark: 70,
       fullMark: 100,
     },
   ];
 
+  // 4 Primary Pillars Bar Data
   const barData = [
-    { name: 'Overall IQ', score: iqScore, benchmark: 100, color: '#6366f1' },
-    { name: 'Overall EQ', score: eqScore, benchmark: 100, color: '#10b981' },
-    { name: 'Logic', score: (iqBreakdown['Logic'] || 75) * 1.3, benchmark: 100, color: '#818cf8' },
-    { name: 'Math', score: (iqBreakdown['Math'] || 75) * 1.3, benchmark: 100, color: '#38bdf8' },
-    { name: 'Spatial', score: (iqBreakdown['Spatial'] || 75) * 1.3, benchmark: 100, color: '#c084fc' },
-    { name: 'Empathy', score: (eqBreakdown['Empathy'] || 75) * 1.3, benchmark: 100, color: '#34d399' },
+    { name: 'IQ (Cognitive)', score: safeIQ, benchmark: 100, color: '#38bdf8' },
+    { name: 'EQ (Emotional)', score: safeEQ, benchmark: 100, color: '#f43f5e' },
+    { name: 'SQ (Spiritual)', score: safeSQ, benchmark: 100, color: '#f59e0b' },
+    { name: 'AQ (Adaptability)', score: safeAQ, benchmark: 100, color: '#10b981' },
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-900/95 border border-slate-700/80 p-3 rounded-xl shadow-xl text-xs">
+        <div className="bg-slate-900/95 border border-slate-700/80 p-3 rounded-xl shadow-xl text-xs backdrop-blur-md">
           <p className="font-semibold text-slate-200 mb-1">{label || payload[0]?.payload?.dimension}</p>
           {payload.map((entry, index) => (
             <p key={`item-${index}`} style={{ color: entry.color || entry.fill }}>
@@ -93,10 +117,12 @@ export default function PerformanceChart({ iqBreakdown = {}, eqBreakdown = {}, i
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <span>Cognitive & Emotional Symmetry</span>
+            <span className="bg-gradient-to-r from-blue-400 via-rose-400 via-amber-400 to-emerald-400 bg-clip-text text-transparent">
+              4D Intelligence Matrix
+            </span>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Holistic cross-mapping of cognitive processing vs. emotional regulation
+            Cross-mapping Cognitive (IQ), Emotional (EQ), Spiritual (SQ), and Adaptability (AQ) vectors
           </p>
         </div>
 
@@ -105,44 +131,44 @@ export default function PerformanceChart({ iqBreakdown = {}, eqBreakdown = {}, i
             onClick={() => setChartType('radar')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               chartType === 'radar'
-                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                ? 'bg-gradient-to-r from-indigo-600 to-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <RadarIcon className="w-3.5 h-3.5" />
-            Radar Synthesis
+            <span>4D Radar</span>
           </button>
           <button
             onClick={() => setChartType('bar')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               chartType === 'bar'
-                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                ? 'bg-gradient-to-r from-indigo-600 to-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <BarChart2 className="w-3.5 h-3.5" />
-            Comparative Bar
+            <span>Pillar Comparison</span>
           </button>
         </div>
       </div>
 
       {/* Chart Canvas */}
-      <div className="w-full h-72 sm:h-80">
+      <div className="w-full h-80 sm:h-96">
         {chartType === 'radar' ? (
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
               <PolarGrid stroke="#334155" strokeDasharray="3 3" />
               <PolarAngleAxis
                 dataKey="dimension"
-                tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 500 }}
               />
               <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" tick={false} />
               <Radar
                 name="Your Capability Index"
                 dataKey="score"
-                stroke="#6366f1"
-                fill="#6366f1"
-                fillOpacity={0.35}
+                stroke="#10b981"
+                fill="#10b981"
+                fillOpacity={0.3}
               />
               <Radar
                 name="Population Norm (Median)"
@@ -175,6 +201,26 @@ export default function PerformanceChart({ iqBreakdown = {}, eqBreakdown = {}, i
             </BarChart>
           </ResponsiveContainer>
         )}
+      </div>
+
+      {/* Bottom Color Legend for 4 Dimensions */}
+      <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-around gap-2 text-[11px]">
+        <span className="flex items-center gap-1.5 text-blue-400 font-medium">
+          <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+          IQ: Cognitive & Logic
+        </span>
+        <span className="flex items-center gap-1.5 text-rose-400 font-medium">
+          <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+          EQ: Emotional Acuity
+        </span>
+        <span className="flex items-center gap-1.5 text-amber-400 font-medium">
+          <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+          SQ: Stoic & Existential
+        </span>
+        <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          AQ: Adaptability & Crisis
+        </span>
       </div>
     </div>
   );

@@ -568,5 +568,463 @@ SEEDED_QUESTIONS = [
         "correct_answer_index": 1,
         "points": [2, 4, 1, 2],
         "explanation": "High EQ blends empathetic human warmth with pragmatic workplace flexibility, fostering trust and long-term loyalty."
+    },
+
+    # =========================================================================
+    # SQ: SPIRITUAL INTELLIGENCE & STOICISM (15 Questions)
+    # =========================================================================
+    {
+        "category_type": "SQ",
+        "sub_category": "Philosophy & Stoicism",
+        "question_text": "You dedicate months of rigorous labor to a high-stakes initiative, only for external market circumstances beyond your control to render the project obsolete overnight. According to Stoic principles, how do you process this outcome?",
+        "diagram_svg": None,
+        "options": [
+            "Conclude that your effort was entirely wasted and dwell on feelings of bitter resentment.",
+            "Recognize the dichotomy of control: external outcomes are indifferent, whereas your discipline, craftsmanship, and internal character remain untarnished.",
+            "Blame market participants publicly to protect your reputation.",
+            "Suppress all emotional awareness and pretend the project never happened."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "Stoic equanimity rests upon Epictetus's Dichotomy of Control—understanding that agency lies exclusively in one's intentions and actions, not external results."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Philosophy & Stoicism",
+        "question_text": "A peer attacks your credibility with unsubstantiated rumors in a public forum. How does a spiritually grounded individual respond?",
+        "diagram_svg": None,
+        "options": [
+            "Retaliate with equally venomous accusations to balance the scales of pride.",
+            "Remain internally unperturbed; address factual inaccuracies dispassionately while recognizing that insults reflect the inner turmoil of the speaker.",
+            "Allow the attack to dictate your self-worth and enter a state of acute despair.",
+            "Demand immediate retribution through punitive backchannel politics."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "Marcus Aurelius observed: 'You have power over your mind—not outside events. Realize this, and you will find strength.' Slander cannot injure internal virtue."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Philosophy & Stoicism",
+        "question_text": "How do you cultivate resilience against the inevitable losses, illnesses, and uncertainties inherent to the human condition?",
+        "diagram_svg": None,
+        "options": [
+            "Refuse to contemplate vulnerability and assume bad fortune only affects others.",
+            "Practice 'Premeditatio Malorum' (premeditation of adversity) and Amor Fati (love of fate), transforming hardship into fuel for wisdom.",
+            "Constantly complain and seek validation as a perpetual victim of circumstance.",
+            "Acquire material luxuries to insulate yourself from existential dread."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "Spiritual strength embraces life's full spectrum through Amor Fati, viewing adversity not as an obstacle, but as the raw material for moral elevation."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Philosophy & Stoicism",
+        "question_text": "When making decisions under severe moral ambiguity, what serves as your supreme foundational compass?",
+        "diagram_svg": None,
+        "options": [
+            "Whatever minimizes immediate controversy and pleases the loudest crowd.",
+            "Deep alignment with immutable personal virtues (wisdom, justice, courage, moderation) regardless of personal cost.",
+            "Maximizing short-term personal profit and opportunistic leverage.",
+            "Blind conformity to external traditions without philosophical scrutiny."
+        ],
+        "correct_answer_index": 1,
+        "points": [2, 4, 1, 2],
+        "explanation": "High SQ individuals possess an unshakeable inner moral citadel guided by cardinal virtues rather than superficial social validation."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Philosophy & Stoicism",
+        "question_text": "In Classical philosophy, what constitutes true 'Eudaimonia' (human flourishing)?",
+        "diagram_svg": None,
+        "options": [
+            "The relentless accumulation of sensory pleasures and hedonistic indulgence.",
+            "Living in accordance with reason, moral integrity, and purposeful contribution to the collective human good.",
+            "Achieving celebrity status and dominance over ideological rivals.",
+            "The absence of all physical discomfort and demanding challenges."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Aristotle and the Stoics defined Eudaimonia not as a transient emotion, but as an active life lived in pursuit of excellence (Arete) and virtuous character."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Purpose & Meaning",
+        "question_text": "According to Viktor Frankl's logotherapy and existential psychology, how is human meaning most profoundly discovered?",
+        "diagram_svg": None,
+        "options": [
+            "Through self-absorbed escapism and constant dopamine stimulation.",
+            "By taking responsibility for creating work, experiencing relationships/art, and adopting an elevated attitude toward unavoidable suffering.",
+            "By demanding that society supply a pre-packaged purpose for your life.",
+            "By acknowledging that existence is purely arbitrary and ethical striving is meaningless."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Frankl demonstrated in 'Man's Search for Meaning' that meaning is forged through creative deeds, loving encounters, and the courage displayed during inescapable trials."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Purpose & Meaning",
+        "question_text": "You are offered a lucrative corporate position that triples your compensation but requires deceptive marketing practices that exploit vulnerable demographics. How do you decide?",
+        "diagram_svg": None,
+        "options": [
+            "Accept the role eagerly, rationalizing that if you don't do it, someone else will anyway.",
+            "Decline the offer, recognizing that compromising your ethical coherence destroys internal wholeness far more than wealth can compensate.",
+            "Accept the role and donate 5% to charity to assuage your guilt.",
+            "Take the role temporarily and actively sabotage the company from within."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Spiritual intelligence safeguards personal integrity above material incentives; a fractured conscience cannot be healed by monetary dividends."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Purpose & Meaning",
+        "question_text": "When you experience a period of profound existential restlessness or 'ennui', what is your typical instinct?",
+        "diagram_svg": None,
+        "options": [
+            "Numb the sensation with endless social media scrolling, alcohol, or compulsive consumption.",
+            "Interpret the restlessness as a sacred signal from your psyche demanding deeper soul-searching, re-evaluating core commitments, and rediscovering authentic purpose.",
+            "Panic and impulsively destroy existing relationships and career commitments.",
+            "Dismiss philosophical inquiry as useless overthinking."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Spiritual maturity views existential friction as an evolutionary catalyst for self-realization rather than a condition to be numbed."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Purpose & Meaning",
+        "question_text": "How do you perceive your relationship to future generations and the broader legacy you leave behind?",
+        "diagram_svg": None,
+        "options": [
+            "'After me, the deluge'—what happens after my death is completely irrelevant to me.",
+            "As an interdependent custodian committed to planting metaphorical trees whose shade you may never personally sit under.",
+            "Solely focused on having your name carved onto monuments and buildings for posthumous fame.",
+            "Convinced that all human endeavors ultimately turn to dust, so legacy is meaningless."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Transcendence—the hallmark of high SQ—transcends the ephemeral ego in service of ecological, cultural, and spiritual stewardship."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Purpose & Meaning",
+        "question_text": "In times of collective social turmoil and polarization, what is the role of literature, art, and philosophy in your life?",
+        "diagram_svg": None,
+        "options": [
+            "Pointless distractions that have zero utility compared to raw financial hustle.",
+            "Enduring reservoirs of timeless human wisdom that contextualize the human struggle, elevate empathy, and illuminate universal truths.",
+            "Merely fashionable topics to cite at dinner parties to appear sophisticated.",
+            "Subversive media that should be strictly avoided in favor of 24/7 partisan news cycles."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Art and philosophy provide the existential scaffolding that grounds the soul amidst transient socio-political tempests."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Core Values & Wholeness",
+        "question_text": "What does feeling 'internally whole' mean in everyday lived experience?",
+        "diagram_svg": None,
+        "options": [
+            "A constant state of manic euphoria with zero sadness or doubts.",
+            "Deep harmony between your inner values, speech, and actions—free from fraudulent masks or self-betrayal.",
+            "Having everyone in your social sphere approve of every choice you make.",
+            "Possessing immense wealth so no one can ever challenge your opinions."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Internal wholeness (integrity, from integer = undivided) is the absence of duplicity between private conviction and outward conduct."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Core Values & Wholeness",
+        "question_text": "When you encounter someone whose fundamental philosophical worldview directly opposes yours, how do you engage?",
+        "diagram_svg": None,
+        "options": [
+            "Dehumanize them instantly and seek to silence or cancel their perspective.",
+            "Listen with intellectual humility, seeking to understand the formative life experiences and moral foundations underpinning their beliefs.",
+            "Pretend to agree superficially while secretly harboring intense contempt.",
+            "Refuse any dialogue and isolate yourself within an echo chamber."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Spiritual intelligence fosters dialectical reverence—the capacity to recognize the shared human spark across ideological divides."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Core Values & Wholeness",
+        "question_text": "How do you practice daily spiritual or philosophical grounding?",
+        "diagram_svg": None,
+        "options": [
+            "I never engage in self-reflection; I only focus on external productivity metrics.",
+            "Through deliberate quietude: reflective journaling, studying classical philosophy, meditation, or contemplative walks in nature.",
+            "By arguing with strangers online to prove my philosophical superiority.",
+            "By waiting until a crisis occurs before giving any thought to personal values."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Quietude, reflective contemplation, and the study of enduring philosophical works train the spiritual quotient systematically."
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Core Values & Wholeness",
+        "question_text": "If you uncover a flaw in a fundamental belief you held for a decade, how do you respond?",
+        "diagram_svg": None,
+        "options": [
+            "Double down on the error defensively to avoid admitting fallibility.",
+            "Rejoice in the discovery as liberation from ignorance, gladly shedding the false belief in allegiance to truth.",
+            "Deny the evidence and attack the messenger who pointed it out.",
+            "Fall into complete cynicism, believing that no objective truth exists."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "As Socrates noted: 'A man who is proven wrong should feel gratitude, for he has been cleansed of an intellectual sickness.'"
+    },
+    {
+        "category_type": "SQ",
+        "sub_category": "Core Values & Wholeness",
+        "question_text": "How do you balance self-compassion with rigorous personal accountability?",
+        "diagram_svg": None,
+        "options": [
+            "Excuse every shortcoming with rationalizations while demanding perfection from everyone else.",
+            "Hold yourself to an uncompromising moral standard while extending grace, forgiveness, and patient self-repair when you inevitably falter.",
+            "Engage in brutal, destructive self-hatred whenever you make an error.",
+            "Abandon all self-discipline, adopting a philosophy of moral nihilism."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Mature spiritual intelligence balances the warrior's discipline with the philosopher's forgiving grace."
+    },
+
+    # =========================================================================
+    # AQ: ADAPTABILITY QUOTIENT & CRISIS VELOCITY (15 Questions)
+    # =========================================================================
+    {
+        "category_type": "AQ",
+        "sub_category": "Crisis Management & Resilience",
+        "question_text": "A sudden regulatory shift threatens to destroy 70% of your organization's business model within 30 days. As a leader, what is your initial course of action?",
+        "diagram_svg": None,
+        "options": [
+            "Freeze in denial, hoping the government reverses the policy before deadlines hit.",
+            "Assemble your core team, conduct a zero-based reassessment, identify adjacent unexploited assets, and initiate an aggressive 48-hour pivot roadmap.",
+            "Issue panic-driven mass layoffs immediately without evaluating alternative monetization streams.",
+            "Publicly blame regulators and host press conferences without preparing any operational contingency."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "High AQ is defined by rapid pivot velocity—swapping panic for proactive situational recalculation under acute existential threats."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Crisis Management & Resilience",
+        "question_text": "During an unexpected supply chain collapse that leaves your production line paralyzed, what mindset do you adopt?",
+        "diagram_svg": None,
+        "options": [
+            "Fatalism: since the suppliers failed, our obligations are paused indefinitely.",
+            "'What if this constraint is our greatest innovation opportunity?'—rapidly qualifying alternative regional materials and redesigning product modularity.",
+            "Wait passively for senior management to issue detailed instructions.",
+            "Rage at vendor representatives to relieve your stress."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Asking 'What if...?' transforms restrictive crisis constraints into creative catalysts for architectural redesign."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Crisis Management & Resilience",
+        "question_text": "You are leading a high-profile launch and 2 hours before unveiling, the core demonstration server crashes irrecoverably. How do you navigate the stage?",
+        "diagram_svg": None,
+        "options": [
+            "Cancel the event abruptly and flee the venue in embarrassment.",
+            "Transparently acknowledge the live technical failure with humor and confidence, pivot directly to an architectural walkthrough, and deliver an unforgettable interactive Q&A.",
+            "Falsify demo metrics on stage using pre-recorded footage without disclosing it.",
+            "Berate the infrastructure team on stage in front of the audience."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "True crisis leadership does not demand flawless circumstances; it radiates grace, composure, and dynamic pivot agility when scripts disintegrate."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Crisis Management & Resilience",
+        "question_text": "When your meticulously planned 5-year career roadmap is derailed by macro-economic restructuring, how quickly do you adjust?",
+        "diagram_svg": None,
+        "options": [
+            "Spend years mourning the lost trajectory, refusing to learn new emerging competencies.",
+            "Conduct an honest diagnostic of current market demand, unlearn outdated skill sets within weeks, and reposition your unique strengths at the intersection of emerging opportunities.",
+            "Lament that the world is unfair and withdraw from ambitious pursuits.",
+            "Continue applying for obsolete roles hoping the market reverts back to 2018."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "Adaptability Quotient measures how quickly an individual metabolizes disruption and converts friction into competitive advantage."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Crisis Management & Resilience",
+        "question_text": "In high-stakes political or organizational negotiations, your counterpart unexpectedly changes the rules and pulls out of agreed terms at the eleventh hour. What is your response?",
+        "diagram_svg": None,
+        "options": [
+            "Take the betrayal personally and storm out of the room, slamming the door.",
+            "Calmly assess their newly exposed leverage, deduce the hidden fear driving their sudden pivot, and construct an alternative win-win framework on the fly.",
+            "Surrender unconditionally to whatever new demands they dictate.",
+            "Threaten baseless litigation without calculating costs."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "Adaptive negotiators master tactical situational improvisation, reading emergent behavioral shifts without becoming emotionally unhinged."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "AI & Tech Disruption",
+        "question_text": "Generative AI systems automate 80% of the cognitive tasks that previously defined your specialized domain. What is your strategy?",
+        "diagram_svg": None,
+        "options": [
+            "Lobby against AI adoption, declare the technology a passing gimmick, and refuse to use modern tools.",
+            "Aggressively master AI agent orchestration, shifting your role from manual executor to strategic conductor, curator, and creative visionary.",
+            "Panic and conclude that human intelligence has been rendered entirely worthless.",
+            "Copy-paste raw AI outputs blindly without reviewing accuracy or providing human judgment."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 2],
+        "explanation": "High AQ recognizes technological inflection points early and climbs the value stack by augmenting human synthesis with machine capabilities."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "AI & Tech Disruption",
+        "question_text": "Your organization migrates to an entirely new tech stack and operating workflow that contradicts everything you mastered over the last 8 years. How do you react?",
+        "diagram_svg": None,
+        "options": [
+            "Resist the migration passively by dragging your feet and complaining in team channels.",
+            "Embrace the 'beginner's mindset' (Shoshin): enthusiastically immerse yourself in documentation, build side experiments, and become the team's early champion of the new system.",
+            "Rely exclusively on juniors to do the work while pretending you understand it.",
+            "Resign immediately to seek a legacy employer that refuses to modernize."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 1],
+        "explanation": "The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn (Alvin Toffler)."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "AI & Tech Disruption",
+        "question_text": "When confronted with an emerging technology that appears unintuitive and counter-conventional at first glance, what is your default behavior?",
+        "diagram_svg": None,
+        "options": [
+            "Mock it on social media and explain why it will inevitably fail.",
+            "Carve out 5-10 hours to stress-test its capabilities firsthand, analyze first-principles utility, and form an empirical hypothesis.",
+            "Wait until everyone else adopts it before glancing at it.",
+            "Adopt it blindly without understanding its limitations or security flaws."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 2],
+        "explanation": "AQ flourishes through hands-on empirical curiosity rather than armchair skepticism or sheepish conformity."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "AI & Tech Disruption",
+        "question_text": "How do you maintain cognitive adaptability in an era of exponential information acceleration?",
+        "diagram_svg": None,
+        "options": [
+            "Consume infinite bite-sized short-form clips to give the illusion of learning.",
+            "Cultivate disciplined information filtering: deep-dive into fundamental mental models while continuously testing new tools, languages, and systems.",
+            "Disconnect completely from modern technology and move to an off-grid cabin.",
+            "Overload your brain with 50 open tabs and operate in perpetual multitasking exhaustion."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 2, 2],
+        "explanation": "Sustained adaptability requires combining deep foundational mental models with playful tactical experimentation."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "AI & Tech Disruption",
+        "question_text": "An automated system you built produces an anomaly that violates established operational norms. What is your reaction?",
+        "diagram_svg": None,
+        "options": [
+            "Force-overwrite the anomaly back into traditional limits to make the graphs look neat.",
+            "Investigate the anomaly with rigor—recognizing that edge cases and unexpected behavior often conceal revolutionary discoveries or systemic vulnerabilities.",
+            "Ignore the anomaly and hope nobody notices it during the quarterly audit.",
+            "Blame the junior engineer who configured the logging framework."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Scientific adaptability honors anomaly detection: anomalies are the primary frontier where existing models break down and superior models are born."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Unlearning & Agility",
+        "question_text": "What does 'unlearning' require from an intellectual and psychological standpoint?",
+        "diagram_svg": None,
+        "options": [
+            "Permanently deleting all memories of previous experiences.",
+            "The humility to dismantle cherished dogmas and methodologies when empirical evidence demonstrates they are no longer optimal.",
+            "Adopting whatever opinion the latest viral influencer posts.",
+            "Refusing to commit to any principles because everything is subjective."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Unlearning is the courageous detachment of ego from outdated operational protocols, allowing superior insights to take root."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Unlearning & Agility",
+        "question_text": "You are suddenly relocated to lead a business expansion in a foreign country with entirely unfamiliar cultural, linguistic, and regulatory norms. How do you prepare?",
+        "diagram_svg": None,
+        "options": [
+            "Assume your domestic playbook works universally and demand that local partners conform to your habits.",
+            "Immerse yourself deeply in local history, cuisine, and language; listen intently to local advisors and synthesize global strategy with localized cultural respect.",
+            "Isolate yourself in expatriate hotels and avoid genuine interactions with local citizens.",
+            "Complain about differences in infrastructure and efficiency at every meeting."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Cross-cultural adaptability combines cultural humility, active social listening, and contextual operational reconfiguration."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Unlearning & Agility",
+        "question_text": "How do you expand your personal threshold for ambiguity and unpredictable circumstances?",
+        "diagram_svg": None,
+        "options": [
+            "Demand rigid schedules and complete certainty before making any move.",
+            "Deliberately introduce micro-disruptions into daily life: explore unfamiliar neighborhoods, try novel cuisines, learn new languages, and tackle unstructured problems.",
+            "Rely on fortune tellers and astrology to eliminate uncertainty.",
+            "Avoid any situation where outcomes cannot be 100% guaranteed in advance."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "Training AQ requires seeking out novel stimuli and voluntary unfamiliarity to desensitize the amygdala to unpredictability."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Unlearning & Agility",
+        "question_text": "During an unexpected pivot, two senior leaders propose radically conflicting strategic hypotheses. As the deciding executive, how do you proceed?",
+        "diagram_svg": None,
+        "options": [
+            "Side with whoever has the higher corporate title, irrespective of logic.",
+            "Design lean, rapid, low-risk parallel experiments to empirically test the core assumptions of both hypotheses against real customer signals within 5 business days.",
+            "Debate indefinitely in boardrooms for 6 months without taking any market action.",
+            "Flip a coin in secret and announce your intuitive decree."
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "High-velocity adaptability replaces endless political debate with empirical micro-experiments that generate real-world signal rapidly."
+    },
+    {
+        "category_type": "AQ",
+        "sub_category": "Unlearning & Agility",
+        "question_text": "When you encounter a completely unanticipated obstacle that threatens to derail an endeavor, what is your instinctual internal dialogue?",
+        "diagram_svg": None,
+        "options": [
+            "'Why does this always happen to me? I give up.'",
+            "'Fascinating puzzle. The old pathway is closed, so which unexplored angle of entry will reveal the breakthrough?'",
+            "'Someone must pay for this disaster.'",
+            "'Let me pretend this problem doesn't exist and hope it solves itself.'"
+        ],
+        "correct_answer_index": 1,
+        "points": [1, 4, 1, 1],
+        "explanation": "High AQ individuals reframe unexpected barriers as cognitive puzzles, maintaining joyful curiosity under ambiguity."
     }
 ]

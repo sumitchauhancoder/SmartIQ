@@ -4,16 +4,20 @@ import {
   ArrowRight, 
   CheckCircle2, 
   HeartHandshake, 
-  ShieldAlert, 
-  AlertCircle,
-  Sparkles
+  Sparkles, 
+  AlertCircle, 
+  RotateCcw,
+  BarChart3,
+  Heart,
+  ShieldCheck
 } from 'lucide-react';
+import Timer from '../components/Timer';
 import AntiCheatAlert from '../components/AntiCheatAlert';
 import { fetchQuestions, submitAnalysis, getSessionId } from '../api';
 import { getFallbackQuestions } from '../data/fallbackQuestions';
 import { useAuth } from '../context/AuthContext';
 
-export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount = 0 }) {
+export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchCount = 0 }) {
   const { user, token } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,16 +25,19 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
   const [userAnswers, setUserAnswers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [completedData, setCompletedData] = useState(null);
 
-  // Tab switch listener
+  // Tab switch & visibility listener
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      if (document.hidden && !completedData) {
         onTabSwitch();
       }
     };
     const handleBlur = () => {
-      onTabSwitch();
+      if (!completedData) {
+        onTabSwitch();
+      }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -40,44 +47,50 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
     };
-  }, [onTabSwitch]);
+  }, [onTabSwitch, completedData]);
 
-  // Load 5 randomized EQ scenario questions
+  // Load 5 randomized EQ questions
   useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const data = await fetchQuestions('EQ', 5);
-        if (data && data.length > 0) {
-          setQuestions(data);
-        } else {
-          setQuestions(getFallbackQuestions('EQ', 5));
-        }
-      } catch (e) {
+    loadEQQuestions();
+  }, []);
+
+  const loadEQQuestions = async () => {
+    setLoading(true);
+    setCompletedData(null);
+    setCurrentIndex(0);
+    setUserAnswers([]);
+    setSelectedOption(null);
+    try {
+      const data = await fetchQuestions('EQ', 5);
+      if (data && data.length > 0) {
+        setQuestions(data);
+      } else {
         setQuestions(getFallbackQuestions('EQ', 5));
       }
-      setLoading(false);
+    } catch (e) {
+      setQuestions(getFallbackQuestions('EQ', 5));
     }
-    loadData();
-  }, []);
+    setLoading(false);
+  };
 
   const handleSelectOption = (idx) => {
     setSelectedOption(idx);
   };
 
-  const handleNext = async () => {
-    if (selectedOption === null) return;
+  const handleNext = async (timedOut = false) => {
+    if (selectedOption === null && !timedOut) return;
 
     const currentQ = questions[currentIndex];
     const pointsList = currentQ.points || [1, 2, 3, 4];
-    const earnedPoints = pointsList[selectedOption] !== undefined ? pointsList[selectedOption] : 2;
+    const chosenIndex = timedOut ? 0 : selectedOption;
+    const earnedPoints = pointsList[chosenIndex] !== undefined ? pointsList[chosenIndex] : 2;
 
     const answerRecord = {
       question_id: currentQ.id,
       question_text: currentQ.question_text,
       sub_category: currentQ.sub_category,
-      user_index: selectedOption,
-      user_option: currentQ.options[selectedOption],
+      user_index: chosenIndex,
+      user_option: chosenIndex >= 0 ? currentQ.options[chosenIndex] : 'Time Expired',
       points_earned: earnedPoints,
       explanation: currentQ.explanation
     };
@@ -89,11 +102,11 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      await finalizeDualEvaluation(updatedAnswers);
+      await finalizeEQEvaluation(updatedAnswers);
     }
   };
 
-  const finalizeDualEvaluation = async (answers) => {
+  const finalizeEQEvaluation = async (answers) => {
     setAnalyzing(true);
 
     let totalPoints = 0;
@@ -111,8 +124,7 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
       totalPoints += ans.points_earned;
     });
 
-    // EQ Score mapping: 5 questions * 4 max = 20 pts.
-    // Score baseline 85 + (totalPoints / 20) * 55 -> 85 to 140
+    // Score scale: baseline 85 + (totalPoints / 20) * 55 -> 85 to 140
     const eqScore = Math.min(145, Math.round(85 + (totalPoints / (answers.length * 4)) * 55));
 
     const eqBreakdown = {};
@@ -127,55 +139,174 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
     const submissionPayload = {
       session_id: sessionId,
       user_id: user?.id || null,
-      iq_score: iqData?.iq_score || 105,
-      iq_breakdown: iqData?.iq_breakdown || { Logic: 75, Math: 70, Spatial: 80 },
+      test_type: 'EQ',
       eq_score: eqScore,
       eq_breakdown: eqBreakdown,
-      incorrect_questions: iqData?.incorrect_questions || [],
+      incorrect_questions: answers.filter((a) => a.points_earned < 3),
       tab_switch_count: tabSwitchCount
     };
 
-    // Synthesize analysis via Backend (Groq / Fallback)
+    // Synthesize analysis via Backend / Local Fallback
     const aiAnalysis = await submitAnalysis(submissionPayload, token);
 
+    const resultRecord = {
+      eq_score: eqScore,
+      eq_breakdown: eqBreakdown,
+      eq_answers: answers,
+      ai_analysis: aiAnalysis,
+      timestamp: new Date().toISOString()
+    };
+
+    // Save to persistent storage
+    localStorage.setItem('smartiq_eq_data', JSON.stringify(resultRecord));
+    sessionStorage.setItem('smartiq_eq_data', JSON.stringify(resultRecord));
+
+    setCompletedData(resultRecord);
     setAnalyzing(false);
 
-    onComplete({
-      ...submissionPayload,
-      eq_answers: answers,
-      ai_analysis: aiAnalysis
-    });
+    if (onComplete) {
+      onComplete(resultRecord);
+    }
   };
 
-  if (loading || analyzing) {
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4"></div>
+        <p className="text-slate-400 font-medium text-sm">Compiling Emotional Acuity Scenarios...</p>
+      </div>
+    );
+  }
+
+  if (analyzing) {
     return (
       <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4 text-center">
-        <div className="relative mb-6">
-          <div className="w-16 h-16 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 animate-spin"></div>
-          <Sparkles className="w-6 h-6 text-emerald-400 absolute inset-0 m-auto animate-pulse" />
+        <div className="w-16 h-16 rounded-2xl bg-rose-950/80 border border-rose-700/60 flex items-center justify-center text-rose-400 mb-4 animate-pulse">
+          <Heart className="w-8 h-8" />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">
-          {analyzing ? 'Synthesizing Neural Archetype...' : 'Loading Emotional Scenarios...'}
-        </h3>
-        <p className="text-slate-400 text-sm max-w-sm">
-          {analyzing
-            ? 'Transmitting psychometric dimensions to Groq AI cognitive engine...'
-            : 'Calibrating empathy and self-regulation parameters...'}
-        </p>
+        <h3 className="text-xl font-bold text-white mb-2">Analyzing Emotional Intelligence (EQ)</h3>
+        <p className="text-slate-400 text-sm max-w-sm">Evaluating affective empathy, somatic regulation, and social de-escalation acuity...</p>
       </div>
     );
   }
 
-  if (questions.length === 0) {
+  // =========================================================================
+  // Independent Completion Report View
+  // =========================================================================
+  if (completedData) {
+    const { eq_score, eq_breakdown, ai_analysis } = completedData;
+    const percentile = Math.min(99, Math.round(50 + ((eq_score - 100) / 15) * 34));
+
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center p-4 text-center">
-        <AlertCircle className="w-12 h-12 text-rose-400 mb-3" />
-        <h3 className="text-xl font-bold text-white mb-2">No EQ Scenarios Found</h3>
-        <p className="text-slate-400 text-sm max-w-sm mb-6">Unable to retrieve emotional scenario bank.</p>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        {/* Banner Card */}
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/30 relative overflow-hidden mb-8 shadow-2xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-950/80 border border-rose-600/40 text-rose-300 text-xs font-semibold mb-3">
+                <Heart className="w-3.5 h-3.5 text-rose-400" />
+                <span>Emotional Intelligence Module Completed</span>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+                EQ Score: <span className="text-rose-400 font-mono">{eq_score}</span>
+              </h1>
+              <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
+                {ai_analysis?.core_summary || 'You demonstrate high affective empathy, situational self-regulation, and natural interpersonal warmth.'}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-rose-500/30 min-w-[130px] text-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1">
+                Percentile Rank
+              </span>
+              <span className="text-3xl font-black text-white font-mono">
+                {percentile}%
+              </span>
+              <span className="text-[11px] text-slate-400 mt-1">
+                Top {Math.max(1, 100 - percentile)}% of cohort
+              </span>
+            </div>
+          </div>
+
+          {/* Infographic Alignment Badge */}
+          <div className="mt-6 pt-6 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-300">
+            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+              <span className="text-rose-400 font-bold block mb-1">Impact Rating</span>
+              <span className="text-lg font-bold text-white">9.3 / 10</span>
+              <p className="text-[11px] text-slate-400 mt-0.5">Understand and manage emotions</p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+              <span className="text-rose-400 font-bold block mb-1">Core Areas</span>
+              <p className="font-semibold text-slate-200">Psychology • Relationships • Family Dynamics</p>
+            </div>
+            <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+              <span className="text-rose-400 font-bold block mb-1">How to Train</span>
+              <p className="text-slate-300">Emotional journal for 10 mins each night. Listen actively.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sub-Dimension Breakdown Bars */}
+        <div className="glass-panel p-6 rounded-3xl border border-slate-800 mb-8">
+          <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+            <HeartHandshake className="w-4 h-4 text-rose-400" />
+            <span>Emotional & Social Sub-Dimensions</span>
+          </h3>
+
+          <div className="space-y-4">
+            {Object.entries(eq_breakdown || {}).map(([category, score]) => (
+              <div key={category} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300 font-medium">{category}</span>
+                  <span className="text-rose-400 font-bold font-mono">{score}%</span>
+                </div>
+                <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-rose-500 to-pink-400 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${score}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <button
+            onClick={loadEQQuestions}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Retake EQ Assessment</span>
+          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('sq')}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-amber-800/60 hover:bg-amber-950/40 text-amber-300 transition-all"
+            >
+              <span>Take SQ Test (Spiritual)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onNavigate('results')}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 shadow-lg shadow-rose-600/20 transition-all"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>View 4D Matrix</span>
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // =========================================================================
+  // Active Assessment Question Flow
+  // =========================================================================
   const currentQ = questions[currentIndex];
   const progressPercent = ((currentIndex + 1) / questions.length) * 100;
 
@@ -187,100 +318,99 @@ export default function EQQuiz({ iqData, onComplete, onTabSwitch, tabSwitchCount
       <AntiCheatAlert switchCount={tabSwitchCount} />
 
       {/* Header Bar */}
-      <div className="glass-panel p-4 sm:p-5 rounded-2xl mb-6 border border-slate-800 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-emerald-950/80 border border-emerald-700/50 text-emerald-400">
-            <HeartHandshake className="w-5 h-5" />
+      <div className="glass-panel p-4 sm:p-5 rounded-2xl mb-6 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="p-2.5 rounded-xl bg-rose-950/80 border border-rose-700/50 text-rose-400">
+            <Award className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                Emotional Intelligence Module
+              <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+                Emotional Quotient (EQ)
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300">
                 {currentQ.sub_category}
               </span>
             </div>
             <p className="text-sm font-bold text-white">
-              Scenario {currentIndex + 1} of {questions.length}
+              Question {currentIndex + 1} of {questions.length}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
-          <Award className="w-4 h-4 text-emerald-400" />
-          <span>Competency Scale (1 - 4 Pts)</span>
+        {/* 45-Second Countdown Timer */}
+        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          <Timer
+            duration={45}
+            questionKey={`eq-${currentIndex}`}
+            onTimeUp={() => handleNext(true)}
+          />
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="w-full bg-slate-900 h-1.5 rounded-full mb-6 overflow-hidden">
         <div 
-          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300 ease-out"
+          className="bg-gradient-to-r from-rose-500 to-pink-400 h-full rounded-full transition-all duration-300 ease-out"
           style={{ width: `${progressPercent}%` }}
         ></div>
       </div>
 
-      {/* Scenario Card */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl mb-6">
-        <div className="inline-block px-3 py-1 rounded-lg bg-emerald-950/40 border border-emerald-800/40 text-emerald-300 text-xs font-semibold mb-4">
-          Workplace & Interpersonal Case Study
-        </div>
+      {/* Question Card */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl mb-6 relative">
+        <span className="text-[11px] font-mono text-rose-400/80 uppercase tracking-widest block mb-2">
+          Interpersonal & Emotional Intelligence Scenario
+        </span>
 
-        <h2 className="text-base sm:text-lg font-medium text-slate-100 leading-relaxed mb-6">
+        <h2 className="text-lg sm:text-xl font-bold text-white leading-relaxed mb-6">
           {currentQ.question_text}
         </h2>
 
         {/* Options */}
         <div className="space-y-3">
-          {currentQ.options.map((optionText, idx) => {
+          {currentQ.options.map((opt, idx) => {
             const isSelected = selectedOption === idx;
             return (
               <button
                 key={idx}
                 onClick={() => handleSelectOption(idx)}
-                className={`w-full min-h-[56px] p-4 rounded-2xl text-left text-sm sm:text-base font-normal sm:font-medium transition-all duration-200 flex items-start justify-between border ${
+                className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-start gap-3 relative ${
                   isSelected
-                    ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                    : 'bg-slate-900/50 hover:bg-slate-800/60 border-slate-800/80 text-slate-300 hover:border-slate-700'
+                    ? 'bg-rose-950/40 border-rose-500/80 text-white shadow-lg shadow-rose-500/10'
+                    : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/40'
                 }`}
               >
-                <div className="flex items-start gap-3.5 pr-2">
-                  <span className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0 transition-colors ${
-                    isSelected 
-                      ? 'bg-emerald-500 text-white' 
-                      : 'bg-slate-800 text-slate-400 border border-slate-700'
-                  }`}>
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <span className="leading-snug pt-0.5">{optionText}</span>
+                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                  isSelected
+                    ? 'border-rose-400 bg-rose-500 text-white'
+                    : 'border-slate-700 text-transparent'
+                }`}>
+                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
-                {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-1" />
-                )}
+                <span className="text-sm font-medium leading-relaxed">{opt}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Action Footer */}
+      {/* Footer Navigation */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500 flex items-center gap-1">
-          <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
-          Reflective response evaluation
-        </span>
+        <div className="text-xs text-slate-500 flex items-center gap-1.5">
+          <HeartHandshake className="w-3.5 h-3.5 text-rose-400" />
+          <span>Select the response representing highest empathetic acuity & composure</span>
+        </div>
 
         <button
-          onClick={handleNext}
+          onClick={() => handleNext(false)}
           disabled={selectedOption === null}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md ${
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold transition-all shadow-md ${
             selectedOption !== null
-              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20 cursor-pointer'
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+              ? 'bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400 cursor-pointer shadow-rose-500/20'
+              : 'bg-slate-800/60 text-slate-500 border border-slate-800 cursor-not-allowed'
           }`}
         >
-          <span>{currentIndex + 1 === questions.length ? 'Finalize & Synthesize' : 'Next Scenario'}</span>
+          <span>{currentIndex + 1 === questions.length ? 'Finalize EQ Evaluation' : 'Next Question'}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

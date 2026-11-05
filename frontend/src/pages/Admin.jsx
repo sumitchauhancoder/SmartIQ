@@ -272,41 +272,41 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
 
       {/* Live Metrics Grid */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Tests</span>
-              <Users className="w-4 h-4 text-indigo-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono">{stats.total_tests}</div>
-            <span className="text-[11px] text-slate-500 mt-1 block">Completed dual assessments</span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Tests</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.total_tests}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Submissions</span>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Average IQ</span>
-              <BarChart className="w-4 h-4 text-purple-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono">{stats.average_iq}</div>
-            <span className="text-[11px] text-slate-500 mt-1 block">Population mean baseline: 100</span>
+          <div className="glass-panel p-4 rounded-2xl border border-blue-500/30">
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Avg IQ</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_iq}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Cognitive Logic</span>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Average EQ</span>
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono">{stats.average_eq}</div>
-            <span className="text-[11px] text-slate-500 mt-1 block">Emotional resonance index</span>
+          <div className="glass-panel p-4 rounded-2xl border border-rose-500/30">
+            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">Avg EQ</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_eq}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Emotional</span>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tab Shift Rate</span>
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-black text-white font-mono">{stats.tab_switch_rate}</div>
-            <span className="text-[11px] text-slate-500 mt-1 block">Avg switches / assessment</span>
+          <div className="glass-panel p-4 rounded-2xl border border-amber-500/30">
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">Avg SQ</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_sq || 100}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Stoic & Meaning</span>
+          </div>
+
+          <div className="glass-panel p-4 rounded-2xl border border-emerald-500/30">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Avg AQ</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_aq || 100}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Adaptability</span>
+          </div>
+
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tab Shifts</span>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.tab_switch_rate}</div>
+            <span className="text-[10px] text-slate-500 mt-0.5 block">Anti-cheat rate</span>
           </div>
         </div>
       )}
@@ -328,7 +328,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
 
           {/* Category Toggle */}
           <div className="flex items-center gap-1 p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs font-semibold">
-            {['ALL', 'IQ', 'EQ'].map((cat) => (
+            {['ALL', 'IQ', 'EQ', 'SQ', 'AQ'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
@@ -379,16 +379,23 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                   value={formData.category_type}
                   onChange={(e) => {
                     const val = e.target.value;
+                    let defaultSub = 'Logic';
+                    if (val === 'EQ') defaultSub = 'Self-Awareness';
+                    else if (val === 'SQ') defaultSub = 'Philosophy & Stoicism';
+                    else if (val === 'AQ') defaultSub = 'Crisis Management & Resilience';
+
                     setFormData({
                       ...formData,
                       category_type: val,
-                      sub_category: val === 'IQ' ? 'Logic' : 'Self-Awareness'
+                      sub_category: defaultSub
                     });
                   }}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
                 >
-                  <option value="IQ">IQ (Cognitive)</option>
-                  <option value="EQ">EQ (Emotional)</option>
+                  <option value="IQ">IQ (Cognitive Intelligence)</option>
+                  <option value="EQ">EQ (Emotional Quotient)</option>
+                  <option value="SQ">SQ (Spiritual & Stoic Quotient)</option>
+                  <option value="AQ">AQ (Adaptability Quotient)</option>
                 </select>
               </div>
 
@@ -399,17 +406,32 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                   onChange={(e) => setFormData({ ...formData, sub_category: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
                 >
-                  {formData.category_type === 'IQ' ? (
+                  {formData.category_type === 'IQ' && (
                     <>
                       <option value="Logic">Logic</option>
                       <option value="Math">Math</option>
                       <option value="Spatial">Spatial</option>
                     </>
-                  ) : (
+                  )}
+                  {formData.category_type === 'EQ' && (
                     <>
                       <option value="Self-Awareness">Self-Awareness</option>
                       <option value="Self-Regulation">Self-Regulation</option>
                       <option value="Empathy">Empathy</option>
+                    </>
+                  )}
+                  {formData.category_type === 'SQ' && (
+                    <>
+                      <option value="Philosophy & Stoicism">Philosophy & Stoicism</option>
+                      <option value="Purpose & Meaning">Purpose & Meaning</option>
+                      <option value="Core Values & Wholeness">Core Values & Wholeness</option>
+                    </>
+                  )}
+                  {formData.category_type === 'AQ' && (
+                    <>
+                      <option value="Crisis Management & Resilience">Crisis Management & Resilience</option>
+                      <option value="AI & Tech Disruption">AI & Tech Disruption</option>
+                      <option value="Unlearning & Agility">Unlearning & Agility</option>
                     </>
                   )}
                 </select>

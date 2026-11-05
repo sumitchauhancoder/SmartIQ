@@ -214,42 +214,223 @@ export async function fetchAdminStats(tokenOrKey) {
 
 /**
  * Deterministic local psychometric engine used when network is offline.
+ * Supports IQ, EQ, SQ, AQ individual evaluations as well as holistic 4D matrix synthesis.
  */
 export function computeLocalArchetype(submission) {
-  const { iq_score = 100, eq_score = 100, incorrect_questions = [] } = submission;
+  const test_type = (submission.test_type || 'COMBINED').toUpperCase();
+  const {
+    iq_score = 100,
+    eq_score = 100,
+    sq_score = 100,
+    aq_score = 100,
+    incorrect_questions = []
+  } = submission;
 
-  let archetype = 'The Balanced Catalyst';
-  let summary = 'You display a harmonious synergy between deductive rationality and emotional situational responsiveness.';
-  let edge = 'Adaptability across changing technical environments and group problem-solving dynamics.';
-  let emotional = 'Grounded equilibrium; maintains objective neutrality while actively validating interpersonal nuances.';
+  let archetype = 'The Balanced 4D Integrator';
+  let summary = 'You display healthy equilibrium across logic, emotional resonance, stoic grounding, and disruption agility.';
+  let edge = 'Multidimensional adaptability across unpredictable intellectual, interpersonal, and situational landscapes.';
+  let emotional = 'Grounded equilibrium; maintains objective neutrality while actively validating human nuances.';
+  let habits = [];
 
-  if (iq_score >= 120 && eq_score >= 115) {
-    archetype = 'The Strategic Empathetic Architect';
-    summary = 'A rare dual-cognitive powerhouse. You synthesize systemic algorithmic modeling with nuanced leadership resonance.';
-    edge = 'High-dimensional abstract reasoning coupled with lightning pattern synthesis.';
-    emotional = 'Effortless de-escalation of interpersonal tension and psychological safety cultivation.';
-  } else if (iq_score >= 120) {
-    archetype = 'The Systematic Deep-Logician';
-    summary = 'Your mental machinery excels at structural architecture, rapid deduction, and structural fallacy elimination.';
-    edge = 'Laser precision across spatial relations, algorithmic sequences, and logic trees.';
-    emotional = 'Direct and clarity-driven; thrives when operational rules and metrics are clearly demarcated.';
-  } else if (eq_score >= 115) {
-    archetype = 'The Intuitive Resonant Navigator';
-    summary = 'Exceptional human acuity. You intuitively decode emotional micro-cues, team friction, and social undercurrents.';
-    edge = 'Holistic situational synthesis and empathetic perspective-taking.';
-    emotional = 'High affective empathy, emotional composure under social duress, and deep motivational leadership.';
+  if (test_type === 'SQ') {
+    if (sq_score >= 125) {
+      archetype = 'The Sovereign Stoic Sage';
+      summary = 'You embody exceptional spiritual resilience, finding profound existential purpose and unshakeable equanimity in the face of external storms.';
+      edge = 'Epictetus-grade dichotomy of control; mastery over internal judgment, moral integrity, and deep existential grounding.';
+      emotional = 'Serene emotional stillness; immune to flattery or slander, driven by cardinal virtue and inner wholeness.';
+    } else if (sq_score >= 110) {
+      archetype = 'The Purpose-Driven Philosopher';
+      summary = 'You possess strong moral clarity, consistently aligning your actions with personal values and seeking meaningful impact over ephemeral trends.';
+      edge = 'Existential meaning-making and reflective self-examination under moral ambiguity.';
+      emotional = 'Grounded composure with a steady ethical compass and respect for timeless philosophical wisdom.';
+    } else {
+      archetype = 'The Seeking Realist';
+      summary = 'You approach life with practical grounding, maintaining functional ethics while exploring deeper philosophical frameworks.';
+      edge = 'Pragmatic balance between real-world constraints and moral responsibility.';
+      emotional = 'Sensible and grounded; benefits from daily quietude and deeper study of classical Stoic principles.';
+    }
+    habits = [
+      {
+        habit: 'Premeditatio Malorum & Amor Fati',
+        frequency: 'Daily (Morning)',
+        action: 'Visualize potential obstacles without anxiety; embrace whatever unfolds as fuel for moral excellence.',
+      },
+      {
+        habit: 'Value-Alignment Audit',
+        frequency: 'Weekly (Sunday)',
+        action: 'Review your weekly decisions against your core virtues: Wisdom, Courage, Justice, and Temperance.',
+      },
+      {
+        habit: 'Contemplative Quietude',
+        frequency: 'Daily (10-15 mins)',
+        action: 'Unplug completely from digital noise; practice silent reflection, journaling, or classical philosophy reading.',
+      },
+    ];
+  } else if (test_type === 'AQ') {
+    if (aq_score >= 125) {
+      archetype = 'The Fluid Disruption Pioneer';
+      summary = 'You demonstrate peerless adaptability, operating with lightning pivot velocity, joy under ambiguity, and rapid unlearning/relearning mastery.';
+      edge = "Instinctive 'What If...?' reframing, zero-latency crisis navigation, and effortless synthesis of revolutionary technologies like AI.";
+      emotional = 'High psychological safety in chaos; transforms catastrophic disruption into creative breakthrough leverage.';
+    } else if (aq_score >= 110) {
+      archetype = 'The Agile Strategic Navigator';
+      summary = 'You metabolize change smoothly, proactively adjusting strategies and embracing emerging workflows before disruption forces a pivot.';
+      edge = 'Flexible mental model swapping and strong resilience during unexpected organizational shifts.';
+      emotional = 'Adaptable and steady; comfortably unlearns obsolete protocols to assimilate modern paradigms.';
+    } else {
+      archetype = 'The Methodical Adapter';
+      summary = 'You prefer structured evolution over sudden upheaval, adapting reliably once new frameworks have been tested and demonstrated.';
+      edge = 'Deliberate, thorough transition management that avoids reckless over-rotation.';
+      emotional = 'Grounded caution; thrives when given clear transition milestones and micro-experimental sandboxes.';
+    }
+    habits = [
+      {
+        habit: "The 'What If...?' Simulation",
+        frequency: 'Daily (10 mins)',
+        action: "Challenge one standard operational assumption by asking 'What if this constraint disappeared or reversed?'",
+      },
+      {
+        habit: 'Voluntary Novelty Immersion',
+        frequency: 'Weekly',
+        action: 'Intentionally test an unfamiliar tool, study an alien discipline, or explore new technology to keep mental plasticity sharp.',
+      },
+      {
+        habit: 'Rapid 48-Hour Micro-Experiment',
+        frequency: 'Bi-Weekly',
+        action: 'Test an emerging idea with zero-friction lean prototypes rather than debating hypotheses theoretically.',
+      },
+    ];
+  } else if (test_type === 'IQ') {
+    if (iq_score >= 125) {
+      archetype = 'The Deep-System Logician';
+      summary = 'Your mental architecture operates at elite analytical velocity, isolating complex relational patterns and structural syllogisms effortlessly.';
+      edge = 'High-dimensional abstraction, spatial mental transformation, and rapid algorithmic fallacy elimination.';
+      emotional = 'Hyper-rational and precise; excels when problem domains are clearly defined and structured.';
+    } else if (iq_score >= 110) {
+      archetype = 'The Deductive Architect';
+      summary = 'You demonstrate sharp structural reasoning and robust mathematical modeling across complex operational environments.';
+      edge = 'Methodical pattern isolation and reliable deductive risk assessment.';
+      emotional = 'Clear and objective; thrives in data-rich analytical challenges.';
+    } else {
+      archetype = 'The Pragmatic Analyst';
+      summary = 'You apply balanced, common-sense problem solving with dependable real-world analytical execution.';
+      edge = 'Practical problem resolution without unnecessary theoretical convolution.';
+      emotional = 'Direct and focused on tangible outcomes.';
+    }
+    habits = [
+      {
+        habit: 'Combinatorial Puzzle Training',
+        frequency: 'Daily (15 mins)',
+        action: 'Solve tactical chess puzzles, sudoku, or spatial matrix problems to elevate working memory capacity.',
+      },
+      {
+        habit: 'First-Principles Mental Modeling',
+        frequency: 'Weekly',
+        action: 'Break down an engineering or business problem into its fundamental axioms before synthesizing solutions.',
+      },
+      {
+        habit: 'Bayesian Probability Calibration',
+        frequency: 'Weekly',
+        action: 'Quantify your confidence in your predictions (e.g. 70%) and track calibration accuracy over time.',
+      },
+    ];
+  } else if (test_type === 'EQ') {
+    if (eq_score >= 125) {
+      archetype = 'The Resonant Diplomat';
+      summary = 'You possess extraordinary interpersonal acuity, effortlessly reading emotional undercurrents, de-escalating friction, and cultivating deep trust.';
+      edge = 'Hyper-attuned affective empathy, emotional self-regulation under duress, and master-level social orchestration.';
+      emotional = 'Profound psychological warmth; creates immediate safety and inspires high-retention collaboration.';
+    } else if (eq_score >= 110) {
+      archetype = 'The Empathetic Harmonizer';
+      summary = 'You demonstrate strong situational awareness, validating others perspectives while maintaining your own emotional balance.';
+      edge = 'Constructive conflict resolution and active non-verbal cue decoding.';
+      emotional = 'Attentive and composed; bridges divergent personality styles with ease.';
+    } else {
+      archetype = 'The Practical Communicator';
+      summary = 'You approach social dynamics with straightforward honesty and functional communication.';
+      edge = 'Direct, unpretentious interaction focused on shared objectives.';
+      emotional = 'Steady; benefits from deeper active listening and emotional journaling.';
+    }
+    habits = [
+      {
+        habit: '10-Minute Nightly Emotional Journal',
+        frequency: 'Daily (Night)',
+        action: 'Write down key interpersonal moments from the day, identifying somatic cues and emotional triggers.',
+      },
+      {
+        habit: 'Active Listening Protocol',
+        frequency: 'Daily (Real-time)',
+        action: "In your next 3 conversations, summarize the other person's core feeling before offering any solution.",
+      },
+      {
+        habit: 'Somatic Pause Under Pressure',
+        frequency: 'When Triggered',
+        action: 'Take 3 deep box breaths to prevent amygdala hijack before reacting to criticism or conflict.',
+      },
+    ];
+  } else {
+    // Combined / Holistic
+    const avg = (iq_score + eq_score + sq_score + aq_score) / 4;
+    if (avg >= 120 && sq_score >= 115 && aq_score >= 115) {
+      archetype = 'The Transcendent Sovereign Polymath';
+      summary = 'A rare multidimensional cognitive powerhouse. You synthesize analytical deduction (IQ), human resonance (EQ), stoic grounding (SQ), and fluid pivot velocity (AQ).';
+      edge = 'Complete cognitive equilibrium: architecting complex systems while anchoring teams with purpose and navigating radical disruption.';
+      emotional = 'Imperturbable inner peace combined with dynamic charisma and limitless adaptability.';
+    } else if (iq_score >= 115 && aq_score >= 115) {
+      archetype = 'The Agile Algorithmic Disruptor';
+      summary = 'You excel at the convergence of pure logic and rapid adaptability, mastering new paradigms and tech shifts (AI, engineering) before others notice.';
+      edge = 'Lightning-fast conceptual unlearning/relearning coupled with rigorous structural modeling.';
+      emotional = 'Fast-paced, innovative, and resilient against sudden environmental shocks.';
+    } else if (sq_score >= 115 && eq_score >= 115) {
+      archetype = 'The Resonant Stoic Visionary';
+      summary = 'You unite profound human empathy with classical stoic purpose, leading through moral authority, compassion, and existential clarity.';
+      edge = 'Unshakeable values, restorative conflict mitigation, and deep cultural/philosophical stewardship.';
+      emotional = 'Magnanimous and centered; an empathetic anchor in times of societal turbulence.';
+    } else if (aq_score >= 115 && eq_score >= 115) {
+      archetype = 'The Fluid Crisis Leader';
+      summary = 'You excel when chaos strikes, maintaining high emotional safety and pivoting group strategy seamlessly under high stakes.';
+      edge = 'De-escalation under acute ambiguity and rapid collective mobilization.';
+      emotional = 'Inspiring and flexible; turning organizational panic into focused execution.';
+    } else if (iq_score >= 115 && sq_score >= 115) {
+      archetype = 'The Theoretical Moral Architect';
+      summary = 'You blend first-principles logic with deep philosophical rigor, designing systems that are both mathematically sound and ethically grounded.';
+      edge = 'High abstract deduction anchored in immutable cardinal virtues.';
+      emotional = 'Reflective, principled, and intellectually uncompromising.';
+    } else {
+      archetype = 'The Balanced 4D Integrator';
+      summary = 'You demonstrate healthy equilibrium across all four intelligence quotients, maintaining steady execution without severe blind spots.';
+      edge = 'Well-rounded versatility across logic, emotion, existential purpose, and adaptability.';
+      emotional = 'Dependable and grounded across diverse personal and professional domains.';
+    }
+    habits = [
+      {
+        habit: '4D Multidimensional Audit',
+        frequency: 'Weekly',
+        action: 'Assess your week across 4 pillars: Did I think clearly (IQ)? Relate deeply (EQ)? Stay grounded (SQ)? Adapt quickly (AQ)?',
+      },
+      {
+        habit: "Stoic Premeditation & 'What If?' Synthesis",
+        frequency: 'Bi-Weekly',
+        action: 'Simulate a severe potential crisis: plan your tactical pivot (AQ) while anchoring your inner peace (SQ).',
+      },
+      {
+        habit: 'Cross-Disciplinary Learning Sprints',
+        frequency: 'Monthly',
+        action: 'Study an intersection: e.g. AI ethics (IQ+SQ), leadership psychology (EQ+AQ), or computational linguistics.',
+      },
+    ];
   }
 
   const mistakes = incorrect_questions.map((q) => ({
     question: (q.question_text || 'Assessment item').substring(0, 90) + '...',
-    why_wrong: `Selected option '${q.user_option || 'N/A'}' diverged from the verified deductive rule.`,
-    cognitive_bias: 'Heuristic framing or time-pressure cognitive shortcuts.',
+    why_wrong: `Selected option '${q.user_option || 'N/A'}' diverged from the verified optimal answer.`,
+    cognitive_bias: 'Heuristic framing, reactive impulse, or time-pressure cognitive shortcuts.',
   }));
 
   if (mistakes.length === 0) {
     mistakes.push({
-      question: 'Zero Flaws Detected',
-      why_wrong: 'Flawless execution under time constraints.',
+      question: 'Flawless Execution',
+      why_wrong: 'Zero flaws detected in this assessment module.',
       cognitive_bias: 'None observed.',
     });
   }
@@ -259,23 +440,7 @@ export function computeLocalArchetype(submission) {
     core_summary: summary,
     cognitive_edge: edge,
     emotional_profile: emotional,
-    growth_habits: [
-      {
-        habit: 'Dual-N-Back Working Memory Practice',
-        frequency: 'Daily (10-15 mins)',
-        action: 'Expand active short-term mental buffers to supercharge working memory retention.',
-      },
-      {
-        habit: 'Somatic Trigger Labeling',
-        frequency: 'Daily (Real-time)',
-        action: 'When unexpected stress occurs, silently name the physiological sensation to stop amygdala hijack.',
-      },
-      {
-        habit: 'Counter-Factual Ideation',
-        frequency: 'Weekly',
-        action: 'Argue rigorously against your most cherished assumption to dismantle confirmation bias.',
-      },
-    ],
+    growth_habits: habits,
     mistake_analyses: mistakes,
   };
 }
