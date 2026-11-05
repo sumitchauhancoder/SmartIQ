@@ -77,11 +77,11 @@ export default function Navbar({ currentRoute, onRouteChange, tabSwitchCount = 0
               </div>
             </div>
             <div>
-              <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">
-                Smart<span className="text-emerald-400">IQ</span>
+              <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
+                Enigma
               </span>
               <span className="hidden sm:inline-block ml-2 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-950/80 text-indigo-300 border border-indigo-800/50">
-                Dual Psychometrics
+                4D Intelligence
               </span>
             </div>
           </div>

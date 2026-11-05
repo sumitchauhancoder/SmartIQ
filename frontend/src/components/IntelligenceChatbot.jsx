@@ -30,7 +30,7 @@ export default function IntelligenceChatbot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hello! I am your **SmartIQ Intelligence Mentor** powered by **Groq**.\n\nAsk me anything regarding the **4 Dimensions of Intelligence**:\n- **IQ**: Logic, Bayesian thinking & spatial patterns\n- **EQ**: Somatic self-regulation & active empathy\n- **SQ**: Stoic equanimity & Epictetus' Dichotomy of Control\n- **AQ**: Crisis velocity & thriving through AI disruption\n\nHow can I help sharpen your cognitive architecture today?`,
+      content: `Hello! I am your **Enigma Intelligence Mentor** powered by **Groq**.\n\nAsk me anything regarding the **4 Dimensions of Intelligence**:\n- **IQ**: Logic, Bayesian thinking & spatial patterns\n- **EQ**: Somatic self-regulation & active empathy\n- **SQ**: Stoic equanimity & Epictetus' Dichotomy of Control\n- **AQ**: Crisis velocity & thriving through AI disruption\n\nHow can I help sharpen your cognitive architecture today?`,
       model: 'Groq Llama 3.3',
       source: 'groq'
     }
@@ -41,10 +41,10 @@ export default function IntelligenceChatbot() {
 
   useEffect(() => {
     try {
-      const iq = JSON.parse(localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null');
-      const eq = JSON.parse(localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null');
-      const sq = JSON.parse(localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null');
-      const aq = JSON.parse(localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null');
+      const iq = JSON.parse(localStorage.getItem('enigma_iq_data') || localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('enigma_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null');
+      const eq = JSON.parse(localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null');
+      const sq = JSON.parse(localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null');
+      const aq = JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null');
 
       setUserContext({
         iq_score: iq?.iq_score || null,
@@ -96,7 +96,7 @@ export default function IntelligenceChatbot() {
         {
           role: 'assistant',
           content: "I apologize, but I encountered an unexpected interruption. Please ask your question again or explore our Cognitive Gym!",
-          model: 'SmartIQ Fallback',
+          model: 'Enigma Fallback',
           source: 'local'
         }
       ]);
@@ -188,7 +188,7 @@ export default function IntelligenceChatbot() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-white tracking-tight">SmartIQ Intelligence AI</h3>
+                  <h3 className="text-sm font-bold text-white tracking-tight">Enigma Intelligence AI</h3>
                   <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-emerald-950 text-emerald-400 border border-emerald-800/60">
                     Groq
                   </span>

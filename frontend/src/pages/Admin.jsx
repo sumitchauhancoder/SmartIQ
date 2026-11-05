@@ -240,7 +240,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <Shield className="w-6 h-6 text-indigo-400" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">SmartIQ Admin Console</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Enigma Admin Console</h1>
           </div>
           <p className="text-xs text-slate-400">
             Persistent cloud question CRUD, performance distributions, and live anti-cheat telemetry.

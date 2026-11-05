@@ -168,8 +168,10 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       timestamp: new Date().toISOString()
     };
 
-    // Save to persistent storage
+    // Save to persistent storage (Enigma & legacy SmartIQ compatibility)
+    localStorage.setItem('enigma_sq_data', JSON.stringify(resultRecord));
     localStorage.setItem('smartiq_sq_data', JSON.stringify(resultRecord));
+    sessionStorage.setItem('enigma_sq_data', JSON.stringify(resultRecord));
     sessionStorage.setItem('smartiq_sq_data', JSON.stringify(resultRecord));
 
     setCompletedData(resultRecord);

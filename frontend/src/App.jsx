@@ -35,7 +35,7 @@ function AppContent() {
   // 4 Independent Intelligence States
   const [iqData, setIqData] = useState(() => {
     try {
-      const saved = localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('smartiq_iq_data');
+      const saved = localStorage.getItem('enigma_iq_data') || localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('enigma_iq_data') || sessionStorage.getItem('smartiq_iq_data');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -44,7 +44,7 @@ function AppContent() {
 
   const [eqData, setEqData] = useState(() => {
     try {
-      const saved = localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('smartiq_eq_data');
+      const saved = localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -53,7 +53,7 @@ function AppContent() {
 
   const [sqData, setSqData] = useState(() => {
     try {
-      const saved = localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('smartiq_sq_data');
+      const saved = localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -62,7 +62,7 @@ function AppContent() {
 
   const [aqData, setAqData] = useState(() => {
     try {
-      const saved = localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('smartiq_aq_data');
+      const saved = localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -71,7 +71,7 @@ function AppContent() {
 
   const [resultsData, setResultsData] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('smartiq_results_data');
+      const saved = sessionStorage.getItem('enigma_results_data') || sessionStorage.getItem('smartiq_results_data');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -265,7 +265,7 @@ function AppContent() {
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 SmartIQ Platform • 4D Multidimensional Intelligence Matrix (IQ • EQ • SQ • AQ)</p>
+          <p>© 2026 Enigma Platform • 4D Multidimensional Intelligence Matrix (IQ • EQ • SQ • AQ)</p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>

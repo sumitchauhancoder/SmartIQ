@@ -168,8 +168,10 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       timestamp: new Date().toISOString()
     };
 
-    // Save to persistent storage
+    // Save to persistent storage (Enigma & legacy SmartIQ compatibility)
+    localStorage.setItem('enigma_eq_data', JSON.stringify(resultRecord));
     localStorage.setItem('smartiq_eq_data', JSON.stringify(resultRecord));
+    sessionStorage.setItem('enigma_eq_data', JSON.stringify(resultRecord));
     sessionStorage.setItem('smartiq_eq_data', JSON.stringify(resultRecord));
 
     setCompletedData(resultRecord);

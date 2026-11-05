@@ -52,16 +52,16 @@ export default function Results({
 
   // Hydrate from props or localStorage
   const iq = propIQ || (function() {
-    try { return JSON.parse(localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null'); } catch(e) { return null; }
+    try { return JSON.parse(localStorage.getItem('enigma_iq_data') || localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('enigma_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null'); } catch(e) { return null; }
   })();
   const eq = propEQ || (function() {
-    try { return JSON.parse(localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'); } catch(e) { return null; }
+    try { return JSON.parse(localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'); } catch(e) { return null; }
   })();
   const sq = propSQ || (function() {
-    try { return JSON.parse(localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null'); } catch(e) { return null; }
+    try { return JSON.parse(localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null'); } catch(e) { return null; }
   })();
   const aq = propAQ || (function() {
-    try { return JSON.parse(localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'); } catch(e) { return null; }
+    try { return JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'); } catch(e) { return null; }
   })();
 
   const completedCount = [iq, eq, sq, aq].filter(Boolean).length;
@@ -135,17 +135,17 @@ export default function Results({
   }
 
   const handleShare = () => {
-    const textToShare = `🧠 My SmartIQ 4D Intelligence Profile:\n` +
+    const textToShare = `🧠 My Enigma 4D Intelligence Profile:\n` +
       `🔹 Cognitive IQ: ${iqScore || 'Pending'}\n` +
       `🔺 Emotional EQ: ${eqScore || 'Pending'}\n` +
       `🔸 Spiritual SQ: ${sqScore || 'Pending'}\n` +
       `🟩 Adaptability AQ: ${aqScore || 'Pending'}\n` +
       `🏛️ Archetype: "${archetype}"\n` +
-      `Evaluated on SmartIQ Platform.`;
+      `Evaluated on Enigma Platform.`;
 
     if (navigator.share) {
       navigator.share({
-        title: 'SmartIQ 4D Intelligence Profile',
+        title: 'Enigma 4D Intelligence Profile',
         text: textToShare,
         url: window.location.origin
       }).catch(() => {});

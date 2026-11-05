@@ -32,8 +32,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="SmartIQ API",
-    description="Psychometric Assessment & AI Mind Archetype Analytics with Supabase RBAC",
+    title="Enigma API",
+    description="4D Multidimensional Intelligence Matrix & AI Mind Archetype Analytics with Supabase RBAC",
     version="1.1.0",
     lifespan=lifespan
 )
@@ -432,7 +432,7 @@ Output ONLY valid JSON with keys:
 @app.get("/")
 def read_root():
     return {
-        "platform": "SmartIQ",
+        "platform": "Enigma",
         "status": "operational",
         "version": "1.1.0",
         "database": "PostgreSQL (Supabase)" if database._use_postgres else "SQLite (Local Fallback)",
@@ -572,7 +572,7 @@ def generate_smart_chat_fallback(query: str, context: Optional[Dict[str, Any]] =
         )
 
     return (
-        "### SmartIQ Cognitive Intelligence Assistant\n\n"
+        "### Enigma Cognitive Intelligence Assistant\n\n"
         "Welcome! I am your AI Intelligence Mentor powered by Groq, specialized in the **4 Dimensions of Human Capability**:\n\n"
         "- **IQ (Cognitive • 9/10):** Abstract reasoning, logic trees, Bayesian statistics & spatial manipulation.\n"
         "- **EQ (Emotional • 9.3/10):** Affective empathy, somatic self-regulation & nonviolent communication.\n"
@@ -590,7 +590,7 @@ async def chat_with_intelligence_ai(request: ChatRequest):
     Provides expert insights on IQ, EQ, SQ, AQ, neuroplasticity, and mental training.
     """
     system_prompt = (
-        "You are SmartIQ AI, an elite, articulate, and scientifically grounded cognitive mentor and intelligence scientist powered by Groq. "
+        "You are Enigma AI, an elite, articulate, and scientifically grounded cognitive mentor and intelligence scientist powered by Groq. "
         "You specialize in the 4 Dimensions of Human Intelligence:\n"
         "1. IQ (Cognitive Intelligence): Logic, deductive reasoning, mathematical patterns, spatial visualization, Bayesian thinking. (Impact: 9/10)\n"
         "2. EQ (Emotional Quotient): Self-awareness, somatic regulation, active listening, nonviolent communication, empathetic resonance. (Impact: 9.3/10)\n"
@@ -660,7 +660,7 @@ async def chat_with_intelligence_ai(request: ChatRequest):
     return {
         "status": "success",
         "response": fallback_reply,
-        "model": "smartiq-cognitive-engine",
+        "model": "enigma-cognitive-engine",
         "source": "local-fallback"
     }
 

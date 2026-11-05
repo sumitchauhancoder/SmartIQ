@@ -34,10 +34,10 @@ export default function Home({ onStartQuiz }) {
   useEffect(() => {
     setSessionId(getSessionId());
     try {
-      setIqRecord(JSON.parse(localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null'));
-      setEqRecord(JSON.parse(localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'));
-      setSqRecord(JSON.parse(localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null'));
-      setAqRecord(JSON.parse(localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'));
+      setIqRecord(JSON.parse(localStorage.getItem('enigma_iq_data') || localStorage.getItem('smartiq_iq_data') || sessionStorage.getItem('enigma_iq_data') || sessionStorage.getItem('smartiq_iq_data') || 'null'));
+      setEqRecord(JSON.parse(localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'));
+      setSqRecord(JSON.parse(localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null'));
+      setAqRecord(JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'));
     } catch (e) {}
   }, []);
 

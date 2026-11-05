@@ -93,7 +93,7 @@ export default function AuthModal({ isOpen, onClose, initialSignUp = false, onAu
         </div>
 
         <h3 className="text-2xl font-extrabold text-center text-white mb-1.5">
-          {isSignUp ? 'Create SmartIQ Profile' : 'Sign in to SmartIQ'}
+          {isSignUp ? 'Create Enigma Profile' : 'Sign in to Enigma'}
         </h3>
         <p className="text-xs text-slate-400 text-center mb-6">
           {isSignUp
@@ -178,7 +178,7 @@ export default function AuthModal({ isOpen, onClose, initialSignUp = false, onAu
             </span>
           ) : (
             <span>
-              New to SmartIQ?{' '}
+              New to Enigma?{' '}
               <button
                 type="button"
                 onClick={() => { setIsSignUp(true); setErrorMsg(''); }}
