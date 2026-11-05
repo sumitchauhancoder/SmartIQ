@@ -36,9 +36,9 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   }, [initialPillar]);
 
   // =========================================================================
-  // Game 1: IQ - Speed Logic & Math Duel State
+  // Game 1: IQ - Speed Logic & Math Duel State (10 Shuffled Challenges Sprint)
   // =========================================================================
-  const iqChallenges = [
+  const iqMasterChallenges = [
     {
       q: "What is 17 × 4 - 19?",
       options: ["49", "51", "47", "53"],
@@ -68,9 +68,112 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
       options: ["42", "40", "44", "38"],
       correct: 0,
       expl: "Differences are +4, +6, +8, +10, so next is +12. 30 + 12 = 42."
+    },
+    {
+      q: "What is 25% of 240 + 15?",
+      options: ["75", "70", "65", "80"],
+      correct: 0,
+      expl: "25% of 240 is 60. 60 + 15 = 75."
+    },
+    {
+      q: "Complete the sequence: 1, 4, 9, 16, 25, 36, ?",
+      options: ["49", "45", "51", "64"],
+      correct: 0,
+      expl: "Consecutive perfect squares: 7² = 49."
+    },
+    {
+      q: "If 5 machines take 5 minutes to make 5 widgets, how long do 100 machines take to make 100 widgets?",
+      options: ["5 minutes", "100 minutes", "20 minutes", "50 minutes"],
+      correct: 0,
+      expl: "1 machine takes 5 minutes to make 1 widget. 100 machines making 100 widgets still take 5 minutes."
+    },
+    {
+      q: "What is 13 × 6 - 28?",
+      options: ["50", "48", "52", "46"],
+      correct: 0,
+      expl: "13 × 6 = 78. 78 - 28 = 50."
+    },
+    {
+      q: "Find the missing term: 80, 40, 20, 10, ?",
+      options: ["5", "2.5", "0", "8"],
+      correct: 0,
+      expl: "Each term is divided by 2. 10 / 2 = 5."
+    },
+    {
+      q: "If today is Tuesday, what day of the week is 23 days from today?",
+      options: ["Thursday", "Wednesday", "Friday", "Monday"],
+      correct: 0,
+      expl: "23 days = 3 weeks + 2 days. Tuesday + 2 days = Thursday."
+    },
+    {
+      q: "What is 144 ÷ 12 + 19?",
+      options: ["31", "29", "33", "27"],
+      correct: 0,
+      expl: "144 ÷ 12 = 12. 12 + 19 = 31."
+    },
+    {
+      q: "Next in sequence: 5, 11, 23, 47, ?",
+      options: ["95", "91", "99", "89"],
+      correct: 0,
+      expl: "Each term is 2x + 1: 47 × 2 + 1 = 95."
+    },
+    {
+      q: "In a lake, lily pads double in size every day. It takes 48 days to cover the lake. How many days to cover half?",
+      options: ["47 days", "24 days", "12 days", "40 days"],
+      correct: 0,
+      expl: "Since it doubles daily, on day 47 it covers half, and day 48 doubles to full."
+    },
+    {
+      q: "What is 9 × 18 - 42?",
+      options: ["120", "118", "124", "116"],
+      correct: 0,
+      expl: "9 × 18 = 162. 162 - 42 = 120."
+    },
+    {
+      q: "Next in pattern: 100, 96, 88, 76, 60, ?",
+      options: ["40", "44", "38", "42"],
+      correct: 0,
+      expl: "Differences are -4, -8, -12, -16, so next is -20. 60 - 20 = 40."
+    },
+    {
+      q: "What is 15 × 15 - 25?",
+      options: ["200", "225", "195", "210"],
+      correct: 0,
+      expl: "15 × 15 = 225. 225 - 25 = 200."
+    },
+    {
+      q: "If SOME A are B, and ALL B are C, are SOME A definitely C?",
+      options: ["Yes, definitely", "No, never", "Only if A = B", "Undetermined"],
+      correct: 0,
+      expl: "The subset of A that are B are also part of C, so some A are definitely C."
     }
   ];
 
+  // Fisher-Yates array shuffling
+  const shuffleList = (arr) => {
+    const res = [...arr];
+    for (let i = res.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [res[i], res[j]] = [res[j], res[i]];
+    }
+    return res;
+  };
+
+  // Generate 10 shuffled questions with shuffled options
+  const generateShuffledIQChallenges = () => {
+    const selected10 = shuffleList(iqMasterChallenges).slice(0, 10);
+    return selected10.map((item) => {
+      const correctText = item.options[item.correct];
+      const shuffledOptions = shuffleList(item.options);
+      return {
+        ...item,
+        options: shuffledOptions,
+        correct: shuffledOptions.indexOf(correctText)
+      };
+    });
+  };
+
+  const [iqActiveChallenges, setIqActiveChallenges] = useState(() => generateShuffledIQChallenges());
   const [iqIndex, setIqIndex] = useState(0);
   const [iqScore, setIqScore] = useState(0);
   const [iqStreak, setIqStreak] = useState(0);
@@ -78,6 +181,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   const [iqGameOver, setIqGameOver] = useState(false);
   const [iqTimer, setIqTimer] = useState(30);
   const [iqGameRunning, setIqGameRunning] = useState(false);
+  const [iqCompletedAll, setIqCompletedAll] = useState(false);
+  const [iqTotalAnswered, setIqTotalAnswered] = useState(0);
 
   useEffect(() => {
     let interval = null;
@@ -93,9 +198,13 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   }, [iqGameRunning, iqTimer]);
 
   const handleStartIQGame = () => {
+    const fresh10 = generateShuffledIQChallenges();
+    setIqActiveChallenges(fresh10);
     setIqIndex(0);
     setIqScore(0);
     setIqStreak(0);
+    setIqTotalAnswered(0);
+    setIqCompletedAll(false);
     setIqFeedback(null);
     setIqTimer(30);
     setIqGameOver(false);
@@ -103,9 +212,12 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   };
 
   const handleAnswerIQ = (optionIdx) => {
-    if (!iqGameRunning) return;
-    const current = iqChallenges[iqIndex];
-    if (optionIdx === current.correct) {
+    if (!iqGameRunning || iqActiveChallenges.length === 0) return;
+    const current = iqActiveChallenges[iqIndex];
+    if (!current) return;
+
+    const isCorrect = optionIdx === current.correct;
+    if (isCorrect) {
       const addedPoints = 100 + iqStreak * 25;
       setIqScore((s) => s + addedPoints);
       setIqStreak((st) => st + 1);
@@ -115,17 +227,22 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
       setIqFeedback({ correct: false, msg: `Incorrect. ${current.expl}` });
     }
 
+    setIqTotalAnswered((prev) => prev + 1);
+
     setTimeout(() => {
       setIqFeedback(null);
-      if (iqIndex + 1 < iqChallenges.length) {
+      // If user answers all 10 questions before 30 seconds are up:
+      if (iqIndex + 1 < iqActiveChallenges.length) {
         setIqIndex((idx) => idx + 1);
       } else {
-        setIqIndex(0); // loop
+        // Stop sprint cleanly - DO NOT LOOP!
+        setIqCompletedAll(true);
+        setIqGameOver(true);
+        setIqGameRunning(false);
       }
-    }, 700);
+    }, 550);
   };
 
-  // =========================================================================
   // Game 2: EQ - Interpersonal Empathy & Conflict Lab
   // =========================================================================
   const eqScenarios = [
@@ -195,9 +312,9 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   const [eqSelected, setEqSelected] = useState(null);
 
   // =========================================================================
-  // Game 3: SQ - Epictetus' Dichotomy of Control Sorter
+  // Game 3: SQ - Epictetus' Dichotomy of Control Sorter (10 Items)
   // =========================================================================
-  const sqItems = [
+  const sqMasterItems = [
     { text: "Whether people praise or criticize your work", inControl: false, expl: "External judgment is outside your sovereign control." },
     { text: "The effort and dedication you put into your work", inControl: true, expl: "Your diligence and craft are entirely within your control." },
     { text: "A sudden macroeconomic inflation or downturn", inControl: false, expl: "Macro events belong to the universe, not your choices." },
@@ -205,9 +322,12 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
     { text: "Past mistakes that cannot be undone", inControl: false, expl: "The past belongs to destiny (Amor Fati); focus on present action." },
     { text: "Your personal moral integrity and honesty today", inControl: true, expl: "Cardinal virtue is the only unconditional good in Stoicism." },
     { text: "The physical genetics and aging of your body", inControl: false, expl: "Biology is an external indifferents; you control your care for it." },
-    { text: "Choosing not to gossip or complain", inControl: true, expl: "Your speech and voluntary restraint are 100% within your will." }
+    { text: "Choosing not to gossip or complain", inControl: true, expl: "Your speech and voluntary restraint are 100% within your will." },
+    { text: "Unforeseen transit and flight delays", inControl: false, expl: "External transit is indifferent; your patience is within your will." },
+    { text: "How you choose to direct your attention and focus right now", inControl: true, expl: "Attention is the sovereign domain of the conscious mind." }
   ];
 
+  const [sqItems, setSqItems] = useState(() => shuffleList(sqMasterItems));
   const [sqItemIndex, setSqItemIndex] = useState(0);
   const [sqScore, setSqScore] = useState(0);
   const [sqCompleted, setSqCompleted] = useState(false);
@@ -234,14 +354,13 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   };
 
   const handleResetSQ = () => {
+    setSqItems(shuffleList(sqMasterItems));
     setSqItemIndex(0);
     setSqScore(0);
     setSqCompleted(false);
     setSqLastResult(null);
   };
-
-  // =========================================================================
-  // Game 4: AQ - Crisis Pivot 'What If...?' Agility Simulator
+// Game 4: AQ - Crisis Pivot 'What If...?' Agility Simulator
   // =========================================================================
   const aqScenarios = [
     {
@@ -600,7 +719,7 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
               <div>
                 <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-950 text-blue-300 border border-blue-800/50 mb-1 inline-block">
-                  Playable Drill • 30-Second Rapid Sprint
+                  Playable Drill • 10 Shuffled Questions • 30s Rapid Sprint
                 </span>
                 <h3 className="text-lg font-bold text-white">Rapid Deductive Logic & Speed Math Duel</h3>
               </div>
@@ -630,49 +749,66 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
                 </div>
                 <h4 className="text-base font-bold text-white mb-2">Test Your Analytical Speed Under Time Pressure</h4>
                 <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
-                  Solve logic puzzles and mental arithmetic rapidly. Correct answers chained together trigger streak point multipliers.
+                  Complete 10 randomized logic and arithmetic challenges before the 30-second timer expires. Questions and options are shuffled each sprint!
                 </p>
                 <button
                   onClick={handleStartIQGame}
                   className="px-8 py-3.5 rounded-2xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 transition-all inline-flex items-center gap-2"
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  <span>Start 30-Second Sprint</span>
+                  <span>Start 10-Question Sprint</span>
                 </button>
               </div>
             ) : iqGameOver ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-950/80 border border-indigo-800/60 flex items-center justify-center text-indigo-400 mx-auto mb-4">
-                  <Sparkles className="w-8 h-8" />
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                  iqCompletedAll ? 'bg-emerald-950/80 border border-emerald-800/60 text-emerald-400' : 'bg-indigo-950/80 border border-indigo-800/60 text-indigo-400'
+                }`}>
+                  {iqCompletedAll ? <Award className="w-8 h-8" /> : <Sparkles className="w-8 h-8" />}
                 </div>
-                <h4 className="text-xl font-black text-white mb-1">Time Expired!</h4>
-                <p className="text-sm text-slate-300 mb-2">Final Score: <span className="font-mono font-bold text-indigo-400">{iqScore} points</span></p>
+                <h4 className="text-xl font-black text-white mb-1">
+                  {iqCompletedAll ? 'Sprint Cleared! All 10 Questions Answered! ⚡' : 'Time Expired! (30s Sprint Finished)'}
+                </h4>
+                <p className="text-sm text-slate-300 mb-2">
+                  Final Score: <span className="font-mono font-bold text-indigo-400">{iqScore} points</span> • Answered: <span className="font-bold text-white">{iqTotalAnswered} / {iqActiveChallenges.length}</span>
+                </p>
                 <p className="text-xs text-slate-400 mb-6">
-                  {iqScore >= 400 ? '⚡ Exceptional Speed! Outstanding working memory and arithmetic velocity.' : 'Good effort! Daily 30s sprints build neuroplastic processing speed.'}
+                  {iqCompletedAll 
+                    ? `Exceptional velocity! You cleared all 10 shuffled questions with ${iqTimer}s remaining on the clock.` 
+                    : iqScore >= 400 
+                      ? '⚡ Exceptional Speed! Outstanding working memory and arithmetic velocity.' 
+                      : 'Good effort! Daily 30s sprints build neuroplastic processing speed.'
+                  }
                 </p>
                 <button
                   onClick={handleStartIQGame}
-                  className="px-6 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-700 text-slate-200 hover:text-white transition-all inline-flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all inline-flex items-center gap-2"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Play Again</span>
+                  <span>Play New Shuffled 10-Question Sprint</span>
                 </button>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-indigo-400/80 font-mono uppercase tracking-wider mb-2">
-                  Question {iqIndex + 1} of {iqChallenges.length}
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-indigo-400 font-mono uppercase tracking-wider">
+                    Question {iqIndex + 1} of {iqActiveChallenges.length}
+                  </p>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {iqActiveChallenges.length - (iqIndex + 1)} remaining
+                  </span>
+                </div>
                 <h4 className="text-base sm:text-lg font-bold text-white mb-4">
-                  {iqChallenges[iqIndex].q}
+                  {iqActiveChallenges[iqIndex]?.q}
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {iqChallenges[iqIndex].options.map((opt, idx) => (
+                  {iqActiveChallenges[iqIndex]?.options.map((opt, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleAnswerIQ(idx)}
-                      className="p-3.5 rounded-xl text-left text-xs font-semibold bg-slate-900/80 border border-slate-800 hover:border-blue-500/60 hover:bg-slate-800/60 text-slate-200 transition-all"
+                      disabled={Boolean(iqFeedback)}
+                      className="p-3.5 rounded-xl text-left text-xs font-semibold bg-slate-900/80 border border-slate-800 hover:border-blue-500/60 hover:bg-slate-800/60 text-slate-200 transition-all disabled:opacity-60"
                     >
                       {opt}
                     </button>
