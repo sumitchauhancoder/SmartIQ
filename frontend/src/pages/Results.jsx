@@ -6,7 +6,6 @@ import {
   Compass, 
   Zap, 
   Sparkles, 
-  Share2, 
   RotateCcw, 
   ChevronDown, 
   ChevronUp, 
@@ -15,18 +14,15 @@ import {
   Calendar, 
   Flame, 
   ShieldCheck, 
-  Copy,
-  Check,
-  ArrowRight,
-  TrendingUp,
-  Sun,
-  Heart,
-  Printer,
-  BarChart3,
-  Dumbbell,
-  BookOpen,
-  HelpCircle,
-  XCircle
+  ArrowRight, 
+  TrendingUp, 
+  Sun, 
+  Heart, 
+  BarChart3, 
+  Dumbbell, 
+  BookOpen, 
+  HelpCircle, 
+  XCircle 
 } from 'lucide-react';
 import PerformanceChart from '../components/PerformanceChart';
 
@@ -40,7 +36,6 @@ export default function Results({
   initialTab = 'ALL'
 }) {
   const [activeTab, setActiveTab] = useState(initialTab || 'ALL'); // 'ALL', 'IQ', 'EQ', 'SQ', 'AQ'
-  const [copied, setCopied] = useState(false);
   const [showMistakes, setShowMistakes] = useState(false);
 
   // Sync tab if initialTab changes
@@ -133,32 +128,6 @@ export default function Results({
       }
     ];
   }
-
-  const handleShare = () => {
-    const textToShare = `🧠 My Enigma 4D Intelligence Profile:\n` +
-      `🔹 Cognitive IQ: ${iqScore || 'Pending'}\n` +
-      `🔺 Emotional EQ: ${eqScore || 'Pending'}\n` +
-      `🔸 Spiritual SQ: ${sqScore || 'Pending'}\n` +
-      `🟩 Adaptability AQ: ${aqScore || 'Pending'}\n` +
-      `🏛️ Archetype: "${archetype}"\n` +
-      `Evaluated on Enigma Platform.`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: 'Enigma 4D Intelligence Profile',
-        text: textToShare,
-        url: window.location.origin
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(textToShare);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   if (completedCount === 0) {
     return (
@@ -546,24 +515,6 @@ export default function Results({
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
                   {summary}
                 </p>
-              </div>
-
-              {/* Action bar (Share / Print) */}
-              <div className="flex items-center gap-2 self-stretch lg:self-auto justify-end">
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Share2 className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied!' : 'Share Profile'}</span>
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 transition-all"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Export Certificate</span>
-                </button>
               </div>
             </div>
 
