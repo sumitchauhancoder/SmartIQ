@@ -183,6 +183,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   const [iqGameRunning, setIqGameRunning] = useState(false);
   const [iqCompletedAll, setIqCompletedAll] = useState(false);
   const [iqTotalAnswered, setIqTotalAnswered] = useState(0);
+  const [iqUserAnswers, setIqUserAnswers] = useState([]);
+  const [iqShowReview, setIqShowReview] = useState(false);
 
   useEffect(() => {
     let interval = null;
@@ -208,6 +210,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
     setIqFeedback(null);
     setIqTimer(30);
     setIqGameOver(false);
+    setIqUserAnswers([]);
+    setIqShowReview(false);
     setIqGameRunning(true);
   };
 
@@ -228,6 +232,14 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
     }
 
     setIqTotalAnswered((prev) => prev + 1);
+    setIqUserAnswers((prev) => [
+      ...prev,
+      {
+        questionIndex: iqIndex,
+        selectedOption: optionIdx,
+        isCorrect
+      }
+    ]);
 
     setTimeout(() => {
       setIqFeedback(null);
@@ -780,13 +792,154 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
                       : 'Good effort! Daily 30s sprints build neuroplastic processing speed.'
                   }
                 </p>
-                <button
-                  onClick={handleStartIQGame}
-                  className="px-6 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all inline-flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Play New Shuffled 10-Question Sprint</span>
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+                  <button
+                    onClick={handleStartIQGame}
+                    className="px-6 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all inline-flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Play New Shuffled 10-Question Sprint</span>
+                  </button>
+
+                  <button
+                    onClick={() => setIqShowReview((prev) => !prev)}
+                    className="px-6 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 hover:text-white transition-all inline-flex items-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4 text-indigo-400" />
+                    <span>{iqShowReview ? 'Hide Answer Review' : 'Review Answers & Explanations (10 Qs)'}</span>
+                  </button>
+                </div>
+
+                {/* Detailed Review Section for all 10 Questions */}
+                {iqShowReview && (
+                  <div className="mt-8 text-left border-t border-slate-800 pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                      <div>
+                        <h5 className="text-base font-bold text-white flex items-center gap-2">
+                          <BookOpen className="w-5 h-5 text-indigo-400" />
+                          <span>Sprint Answer Review & Cognitive Explanations</span>
+                        </h5>
+                        <p className="text-xs text-slate-400">
+                          Review all 10 questions, your selected responses, correct answers, and mathematical/logical solutions.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                          ✓ {iqUserAnswers.filter((a) => a.isCorrect).length} Correct
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-950/80 text-rose-300 border border-rose-800/60">
+                          ✗ {iqUserAnswers.filter((a) => !a.isCorrect).length} Incorrect
+                        </span>
+                        {iqActiveChallenges.length - iqUserAnswers.length > 0 && (
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-slate-400 border border-slate-800">
+                            ⏱ {iqActiveChallenges.length - iqUserAnswers.length} Timed Out
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                      {iqActiveChallenges.map((challenge, qIdx) => {
+                        const userAns = iqUserAnswers.find((a) => a.questionIndex === qIdx);
+                        const wasAnswered = Boolean(userAns);
+                        const wasCorrect = wasAnswered && userAns.isCorrect;
+
+                        return (
+                          <div
+                            key={qIdx}
+                            className={`p-5 rounded-2xl border transition-all ${
+                              !wasAnswered
+                                ? 'bg-slate-900/60 border-slate-800'
+                                : wasCorrect
+                                ? 'bg-emerald-950/20 border-emerald-800/50'
+                                : 'bg-rose-950/20 border-rose-800/50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                                Question {qIdx + 1} of {iqActiveChallenges.length}
+                              </span>
+                              <span
+                                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border ${
+                                  !wasAnswered
+                                    ? 'bg-slate-900 text-slate-400 border-slate-700'
+                                    : wasCorrect
+                                    ? 'bg-emerald-950 text-emerald-300 border-emerald-800/60'
+                                    : 'bg-rose-950 text-rose-300 border-rose-800/60'
+                                }`}
+                              >
+                                {!wasAnswered ? (
+                                  <>
+                                    <Clock className="w-3 h-3 text-slate-400" />
+                                    <span>Unanswered (Time Expired)</span>
+                                  </>
+                                ) : wasCorrect ? (
+                                  <>
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                    <span>Correct</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                                    <span>Incorrect</span>
+                                  </>
+                                )}
+                              </span>
+                            </div>
+
+                            <h6 className="text-sm font-bold text-white mb-3 leading-relaxed">
+                              {challenge.q}
+                            </h6>
+
+                            {/* Options display with visual indicators */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                              {challenge.options.map((opt, optIdx) => {
+                                const isCorrectOption = optIdx === challenge.correct;
+                                const isUserChoice = wasAnswered && userAns.selectedOption === optIdx;
+
+                                let optClass = 'bg-slate-900/60 border-slate-800 text-slate-400';
+                                if (isCorrectOption) {
+                                  optClass = 'bg-emerald-950/60 border-emerald-600/70 text-emerald-200 font-semibold';
+                                } else if (isUserChoice && !wasCorrect) {
+                                  optClass = 'bg-rose-950/60 border-rose-600/70 text-rose-200 line-through';
+                                }
+
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${optClass}`}
+                                  >
+                                    <span>{opt}</span>
+                                    {isCorrectOption && (
+                                      <span className="text-[10px] uppercase font-bold text-emerald-400 flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" /> Correct
+                                      </span>
+                                    )}
+                                    {isUserChoice && !isCorrectOption && (
+                                      <span className="text-[10px] uppercase font-bold text-rose-400 flex items-center gap-1">
+                                        <XCircle className="w-3 h-3" /> Your Choice
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Explanation card */}
+                            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs text-slate-300 flex items-start gap-2">
+                              <Lightbulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-white">Explanation: </span>
+                                <span>{challenge.expl}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div>
