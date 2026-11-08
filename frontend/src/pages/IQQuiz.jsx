@@ -233,57 +233,29 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-            IQ Cognitive & Deductive Assessment
+            Cognitive Intelligence (IQ) Test
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-            The ability to think logically, recognize patterns, execute spatial rotations, and solve abstract mathematical problems without external aids.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            Test your logic, pattern recognition, and problem-solving skills.
           </p>
 
-          {/* Parameter Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Target className="w-4 h-4" />
-                <span>Test Length</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">10 Questions</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Deductive & Spatial sequence</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Clock className="w-4 h-4" />
-                <span>Pacing</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">45s / Question</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Core Domains</span>
-              </div>
-              <p className="text-xs font-bold text-white mt-1">Logic • Math • Spatial</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Abstract structural mechanics</p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              📝 10 Questions
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ⏱️ 45s / Question
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              🧠 Logic & Math
+            </span>
           </div>
 
-          {/* Integrity & Rules */}
-          <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-900/40 mb-8 space-y-2 text-xs text-slate-300">
-            <div className="flex items-center gap-2 font-bold text-indigo-300">
-              <ShieldCheck className="w-4 h-4 text-indigo-400" />
-              <span>Assessment Protocol & Instructions:</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
-              <li>Each question has a strict 45-second timer. Answers auto-submit when the timer expires.</li>
-              <li>You cannot backtrack or alter an answer once submitted.</li>
-              <li>Tab switches or window minimizations are flagged by the system anti-cheat engine.</li>
-              <li>Calculators and external web searches are prohibited to preserve psychometric validity.</li>
-            </ul>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 mb-8 flex items-center gap-3 text-xs text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Answer all 10 questions at your own pace (up to 45 seconds each). Please stay on this tab for fair scoring.</span>
           </div>
 
-          {/* Start CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <button
               onClick={() => onNavigate('home')}

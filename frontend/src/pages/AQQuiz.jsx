@@ -225,56 +225,29 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-            AQ Adaptability & Crisis Agility Assessment
+            Adaptability Quotient (AQ) Test
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-            The capability to rapidly assimilate unexpected disruptions, deliberately unlearn obsolete practices, harness transformative technology like AI, and pivot with high velocity under pressure.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            Measure how easily you adapt to changes, solve unexpected problems, and learn new skills.
           </p>
 
-          {/* Parameter Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Target className="w-4 h-4" />
-                <span>Test Length</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">10 Disruptions</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">High-velocity crisis scenarios</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Clock className="w-4 h-4" />
-                <span>Pacing</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">45s / Question</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Core Domains</span>
-              </div>
-              <p className="text-xs font-bold text-white mt-1">Crisis Velocity • AI • Unlearning</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Leadership, business & AI</p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              📝 10 Questions
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ⏱️ 45s / Question
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ⚡ Flexibility & Growth
+            </span>
           </div>
 
-          {/* Integrity & Rules */}
-          <div className="p-4 rounded-2xl bg-emerald-950/30 border border-emerald-900/40 mb-8 space-y-2 text-xs text-slate-300">
-            <div className="flex items-center gap-2 font-bold text-emerald-300">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Assessment Protocol & Instructions:</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
-              <li>Respond to high-stakes ambiguity with real-time strategic decisions.</li>
-              <li>Scenarios evaluate adaptability, risk tolerance, and cognitive unlearning.</li>
-              <li>Each question allows 45 seconds to respond before proceeding.</li>
-            </ul>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 mb-8 flex items-center gap-3 text-xs text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>10 fast-paced scenarios. Pick how you instinctively respond when plans change.</span>
           </div>
 
-          {/* Start CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <button
               onClick={() => onNavigate('home')}

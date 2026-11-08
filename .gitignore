@@ -23,7 +23,10 @@ venv.bak/
 .env
 .env.production
 
-# IDE and OS files
+# Build and scratch files
+docx_unpack/
+extracted_report_text.txt
+
 .vscode/
 .idea/
 .DS_Store

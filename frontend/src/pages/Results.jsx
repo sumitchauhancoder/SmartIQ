@@ -46,29 +46,29 @@ function calculatePsychometrics(score) {
   let honestDiagnostic = '';
 
   if (numScore >= 130) {
-    classification = 'Very Superior (Top 2% Globally)';
+    classification = 'Exceptional (Top 2% Worldwide)';
     badgeColor = 'border-purple-500/50 text-purple-300 bg-purple-950/60';
-    honestDiagnostic = 'Statistically exceptional capability (Z ≥ +2.0σ). Highly proficient working memory and pattern abstraction; vulnerability lies in analytical impatience or dismissing simpler heuristics.';
+    honestDiagnostic = 'Outstanding performance (Top 2% in the world). You learn quickly and solve tricky problems with ease. Watch out for overthinking or rushing past simple answers.';
   } else if (numScore >= 120) {
-    classification = 'Superior (Top 9% Globally)';
+    classification = 'Superior (Top 9% Worldwide)';
     badgeColor = 'border-indigo-500/50 text-indigo-300 bg-indigo-950/60';
-    honestDiagnostic = 'Measurable strategic advantage (Z ≥ +1.33σ). Well above the global baseline; maintain cognitive humility against premature closure on complex problems.';
+    honestDiagnostic = 'Great performance (Top 9% in the world). You think clearly and plan ahead well above average. Remember to double-check details before making quick decisions.';
   } else if (numScore >= 110) {
-    classification = 'High Average (Top 25% Globally)';
+    classification = 'High Average (Top 25% Worldwide)';
     badgeColor = 'border-blue-500/50 text-blue-300 bg-blue-950/60';
-    honestDiagnostic = 'Solid performance above global population average (Z = +' + zScore.toFixed(2) + 'σ). Dependable problem solving, with isolated processing bottlenecks emerging under acute time pressure.';
+    honestDiagnostic = 'Above average performance (Top 25% in the world). You have strong, dependable problem-solving skills, but you can feel rushed when time is tight.';
   } else if (numScore >= 90) {
-    classification = 'Normative Average (Global Population Median)';
+    classification = 'Average Range (World Median)';
     badgeColor = 'border-emerald-500/50 text-emerald-300 bg-emerald-950/60';
-    honestDiagnostic = 'Standard population baseline (Mean: 100, σ: 15). Reliable everyday functional capability. An unvarnished evaluation reveals susceptibility to cognitive fatigue, emotional reactivity, and heuristic shortcuts when stakes rise.';
+    honestDiagnostic = 'Right in the healthy average range (Middle 50% of people). You handle daily decisions well. Under heavy stress or when tired, taking a quick pause will help you make the best choice.';
   } else if (numScore >= 80) {
-    classification = 'Low Average (Below Global Baseline)';
+    classification = 'Low Average Range';
     badgeColor = 'border-amber-500/50 text-amber-300 bg-amber-950/60';
-    honestDiagnostic = 'Below global population median (Z = ' + zScore.toFixed(2) + 'σ). Demonstrates friction in abstract pattern deduction or stress regulation; structured deliberate drills are recommended.';
+    honestDiagnostic = 'A bit below average. You may occasionally feel stuck on tricky puzzles or tense situations. Quick daily practice in our Cognitive Gym will help build your speed and confidence.';
   } else {
     classification = 'Significantly Below Average';
     badgeColor = 'border-rose-500/50 text-rose-300 bg-rose-950/60';
-    honestDiagnostic = 'Acute psychometric vulnerability (Z < -1.33σ). Targeted neuroplastic rehabilitation in the Cognitive Gym is strongly advised.';
+    honestDiagnostic = "Room for improvement. Don't worry—these skills grow with practice! Try a few speed rounds in the Cognitive Gym to sharpen your mental reflexes.";
   }
 
   return {
@@ -166,22 +166,22 @@ export default function Results({
       {
         habit: "The 'What If...?' Simulation (AQ)",
         frequency: "Daily (10 mins)",
-        action: "Challenge an operational assumption by simulating radical change or constraint removal."
+        action: "Think of a daily routine and ask: 'If this changed suddenly tomorrow, how would I adapt?'"
       },
       {
         habit: "Stoic Premeditation & Dichotomy of Control (SQ)",
         frequency: "Daily (Morning)",
-        action: "Focus mental agency exclusively on your virtue, judgment, and choices rather than externalities."
+        action: "Each morning, focus your energy only on your choices and actions, letting go of things outside your control."
       },
       {
         habit: "10-Minute Reflective Emotional Journal (EQ)",
         frequency: "Nightly",
-        action: "Track interpersonal moments, somatic triggers, and opportunities for deeper empathetic listening."
+        action: "Note moments during the day where you felt calm or stressed, and practice listening actively to others."
       },
       {
         habit: "Combinatorial Puzzle & Working Memory Training (IQ)",
         frequency: "Weekly (15-20 mins)",
-        action: "Engage with spatial matrices, chess tactics, and Bayesian probability estimation."
+        action: "Spend 10 minutes solving math puzzles, playing chess, or trying speed drills in the Cognitive Gym."
       }
     ];
   }
@@ -324,7 +324,7 @@ export default function Results({
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mb-2">
-                <span>Global Mean Benchmark: <strong>100</strong> (σ = 15)</span>
+                <span>World Average: <strong>100</strong></span>
                 <span>•</span>
                 <span className="font-mono text-indigo-300">Z-Score: {metrics.zScore}σ</span>
               </div>
@@ -368,7 +368,7 @@ export default function Results({
 
             <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
-                Behavioral Edge & Demeanor
+                Your Natural Style
               </span>
               <p className="text-xs sm:text-sm text-slate-300">
                 {ai.emotional_profile || 'Exhibits grounded clarity, calm execution under time constraints, and strong pattern mastery.'}
@@ -383,8 +383,8 @@ export default function Results({
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-white">Objective Psychometric Diagnostic</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Empirical Gaussian Standard</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-white">Clear & Honest Review</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">Scientific Benchmark</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
                 {metrics.honestDiagnostic}
@@ -434,7 +434,7 @@ export default function Results({
                   <span>10-Question Item Breakdown</span>
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Review your responses and psychometric rationale
+                  Review your answers and see helpful explanations
                 </p>
               </div>
               <button
@@ -605,13 +605,13 @@ export default function Results({
                 <div className="flex flex-wrap items-center gap-3 my-3 text-xs">
                   <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>Global Population Mean: <strong>100</strong> (σ = 15)</span>
+                    <span>World Average: <strong>100</strong></span>
                   </span>
                   <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-indigo-300 font-mono font-semibold">
                     Composite Average: {Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} pts
                   </span>
                   <span className="text-slate-400">
-                    Scientific Standard: Cattell-Horn-Carroll & Gaussian Norms
+                    Standardized Global Benchmark (Average: 100)
                   </span>
                 </div>
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
@@ -625,7 +625,7 @@ export default function Results({
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                 <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1.5">
                   <Brain className="w-4 h-4" />
-                  <span>Cognitive & Strategic Edge</span>
+                  <span>Your Key Strengths</span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {edge}
@@ -635,7 +635,7 @@ export default function Results({
               <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
                 <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1.5">
                   <Compass className="w-4 h-4" />
-                  <span>Emotional, Stoic & Adaptability Demeanor</span>
+                  <span>How You Handle Stress & Change</span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                   {emotionalProfile}
@@ -874,108 +874,12 @@ export default function Results({
             />
           </div>
 
-          {/* 4 Types of Intelligence Reference Cards (Direct from User Infographics) */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span>The 4 Types of Human Intelligence</span>
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Foundational principles, training protocols, and global impact ratings
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* IQ Reference Card */}
-              <div className="p-5 rounded-2xl glass-card border border-blue-500/20 bg-slate-900/40">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
-                    <Brain className="w-4 h-4" />
-                    <span>IQ (Intelligence Quotient)</span>
-                  </div>
-                  <span className="text-xs font-bold text-blue-400 px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800/50">
-                    Impact: 9/10
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mb-3 italic">
-                  "The ability to think logically, recognize patterns, and solve problems."
-                </p>
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <p><strong className="text-slate-300">Areas:</strong> Science, Math & Engineering, Programming</p>
-                  <p><strong className="text-slate-300">How to Train:</strong> Solve puzzles (chess, sudoku). Learn basic statistics.</p>
-                </div>
-              </div>
-
-              {/* EQ Reference Card */}
-              <div className="p-5 rounded-2xl glass-card border border-rose-500/20 bg-slate-900/40">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
-                    <Award className="w-4 h-4" />
-                    <span>EQ (Emotional Quotient)</span>
-                  </div>
-                  <span className="text-xs font-bold text-rose-400 px-2 py-0.5 rounded bg-rose-950/80 border border-rose-800/50">
-                    Impact: 9.3/10
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mb-3 italic">
-                  "The ability to understand and manage emotions."
-                </p>
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <p><strong className="text-slate-300">Areas:</strong> Psychology, Relationships, Family</p>
-                  <p><strong className="text-slate-300">How to Train:</strong> Keep an emotional journal for 10 minutes each night. Listen actively.</p>
-                </div>
-              </div>
-
-              {/* SQ Reference Card */}
-              <div className="p-5 rounded-2xl glass-card border border-amber-500/20 bg-slate-900/40">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                    <Compass className="w-4 h-4" />
-                    <span>SQ (Spiritual Quotient)</span>
-                  </div>
-                  <span className="text-xs font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-950/80 border border-amber-800/50">
-                    Impact: 8/10
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mb-3 italic">
-                  "The ability to find meaning, stay grounded in your values, and feel internally whole."
-                </p>
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <p><strong className="text-slate-300">Areas:</strong> Literature, Philosophy, Art & Religion</p>
-                  <p><strong className="text-slate-300">How to Train:</strong> Reflect on your values. Study the principles of Stoicism.</p>
-                </div>
-              </div>
-
-              {/* AQ Reference Card */}
-              <div className="p-5 rounded-2xl glass-card border border-emerald-500/20 bg-slate-900/40">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                    <Zap className="w-4 h-4" />
-                    <span>AQ (Adaptability Quotient)</span>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/50">
-                    Impact: 10/10 (Peak)
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 mb-3 italic">
-                  "The ability to learn when faced with new or unpredictable situations."
-                </p>
-                <div className="space-y-1.5 text-xs text-slate-400">
-                  <p><strong className="text-slate-300">Areas:</strong> Leadership, AI, Politics, Business, Crisis Management</p>
-                  <p><strong className="text-slate-300">How to Train:</strong> Ask 'What if...?' • Try new things (languages, technologies, food).</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Tailored Growth Protocols Grid */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-indigo-400" />
-                <span>Tailored Cognitive & Behavioral Protocols</span>
+                <span>Recommended Daily Habits</span>
               </h3>
               <button
                 onClick={() => onNavigate('gym')}

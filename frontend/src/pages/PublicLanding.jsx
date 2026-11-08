@@ -1,265 +1,559 @@
-import React, { useState } from 'react';
-import { 
-  Brain, 
-  Sparkles, 
-  Award, 
+import React, { useState } from "react";
+import {
+  Brain,
+  Sparkles,
+  Award,
   Compass,
-  Zap, 
-  ArrowRight, 
-  CheckCircle2, 
-  TrendingUp, 
-  Cpu, 
-  ShieldCheck, 
-  BookOpen,
+  Zap,
+  ArrowRight,
   Quote,
-  Flame,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  CheckCircle2,
+  ShieldCheck,
   AlertTriangle,
-  Layers,
-  HeartHandshake,
-  Sun,
-  Shield,
-  Lightbulb
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function PublicLanding({ onGetStarted, onSignIn }) {
-  const [activeQuotePillar, setActiveQuotePillar] = useState('ALL');
-
-  const pillars = [
-    {
-      id: 'IQ',
-      title: 'IQ (Intelligence Quotient)',
-      tagline: 'The ability to think logically, recognize patterns, and solve problems.',
-      impact: '9 / 10',
-      color: 'blue',
-      borderClass: 'border-blue-500/40 hover:border-blue-400',
-      badgeClass: 'bg-blue-950/80 text-blue-300 border-blue-800/60',
-      icon: Brain,
-      areas: 'Science • Math & Engineering • Programming',
-      training: 'Solve puzzles (chess, sudoku). Learn basic statistics.',
-    },
-    {
-      id: 'EQ',
-      title: 'EQ (Emotional Quotient)',
-      tagline: 'The ability to understand and manage emotions.',
-      impact: '9.3 / 10',
-      color: 'rose',
-      borderClass: 'border-rose-500/40 hover:border-rose-400',
-      badgeClass: 'bg-rose-950/80 text-rose-300 border-rose-800/60',
-      icon: Award,
-      areas: 'Psychology • Relationships • Family Dynamics',
-      training: 'Keep an emotional journal for 10 minutes each night. Listen actively.',
-    },
-    {
-      id: 'SQ',
-      title: 'SQ (Spiritual Quotient)',
-      tagline: 'The ability to find meaning, stay grounded in your values, and feel internally whole.',
-      impact: '8 / 10',
-      color: 'amber',
-      borderClass: 'border-amber-500/40 hover:border-amber-400',
-      badgeClass: 'bg-amber-950/80 text-amber-300 border-amber-800/60',
-      icon: Compass,
-      areas: 'Literature • Philosophy • Art & Religion',
-      training: 'Reflect on your values. Study the timeless principles of Stoicism.',
-    },
-    {
-      id: 'AQ',
-      title: 'AQ (Adaptability Quotient)',
-      tagline: 'The ability to learn when faced with new or unpredictable situations.',
-      impact: '10 / 10 (Peak)',
-      color: 'emerald',
-      borderClass: 'border-emerald-500/40 hover:border-emerald-400',
-      badgeClass: 'bg-emerald-950/80 text-emerald-300 border-emerald-800/60',
-      icon: Zap,
-      areas: 'Leadership • AI • Politics • Crisis Management',
-      training: "Ask 'What if...?' • Try new things (languages, technologies, food).",
-    },
-  ];
+  const [quoteIndex, setQuoteIndex] = useState(0);
 
   const intelligenceQuotes = [
     {
-      pillar: 'AQ',
-      quote: "The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn.",
+      quote:
+        "The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn.",
       author: "Alvin Toffler",
-      title: "Futurist & Author of Future Shock",
-      color: "emerald"
+      pillar: "AQ",
     },
     {
-      pillar: 'SQ',
-      quote: "You have power over your mind — not outside events. Realize this, and you will find immense strength.",
+      quote:
+        "You have power over your mind — not outside events. Realize this, and you will find immense strength.",
       author: "Marcus Aurelius",
-      title: "Roman Emperor & Stoic Philosopher",
-      color: "amber"
+      pillar: "SQ",
     },
     {
-      pillar: 'EQ',
-      quote: "In a high-IQ job pool, soft skills like emotional intelligence, self-regulation, and empathy determine who leads and who falters.",
+      quote:
+        "In a high-IQ job pool, soft skills like emotional intelligence, self-regulation, and empathy determine who leads.",
       author: "Daniel Goleman",
-      title: "Psychologist & Author of Emotional Intelligence",
-      color: "rose"
+      pillar: "EQ",
     },
     {
-      pillar: 'IQ',
-      quote: "The measure of intelligence is the ability to change, adapt, and reason from first principles.",
+      quote:
+        "The measure of intelligence is the ability to change, adapt, and reason from first principles.",
       author: "Albert Einstein",
-      title: "Theoretical Physicist",
-      color: "blue"
+      pillar: "IQ",
     },
     {
-      pillar: 'SQ',
-      quote: "When we are no longer able to change a situation, we are challenged to change ourselves.",
+      quote:
+        "When we are no longer able to change a situation, we are challenged to change ourselves.",
       author: "Viktor E. Frankl",
-      title: "Neurologist, Psychiatrist & Holocaust Survivor",
-      color: "amber"
+      pillar: "SQ",
     },
     {
-      pillar: 'AQ',
-      quote: "It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",
+      quote:
+        "It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",
       author: "Charles Darwin",
-      title: "Naturalist & Evolutionary Biologist",
-      color: "emerald"
-    }
+      pillar: "AQ",
+    },
   ];
 
-  const filteredQuotes = activeQuotePillar === 'ALL' 
-    ? intelligenceQuotes 
-    : intelligenceQuotes.filter(q => q.pillar === activeQuotePillar);
+  const currentQuote = intelligenceQuotes[quoteIndex];
+
+  const handleNextQuote = () => {
+    setQuoteIndex((prev) => (prev + 1) % intelligenceQuotes.length);
+  };
+
+  const handlePrevQuote = () => {
+    setQuoteIndex(
+      (prev) =>
+        (prev - 1 + intelligenceQuotes.length) % intelligenceQuotes.length,
+    );
+  };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
-      
-      {/* =====================================================================
-          1. HERO SECTION
-          ===================================================================== */}
-      <div className="text-center max-w-4xl mx-auto pt-4 pb-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700/80 text-indigo-300 text-xs font-semibold mb-6 shadow-sm">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span>Next-Generation Multidimensional Psychometrics</span>
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+      {/* 1. Welcome / Hero Banner (Matching Home Typography) */}
+      <div className="text-center max-w-3xl mx-auto pt-4">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700/80 text-indigo-300 text-xs font-semibold mb-4 shadow-sm">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Next-Gen 4D Psychometric Assessment</span>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-          Master The <br className="hidden sm:inline" />
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white mb-3 leading-tight">
+          The{" "}
           <span className="bg-gradient-to-r from-blue-400 via-rose-400 via-amber-400 to-emerald-400 bg-clip-text text-transparent">
             4 Types of Intelligence
           </span>
         </h1>
 
-        <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-10">
-          Human excellence cannot be captured by raw computational logic alone. Discover your comprehensive cognitive architecture across <strong>IQ</strong> (Cognitive), <strong>EQ</strong> (Emotional), <strong>SQ</strong> (Spiritual & Stoic), and <strong>AQ</strong> (Adaptability) with instant AI synthesis.
+        <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl mx-auto mb-6">
+          Pick a test below. Answer 10 quick questions to discover your
+          strengths and personal style.
         </p>
 
-        {/* Primary Call to Action */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-8">
+        {/* Action Shortcuts */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={onGetStarted}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 transform hover:-translate-y-0.5 transition-all text-base group"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 transform hover:-translate-y-0.5 transition-all group"
           >
             <span>Start Free Assessment</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
-          
+
           <button
             onClick={onSignIn}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 transition-all text-base"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 transition-all shadow-md"
           >
             <span>Sign In</span>
           </button>
         </div>
+      </div>
 
-        {/* Trust Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 10-Question Standalone Tests
-          </span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Real-Time Groq AI Synthesis
-          </span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Anti-Cheat Verification
-          </span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Playable Cognitive Gym
-          </span>
+      {/* 2. Sleek Inspiration Bar (Identical to Home.jsx) */}
+      <div className="glass-panel px-5 py-4 rounded-2xl border border-indigo-500/20 shadow-md flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-8 h-8 rounded-lg bg-indigo-950/80 border border-indigo-800/60 flex items-center justify-center text-indigo-400 shrink-0">
+            <Quote className="w-4 h-4" />
+          </div>
+          <div className="truncate">
+            <p className="text-xs sm:text-sm text-slate-200 italic truncate">
+              "{currentQuote.quote}"{" "}
+              <span className="text-slate-400 not-italic font-semibold">
+                — {currentQuote.author}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={handlePrevQuote}
+            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all"
+            title="Previous"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={handleNextQuote}
+            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all"
+            title="Next"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
-      {/* =====================================================================
-          2. THE MAIN MODERN PROBLEM ENIGMA SOLVES
-          ===================================================================== */}
+      {/* 3. 4 Separate Assessment Modules Grid (Exact Font & Card Structure from Home.jsx) */}
+      <div>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Choose an Assessment Module
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Each test has 10 quick questions with helpful tips and fair-play
+            monitoring.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* IQ Module Card */}
+          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-blue-500/30 relative overflow-hidden group hover:border-blue-400/60 transition-all flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-600/20 transition-all"></div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-950/80 border border-blue-700/50 flex items-center justify-center text-blue-400 shadow-md">
+                  <Brain className="w-6 h-6" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60">
+                    Impact: 9/10
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                    <Clock className="w-3 h-3 text-blue-400" />
+                    45s / Q
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Cognitive Intelligence (IQ)
+                </h3>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 italic">
+                "The ability to think logically, recognize patterns, and solve
+                problems."
+              </p>
+
+              <div className="space-y-2 text-xs text-slate-400 mb-6 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Key Focus Areas:
+                  </span>
+                  <span className="text-blue-300 font-mono text-[11px]">
+                    Science • Math • Programming
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Training Routine:
+                  </span>
+                  <span className="text-slate-400 text-[11px]">
+                    Chess, Sudoku, Logic Puzzles
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onGetStarted}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 transition-all group"
+            >
+              <span>Start Independent IQ Test (10 Qs)</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {/* EQ Module Card */}
+          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-rose-500/30 relative overflow-hidden group hover:border-rose-400/60 transition-all flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-rose-600/20 transition-all"></div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-700/50 flex items-center justify-center text-rose-400 shadow-md">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-950/80 text-rose-300 border border-rose-800/60">
+                    Impact: 9.3/10
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                    <Clock className="w-3 h-3 text-rose-400" />
+                    45s / Q
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Emotional Quotient (EQ)
+                </h3>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 italic">
+                "The ability to understand and manage emotions."
+              </p>
+
+              <div className="space-y-2 text-xs text-slate-400 mb-6 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Key Focus Areas:
+                  </span>
+                  <span className="text-rose-300 font-mono text-[11px]">
+                    Psychology • Relationships • Leadership
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Training Routine:
+                  </span>
+                  <span className="text-slate-400 text-[11px]">
+                    Daily Journaling, Active Listening
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onGetStarted}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white shadow-lg shadow-rose-500/20 transition-all group"
+            >
+              <span>Start Independent EQ Test (10 Qs)</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {/* SQ Module Card */}
+          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-amber-500/30 relative overflow-hidden group hover:border-amber-400/60 transition-all flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-amber-600/20 transition-all"></div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-700/50 flex items-center justify-center text-amber-400 shadow-md">
+                  <Compass className="w-6 h-6" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800/60">
+                    Impact: 8/10
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                    <Clock className="w-3 h-3 text-amber-400" />
+                    45s / Q
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Spiritual Quotient (SQ)
+                </h3>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 italic">
+                "The ability to find meaning, stay grounded in your values, and
+                feel internally whole."
+              </p>
+
+              <div className="space-y-2 text-xs text-slate-400 mb-6 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Key Focus Areas:
+                  </span>
+                  <span className="text-amber-300 font-mono text-[11px]">
+                    Philosophy • Values • Inner Peace
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Training Routine:
+                  </span>
+                  <span className="text-slate-400 text-[11px]">
+                    Quiet Reflection, Living by Core Principles
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onGetStarted}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white shadow-lg shadow-amber-500/20 transition-all group"
+            >
+              <span>Start Independent SQ Test (10 Qs)</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {/* AQ Module Card */}
+          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-emerald-500/30 relative overflow-hidden group hover:border-emerald-400/60 transition-all flex flex-col justify-between">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-600/20 transition-all"></div>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-emerald-400 shadow-md">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                    Impact: 10/10 (Peak)
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+                    <Clock className="w-3 h-3 text-emerald-400" />
+                    45s / Q
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Adaptability Quotient (AQ)
+                </h3>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 italic">
+                "The ability to learn when faced with new or unpredictable
+                situations."
+              </p>
+
+              <div className="space-y-2 text-xs text-slate-400 mb-6 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Key Focus Areas:
+                  </span>
+                  <span className="text-emerald-300 font-mono text-[11px]">
+                    Leadership • Handling Change • New Tech
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-300 font-semibold">
+                    Training Routine:
+                  </span>
+                  <span className="text-slate-400 text-[11px]">
+                    Trying New Things, Asking 'What if...?'
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onGetStarted}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 transition-all group"
+            >
+              <span>Start Independent AQ Test (10 Qs)</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. The Problems We Face & How Enigma Helps (Simple & Friendly Terms) */}
       <div className="glass-panel p-8 sm:p-12 rounded-3xl border border-indigo-500/30 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-3xl mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-950/70 border border-rose-800/60 text-rose-300 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/70 border border-rose-800/60 text-rose-300 text-xs font-bold uppercase tracking-wider mb-4">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>The Modern Crisis of One-Dimensional Metrics</span>
+            <span>The Modern Problem & The Solution</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-4">
-            The Main Problem Enigma Solves
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-3">
+            Why One-Dimensional Intelligence Fails Us Today
           </h2>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            For over a century, the world evaluated human capability through a single narrow lens: <strong>traditional academic IQ</strong>. But in the era of Generative AI, raw computational calculation has been commoditized. Humans are facing unprecedented psychological burnout, disconnection, and disruption paralysis.
+            For generations, people believed that book smarts and IQ were the
+            only things needed for a good life. But the modern world poses four
+            real problems that simple IQ cannot solve:
           </p>
         </div>
 
         {/* 4 Problem vs Solution Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          {/* Problem 1: AI Commoditizing IQ */}
-          <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">The IQ Problem</span>
-              <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded font-mono">Commoditization</span>
+          {/* Problem 1: IQ */}
+          <div className="p-6 rounded-2xl bg-slate-900/70 border border-blue-500/30 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                  The IQ Problem
+                </span>
+                <span className="text-[10px] bg-blue-950 text-blue-300 border border-blue-800/50 px-2 py-0.5 rounded font-mono">
+                  Machines Now Calculate Fast
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">
+                Computers Out-Compute Memorization
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                When AI can solve complex equations and retrieve data in
+                milliseconds, simply memorizing facts is no longer enough.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white">Algorithms Now Out-Compute Pure Logic</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              When software solves equations and writes syntax in milliseconds, pure memorization is obsolete. Humans need <strong>Bayesian discernment, first-principles critique, and spatial modeling</strong> — not mechanical rote calculation.
-            </p>
+            <div className="p-3.5 rounded-xl bg-blue-950/40 border border-blue-900/50 text-xs">
+              <span className="text-blue-300 font-bold block mb-1">
+                💡 Enigma's Solution:
+              </span>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                We test and train genuine human reasoning: critical thinking,
+                pattern recognition, and creative problem solving that AI cannot
+                replace.
+              </p>
+            </div>
           </div>
 
-          {/* Problem 2: The Empathy & EQ Deficit */}
-          <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">The EQ Problem</span>
-              <span className="text-[10px] bg-rose-950 text-rose-300 border border-rose-800/50 px-2 py-0.5 rounded font-mono">Hyper-Reactivity</span>
+          {/* Problem 2: EQ */}
+          <div className="p-6 rounded-2xl bg-slate-900/70 border border-rose-500/30 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">
+                  The EQ Problem
+                </span>
+                <span className="text-[10px] bg-rose-950 text-rose-300 border border-rose-800/50 px-2 py-0.5 rounded font-mono">
+                  Stress & Digital Burnout
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">
+                Isolation, Friction & Constant Anxiety
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                Constant screen time, workplace pressure, and lack of real
+                connection leave people drained, reactive, and easily stressed.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white">Digital Isolation & Amygdala Hijacking</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Chronic screen time, remote friction, and defensive polarization trigger constant nervous system strain. Without trained <strong>somatic self-regulation and active empathy</strong>, teams collapse under pressure regardless of how brilliant their members are.
-            </p>
+            <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-900/50 text-xs">
+              <span className="text-rose-300 font-bold block mb-1">
+                ❤️ Enigma's Solution:
+              </span>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                We measure how you handle emotional tension and help you build
+                habits to stay calm, listen deeply, and build trust with others.
+              </p>
+            </div>
           </div>
 
-          {/* Problem 3: The Existential Void (SQ Deficit) */}
-          <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">The SQ Problem</span>
-              <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800/50 px-2 py-0.5 rounded font-mono">Loss of Anchor</span>
+          {/* Problem 3: SQ */}
+          <div className="p-6 rounded-2xl bg-slate-900/70 border border-amber-500/30 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                  The SQ Problem
+                </span>
+                <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-800/50 px-2 py-0.5 rounded font-mono">
+                  Outer Success, Inner Void
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">
+                Chasing Goals Without Inner Meaning
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                Many achieve high scores or jobs, yet still feel empty or
+                anxious because they haven't anchored themselves in clear core
+                values.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white">External Success with Internal Emptiness</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Professionals chase fleeting external validation while suffering from deep existential fatigue. Without ancient <strong>Stoic equanimity and Epictetus' Dichotomy of Control</strong>, external volatility easily shatters mental peace.
-            </p>
+            <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-900/50 text-xs">
+              <span className="text-amber-300 font-bold block mb-1">
+                🧭 Enigma's Solution:
+              </span>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                We evaluate your inner principles and purpose, guiding you to
+                find peace, focus on what you can control, and live with
+                clarity.
+              </p>
+            </div>
           </div>
 
-          {/* Problem 4: Disruption Paralysis (AQ Deficit) */}
-          <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">The AQ Problem</span>
-              <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50 px-2 py-0.5 rounded font-mono">Obsolescence Trap</span>
+          {/* Problem 4: AQ */}
+          <div className="p-6 rounded-2xl bg-slate-900/70 border border-emerald-500/30 flex flex-col justify-between space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                  The AQ Problem
+                </span>
+                <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800/50 px-2 py-0.5 rounded font-mono">
+                  Freezing When Life Changes
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white mb-2">
+                Struggling When The Rules Shift Overnight
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                When career conditions, new technologies, or unexpected events
+                happen, clinging to old methods causes panic and failure.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-white">Paralysis When Rules Change Overnight</h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Career and organizational crises fail not from lack of intelligence, but from refusal to let go of outdated mastery. <strong>Adaptability (AQ) is the peak meta-skill</strong>: rapid unlearning, pivot velocity, and Nassim Taleb's antifragility.
-            </p>
+            <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-900/50 text-xs">
+              <span className="text-emerald-300 font-bold block mb-1">
+                ⚡ Enigma's Solution:
+              </span>
+              <p className="text-slate-300 text-[11px] leading-relaxed">
+                We measure your adaptability quotient, helping you embrace
+                novelty, learn new tools quickly, and bounce back stronger from
+                challenges.
+              </p>
+            </div>
           </div>
         </div>
 
         {/* The Enigma Antidote Statement */}
-        <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-emerald-950/80 border border-indigo-500/40 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-indigo-950/90 via-slate-900 to-emerald-950/90 border border-indigo-500/40 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="text-base sm:text-lg font-bold text-white">
-              Enigma's Antidote: 4D Intelligence Synthesis
+              Enigma's Solution: 4D Intelligence Synthesis
             </h4>
-            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-              We restore human equilibrium by measuring and training IQ, EQ, SQ, and AQ as mutually reinforcing pillars. You emerge not just smart, but centered, empathetic, and antifragile under chaos.
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              We bring balance back to your mind. By measuring and training IQ,
+              EQ, SQ, and AQ together, you grow into a well-rounded thinker who
+              is calm, empathetic, and ready for whatever the future brings.
             </p>
           </div>
           <button
@@ -269,134 +563,6 @@ export default function PublicLanding({ onGetStarted, onSignIn }) {
             <span>Explore Your 4D Matrix</span>
             <ArrowRight className="w-4 h-4" />
           </button>
-        </div>
-      </div>
-
-      {/* =====================================================================
-          3. TIMELESS WISDOM & QUOTES SHOWCASE
-          ===================================================================== */}
-      <div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <Quote className="w-6 h-6 text-indigo-400" />
-              <span>Timeless Wisdom on Human Intelligence</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Foundational philosophical and scientific insights that power the Enigma methodology
-            </p>
-          </div>
-
-          {/* Quote Pillar Filter Tabs */}
-          <div className="glass-panel p-1 rounded-xl border border-slate-800 flex items-center gap-1">
-            {['ALL', 'IQ', 'EQ', 'SQ', 'AQ'].map((p) => (
-              <button
-                key={p}
-                onClick={() => setActiveQuotePillar(p)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                  activeQuotePillar === p
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Quotes Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredQuotes.map((q, idx) => (
-            <div 
-              key={idx}
-              className="glass-panel p-6 rounded-3xl border border-slate-800/80 hover:border-slate-700 flex flex-col justify-between group transition-all"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                    q.pillar === 'IQ' ? 'bg-blue-950 text-blue-300 border-blue-800/50' :
-                    q.pillar === 'EQ' ? 'bg-rose-950 text-rose-300 border-rose-800/50' :
-                    q.pillar === 'SQ' ? 'bg-amber-950 text-amber-300 border-amber-800/50' :
-                    'bg-emerald-950 text-emerald-300 border-emerald-800/50'
-                  }`}>
-                    {q.pillar} Intelligence
-                  </span>
-                  <Quote className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
-                </div>
-
-                <p className="text-sm font-medium text-slate-200 leading-relaxed italic mb-6">
-                  "{q.quote}"
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-slate-800/60">
-                <p className="text-xs font-bold text-white">{q.author}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">{q.title}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* =====================================================================
-          4. 4 PILLARS INTERACTIVE SHOWCASE
-          ===================================================================== */}
-      <div>
-        <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
-            The 4 Standalone Pillars
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-            Take any 10-question assessment independently or complete all four to synthesize your complete 4D Mind Matrix.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {pillars.map((p) => {
-            const Icon = p.icon;
-            return (
-              <div 
-                key={p.id}
-                className={`glass-panel p-6 rounded-3xl border transition-all duration-300 flex flex-col justify-between relative overflow-hidden group hover:scale-[1.02] shadow-xl ${p.borderClass}`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-900/90 border border-slate-700 flex items-center justify-center text-white">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${p.badgeClass}`}>
-                      {p.impact}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-white mb-2">{p.title}</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-4 italic">
-                    "{p.tagline}"
-                  </p>
-
-                  <div className="space-y-2 text-xs text-slate-400 mb-6 pt-3 border-t border-slate-800/80">
-                    <div>
-                      <span className="text-slate-300 font-semibold block mb-0.5">Core Areas:</span>
-                      <p className="text-[11px] leading-snug">{p.areas}</p>
-                    </div>
-                    <div>
-                      <span className="text-slate-300 font-semibold block mb-0.5">How to Train:</span>
-                      <p className="text-[11px] leading-snug">{p.training}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={onGetStarted}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-200 transition-all group-hover:border-slate-500"
-                >
-                  <span>Evaluate {p.id} (10 Qs)</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>

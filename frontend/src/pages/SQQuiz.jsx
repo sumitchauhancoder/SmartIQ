@@ -224,56 +224,29 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-            SQ Spiritual & Stoic Intelligence Assessment
+            Spiritual Quotient (SQ) Test
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-            The capacity to find existential meaning, anchor yourself in unchanging core values, exercise Epictetus' dichotomy of control, and maintain inner wholeness during adversity.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            Discover your inner calm, personal values, and how you stay grounded under stress.
           </p>
 
-          {/* Parameter Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Target className="w-4 h-4" />
-                <span>Test Length</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">10 Dilemmas</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Philosophical & moral scenarios</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Clock className="w-4 h-4" />
-                <span>Pacing</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">45s / Question</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Core Domains</span>
-              </div>
-              <p className="text-xs font-bold text-white mt-1">Stoicism • Meaning • Values</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Literature, philosophy & art</p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              📝 10 Questions
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ⏱️ 45s / Question
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              🧭 Values & Meaning
+            </span>
           </div>
 
-          {/* Integrity & Rules */}
-          <div className="p-4 rounded-2xl bg-amber-950/30 border border-amber-900/40 mb-8 space-y-2 text-xs text-slate-300">
-            <div className="flex items-center gap-2 font-bold text-amber-300">
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
-              <span>Assessment Protocol & Instructions:</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
-              <li>Choose the response that truthfully reflects your internal moral philosophy and instincts.</li>
-              <li>Scenarios evaluate equanimity, judgment of externalities, and integrity under trial.</li>
-              <li>45-second timer per item. Automatic progression when time runs out.</li>
-            </ul>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 mb-8 flex items-center gap-3 text-xs text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>10 thought-provoking situations. Pick the choice that best reflects your core beliefs.</span>
           </div>
 
-          {/* Start CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <button
               onClick={() => onNavigate('home')}

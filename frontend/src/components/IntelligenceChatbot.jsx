@@ -30,7 +30,7 @@ export default function IntelligenceChatbot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hello! I am your **Enigma Intelligence Mentor** powered by **Groq**.\n\nAsk me anything regarding the **4 Dimensions of Intelligence**:\n- **IQ**: Logic, Bayesian thinking & spatial patterns\n- **EQ**: Somatic self-regulation & active empathy\n- **SQ**: Stoic equanimity & Epictetus' Dichotomy of Control\n- **AQ**: Crisis velocity & thriving through AI disruption\n\nHow can I help sharpen your cognitive architecture today?`,
+      content: `Hello! I am your **Enigma AI Guide** powered by **Groq**.\n\nAsk me anything about improving in any of the **4 Areas of Intelligence**:\n- **IQ**: Logic, puzzles & clear thinking\n- **EQ**: Handling stress, empathy & relationships\n- **SQ**: Inner calm, values & purpose\n- **AQ**: Adapting to change & fast learning\n\nHow can I help you today?`,
       model: 'Groq Llama 3.3',
       source: 'groq'
     }
@@ -131,10 +131,10 @@ export default function IntelligenceChatbot() {
 
   // Quick suggestion chips
   const suggestedPrompts = [
-    "How can I increase my AQ for AI disruption?",
-    "Explain Epictetus' Dichotomy of Control in SQ",
-    "Difference between IQ & EQ in crisis leadership",
-    "Give me a 5-minute daily focus protocol"
+    "How can I improve my adaptability (AQ)?",
+    "Tips to stay calm under pressure (EQ)",
+    "Difference between IQ and EQ in leadership",
+    "Give me a simple 5-minute daily focus routine"
   ];
 
   const hasScores = userContext.iq_score || userContext.eq_score || userContext.sq_score || userContext.aq_score;

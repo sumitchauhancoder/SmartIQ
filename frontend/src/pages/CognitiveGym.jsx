@@ -628,13 +628,13 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-indigo-300 text-xs font-semibold mb-3">
               <Dumbbell className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Cognitive Gym & Neuro-Performance Hub</span>
+              <span>Cognitive Gym & Training Hub</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
-              Intelligence Training & Growth
+              Daily Practice & Brain Games
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
-              Sharpen your mind with real-time interactive games, masterclass video lectures, and science-backed cognitive protocols across all 4 intelligence dimensions.
+              Sharpen your mind with interactive drills, speed games, and quick learning across all 4 intelligence areas.
             </p>
           </div>
 
@@ -1194,10 +1194,10 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Video className="w-5 h-5 text-rose-400" />
-              <span>Curated Video Masterclasses ({activePillar})</span>
+              <span>Helpful Videos ({activePillar})</span>
             </h2>
             <p className="text-xs text-slate-400">
-              World-class lectures and breakdowns from leading cognitive scientists and thinkers
+              Short, high-quality videos to help you improve in this area
             </p>
           </div>
         </div>
@@ -1243,10 +1243,10 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-indigo-400" />
-              <span>Foundational Literature & Frameworks ({activePillar})</span>
+              <span>Quick Reads & Practical Guides ({activePillar})</span>
             </h2>
             <p className="text-xs text-slate-400">
-              Essential reading to deepen theoretical understanding and mental models
+              Simple, actionable articles to help you build great thinking habits
             </p>
           </div>
         </div>

@@ -224,57 +224,29 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-            EQ Emotional Intelligence Assessment
+            Emotional Intelligence (EQ) Test
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">
-            The ability to accurately perceive, understand, and regulate internal emotions, navigate interpersonal friction, and communicate with deep active empathy.
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            Explore how you understand emotions, handle pressure, and connect with people.
           </p>
 
-          {/* Parameter Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Target className="w-4 h-4" />
-                <span>Test Length</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">10 Scenarios</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Real-world interpersonal dilemmas</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Clock className="w-4 h-4" />
-                <span>Pacing</span>
-              </div>
-              <p className="text-xl font-black text-white font-mono">45s / Question</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Total duration ~8 mins</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
-              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
-                <Sparkles className="w-4 h-4" />
-                <span>Core Domains</span>
-              </div>
-              <p className="text-xs font-bold text-white mt-1">Self-Awareness • Regulation • Empathy</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Psychology & relationships</p>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              📝 10 Questions
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ⏱️ 45s / Question
+            </span>
+            <span className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-200">
+              ❤️ Empathy & Composure
+            </span>
           </div>
 
-          {/* Integrity & Rules */}
-          <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-900/40 mb-8 space-y-2 text-xs text-slate-300">
-            <div className="flex items-center gap-2 font-bold text-rose-300">
-              <ShieldCheck className="w-4 h-4 text-rose-400" />
-              <span>Assessment Protocol & Instructions:</span>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-slate-400 pl-1">
-              <li>Select the response that most genuinely reflects how you would respond in authentic reality.</li>
-              <li>Scenarios test nuanced relational maturity and composure under interpersonal tension.</li>
-              <li>Each question has a 45-second timer. Answers auto-submit when the timer expires.</li>
-              <li>You cannot modify responses once submitted.</li>
-            </ul>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 mb-8 flex items-center gap-3 text-xs text-slate-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>10 real-world scenarios. Choose the response that best matches what you would genuinely do.</span>
           </div>
 
-          {/* Start CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <button
               onClick={() => onNavigate('home')}
