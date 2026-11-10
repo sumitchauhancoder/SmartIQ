@@ -28,10 +28,8 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
   let navItems = [];
 
   if (!user) {
-    // Logged Out
-    navItems = [
-      { id: '/', label: 'Overview', shortLabel: 'Overview', icon: Sparkles }
-    ];
+    // Logged Out (single landing page, no nav links needed)
+    navItems = [];
   } else if (!isAdmin) {
     // Regular User
     navItems = [
@@ -191,18 +189,20 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
               {user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0]}
             </span>
           )}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {navItems.length > 0 && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile Drawer Dropdown (< lg screens) - Solid Opaque Background */}
-      {mobileMenuOpen && (
+      {mobileMenuOpen && navItems.length > 0 && (
         <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-3 pb-5 space-y-2 shadow-2xl animate-fadeIn">
           {user && (
             <div className="p-3 mb-2 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-sm">
