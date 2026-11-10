@@ -65,6 +65,19 @@ def init_postgres_db():
             # Ensure optional columns diagram_svg & points exist gracefully without breaking existing schema
             conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS diagram_svg TEXT;"))
             conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS points JSONB;"))
+            conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT;"))
+            conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_spatial BOOLEAN DEFAULT FALSE;"))
+            conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS option_images JSONB;"))
+
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS recommendations (
+                    id SERIAL PRIMARY KEY,
+                    category VARCHAR(50) NOT NULL,
+                    resource_type VARCHAR(20) NOT NULL,
+                    title TEXT NOT NULL,
+                    link TEXT NOT NULL
+                );
+            """))
 
             # Update category_type check constraint to accommodate all 4 intelligences: IQ, EQ, SQ, AQ
             try:
@@ -118,10 +131,10 @@ def init_postgres_db():
             insert_stmt = text("""
                 INSERT INTO questions (
                     category_type, sub_category, question_text, diagram_svg,
-                    options, correct_answer_index, points, explanation
+                    options, correct_answer_index, points, explanation, image_url, is_spatial
                 ) VALUES (
                     :category_type, :sub_category, :question_text, :diagram_svg,
-                    :options, :correct_answer_index, :points, :explanation
+                    :options, :correct_answer_index, :points, :explanation, :image_url, :is_spatial
                 )
             """)
             seeded_count = 0
@@ -139,7 +152,9 @@ def init_postgres_db():
                         "options": json.dumps(q["options"]),
                         "correct_answer_index": q["correct_answer_index"],
                         "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
-                        "explanation": q["explanation"]
+                        "explanation": q["explanation"],
+                        "image_url": q.get("image_url"),
+                        "is_spatial": bool(q.get("is_spatial", False))
                     })
                     seeded_count += 1
             if seeded_count > 0:
@@ -165,7 +180,20 @@ def init_sqlite_db():
             points_json TEXT,
             explanation TEXT NOT NULL,
             is_active INTEGER DEFAULT 1,
+            image_url TEXT,
+            is_spatial INTEGER DEFAULT 0,
+            option_images_json TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recommendations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL,
+            resource_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            link TEXT NOT NULL
         )
     """)
 
@@ -211,6 +239,18 @@ def init_sqlite_db():
         cursor.execute("ALTER TABLE submissions ADD COLUMN test_type TEXT DEFAULT 'COMBINED'")
     except Exception:
         pass
+    try:
+        cursor.execute("ALTER TABLE questions ADD COLUMN image_url TEXT")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE questions ADD COLUMN is_spatial INTEGER DEFAULT 0")
+    except Exception:
+        pass
+    try:
+        cursor.execute("ALTER TABLE questions ADD COLUMN option_images_json TEXT")
+    except Exception:
+        pass
     conn.commit()
 
     seeded_count = 0
@@ -220,8 +260,9 @@ def init_sqlite_db():
             cursor.execute("""
                 INSERT INTO questions (
                     category_type, sub_category, question_text, diagram_svg,
-                    options_json, correct_answer_index, points_json, explanation, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                    options_json, correct_answer_index, points_json, explanation, is_active,
+                    image_url, is_spatial
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
             """, (
                 q["category_type"],
                 q["sub_category"],
@@ -230,7 +271,9 @@ def init_sqlite_db():
                 json.dumps(q["options"]),
                 q["correct_answer_index"],
                 json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
-                q["explanation"]
+                q["explanation"],
+                q.get("image_url"),
+                1 if q.get("is_spatial") else 0
             ))
             seeded_count += 1
     if seeded_count > 0:
@@ -281,7 +324,10 @@ def get_active_questions(category_type: Optional[str] = None, limit: Optional[in
                     "options": opts,
                     "correct_answer_index": r.get("correct_answer_index"),
                     "points": pts,
-                    "explanation": r.get("explanation")
+                    "explanation": r.get("explanation"),
+                    "image_url": r.get("image_url"),
+                    "is_spatial": bool(r.get("is_spatial", False)),
+                    "option_images": json.loads(r.get("option_images")) if isinstance(r.get("option_images"), str) else r.get("option_images")
                 })
             return questions
 
@@ -316,7 +362,10 @@ def get_active_questions(category_type: Optional[str] = None, limit: Optional[in
             "options": json.loads(row["options_json"]),
             "correct_answer_index": row["correct_answer_index"],
             "points": json.loads(row["points_json"]) if row["points_json"] else None,
-            "explanation": row["explanation"]
+            "explanation": row["explanation"],
+            "image_url": row["image_url"] if "image_url" in row.keys() else None,
+            "is_spatial": bool(row["is_spatial"]) if "is_spatial" in row.keys() else False,
+            "option_images": json.loads(row["option_images_json"]) if ("option_images_json" in row.keys() and row["option_images_json"]) else None
         })
     return questions
 
@@ -351,6 +400,9 @@ def get_all_questions_admin() -> List[Dict[str, Any]]:
                     "correct_answer_index": r.get("correct_answer_index"),
                     "points": pts,
                     "explanation": r.get("explanation"),
+                    "image_url": r.get("image_url"),
+                    "is_spatial": bool(r.get("is_spatial", False)),
+                    "option_images": json.loads(r.get("option_images")) if isinstance(r.get("option_images"), str) else r.get("option_images"),
                     "created_at": str(r.get("created_at")) if r.get("created_at") else None
                 })
             return questions
@@ -374,6 +426,9 @@ def get_all_questions_admin() -> List[Dict[str, Any]]:
             "correct_answer_index": row["correct_answer_index"],
             "points": json.loads(row["points_json"]) if row["points_json"] else None,
             "explanation": row["explanation"],
+            "image_url": row["image_url"] if "image_url" in row.keys() else None,
+            "is_spatial": bool(row["is_spatial"]) if "is_spatial" in row.keys() else False,
+            "option_images": json.loads(row["option_images_json"]) if ("option_images_json" in row.keys() and row["option_images_json"]) else None,
             "created_at": str(row["created_at"])
         })
     return questions
@@ -387,6 +442,9 @@ def add_admin_question(
     correct_answer_index: int,
     explanation: str,
     diagram_svg: Optional[str] = None,
+    image_url: Optional[str] = None,
+    is_spatial: Optional[bool] = False,
+    option_images: Optional[List[str]] = None,
     points: Optional[List[int]] = None
 ) -> int:
     """Inserts a new question into the pool."""
@@ -398,10 +456,12 @@ def add_admin_question(
         stmt = text("""
             INSERT INTO questions (
                 category_type, sub_category, question_text, diagram_svg,
-                options, correct_answer_index, points, explanation
+                options, correct_answer_index, points, explanation,
+                image_url, is_spatial, option_images
             ) VALUES (
                 :category_type, :sub_category, :question_text, :diagram_svg,
-                :options, :correct_answer_index, :points, :explanation
+                :options, :correct_answer_index, :points, :explanation,
+                :image_url, :is_spatial, :option_images
             ) RETURNING id
         """)
         with _engine.begin() as conn:
@@ -413,7 +473,10 @@ def add_admin_question(
                 "options": json.dumps(options),
                 "correct_answer_index": correct_answer_index,
                 "points": json.dumps(points),
-                "explanation": explanation
+                "explanation": explanation,
+                "image_url": image_url,
+                "is_spatial": bool(is_spatial),
+                "option_images": json.dumps(option_images) if option_images else None
             })
             new_id = result.scalar()
             return new_id
@@ -424,8 +487,9 @@ def add_admin_question(
     cursor.execute("""
         INSERT INTO questions (
             category_type, sub_category, question_text, diagram_svg,
-            options_json, correct_answer_index, points_json, explanation, is_active
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+            options_json, correct_answer_index, points_json, explanation, is_active,
+            image_url, is_spatial, option_images_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
     """, (
         category_type.upper(),
         sub_category,
@@ -434,7 +498,10 @@ def add_admin_question(
         json.dumps(options),
         correct_answer_index,
         json.dumps(points),
-        explanation
+        explanation,
+        image_url,
+        1 if is_spatial else 0,
+        json.dumps(option_images) if option_images else None
     ))
     conn.commit()
     new_id = cursor.lastrowid
@@ -451,6 +518,9 @@ def update_admin_question(
     correct_answer_index: int,
     explanation: str,
     diagram_svg: Optional[str] = None,
+    image_url: Optional[str] = None,
+    is_spatial: Optional[bool] = False,
+    option_images: Optional[List[str]] = None,
     points: Optional[List[int]] = None
 ) -> bool:
     """Updates an existing question in the pool."""
@@ -468,7 +538,10 @@ def update_admin_question(
                 options = :options,
                 correct_answer_index = :correct_answer_index,
                 points = :points,
-                explanation = :explanation
+                explanation = :explanation,
+                image_url = :image_url,
+                is_spatial = :is_spatial,
+                option_images = :option_images
             WHERE id = :id
         """)
         with _engine.begin() as conn:
@@ -481,7 +554,10 @@ def update_admin_question(
                 "options": json.dumps(options),
                 "correct_answer_index": correct_answer_index,
                 "points": json.dumps(points),
-                "explanation": explanation
+                "explanation": explanation,
+                "image_url": image_url,
+                "is_spatial": bool(is_spatial),
+                "option_images": json.dumps(option_images) if option_images else None
             })
             return res.rowcount > 0
 
@@ -497,7 +573,10 @@ def update_admin_question(
             options_json = ?,
             correct_answer_index = ?,
             points_json = ?,
-            explanation = ?
+            explanation = ?,
+            image_url = ?,
+            is_spatial = ?,
+            option_images_json = ?
         WHERE id = ?
     """, (
         category_type.upper(),
@@ -508,6 +587,9 @@ def update_admin_question(
         correct_answer_index,
         json.dumps(points),
         explanation,
+        image_url,
+        1 if is_spatial else 0,
+        json.dumps(option_images) if option_images else None,
         question_id
     ))
     conn.commit()

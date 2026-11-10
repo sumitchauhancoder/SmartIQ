@@ -462,8 +462,23 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           {currentQ.question_text}
         </h2>
 
+        {/* Optional Question Image / Spatial Diagram */}
+        {currentQ.image_url && (
+          <div className="my-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex justify-center items-center overflow-x-auto">
+            {typeof currentQ.image_url === 'string' && currentQ.image_url.trim().startsWith('<svg') ? (
+              <div dangerouslySetInnerHTML={{ __html: currentQ.image_url }} />
+            ) : (
+              <img
+                src={currentQ.image_url}
+                alt="Question Diagram"
+                className="max-h-72 max-w-full object-contain rounded-xl shadow-md"
+              />
+            )}
+          </div>
+        )}
+
         {/* Optional SVG Diagram */}
-        {currentQ.diagram_svg && (
+        {currentQ.diagram_svg && !currentQ.image_url && (
           <div 
             className="my-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex justify-center items-center overflow-x-auto"
             dangerouslySetInnerHTML={{ __html: currentQ.diagram_svg }}
@@ -474,24 +489,38 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
         <div className="space-y-3">
           {currentQ.options.map((opt, idx) => {
             const isSelected = selectedOption === idx;
+            const optText = typeof opt === 'object' && opt !== null ? opt.text : opt;
+            const optImg = typeof opt === 'object' && opt !== null ? opt.image_url : (currentQ.option_images ? currentQ.option_images[idx] : null);
+
             return (
               <button
                 key={idx}
                 onClick={() => handleSelectOption(idx)}
-                className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-start gap-3 relative ${
+                className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative ${
                   isSelected
                     ? 'bg-indigo-950/40 border-indigo-500/80 text-white shadow-lg shadow-indigo-500/10'
                     : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/40'
                 }`}
               >
-                <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                  isSelected
-                    ? 'border-indigo-400 bg-indigo-500 text-white'
-                    : 'border-slate-700 text-transparent'
-                }`}>
-                  <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                <div className="flex items-start gap-3 flex-1">
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    isSelected
+                      ? 'border-indigo-400 bg-indigo-500 text-white'
+                      : 'border-slate-700 text-transparent'
+                  }`}>
+                    <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                  <span className="text-sm font-medium leading-relaxed">{optText}</span>
                 </div>
-                <span className="text-sm font-medium leading-relaxed">{opt}</span>
+                {optImg && (
+                  <div className="sm:ml-4 flex-shrink-0 self-center">
+                    {typeof optImg === 'string' && optImg.trim().startsWith('<svg') ? (
+                      <div className="max-h-20 max-w-28 overflow-hidden rounded-lg bg-slate-950 p-1 border border-slate-800" dangerouslySetInnerHTML={{ __html: optImg }} />
+                    ) : (
+                      <img src={optImg} alt={`Option ${idx + 1}`} className="h-16 w-auto max-w-[120px] object-contain rounded-lg border border-slate-700/60 bg-slate-950" />
+                    )}
+                  </div>
+                )}
               </button>
             );
           })}

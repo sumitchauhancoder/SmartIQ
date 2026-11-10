@@ -99,7 +99,10 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
       options: ['', '', '', ''],
       correct_answer_index: 0,
       explanation: '',
-      diagram_svg: ''
+      diagram_svg: '',
+      image_url: '',
+      is_spatial: false,
+      option_images: ['', '', '', '']
     });
     setFormStatus({ message: '', isError: false });
     setShowFormModal(true);
@@ -110,6 +113,15 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     const opts = Array.isArray(q.options) ? q.options : ['', '', '', ''];
     while (opts.length < 4) opts.push('');
 
+    let optImgs = ['', '', '', ''];
+    if (Array.isArray(q.option_images)) {
+      optImgs = [...q.option_images];
+      while (optImgs.length < 4) optImgs.push('');
+    } else if (Array.isArray(q.options)) {
+      optImgs = q.options.map((o) => (typeof o === 'object' && o !== null ? o.image_url || '' : ''));
+      while (optImgs.length < 4) optImgs.push('');
+    }
+
     setFormData({
       category_type: q.category_type || 'IQ',
       sub_category: q.sub_category || 'Logic',
@@ -117,7 +129,10 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
       options: opts.slice(0, 4),
       correct_answer_index: q.correct_answer_index !== undefined ? q.correct_answer_index : 0,
       explanation: q.explanation || '',
-      diagram_svg: q.diagram_svg || ''
+      diagram_svg: q.diagram_svg || '',
+      image_url: q.image_url || '',
+      is_spatial: Boolean(q.is_spatial),
+      option_images: optImgs.slice(0, 4)
     });
     setFormStatus({ message: '', isError: false });
     setShowFormModal(true);
@@ -141,7 +156,12 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     try {
       const payload = {
         ...formData,
-        diagram_svg: formData.diagram_svg.trim() || null
+        diagram_svg: formData.diagram_svg ? formData.diagram_svg.trim() || null : null,
+        image_url: formData.image_url ? formData.image_url.trim() || null : null,
+        is_spatial: Boolean(formData.is_spatial),
+        option_images: formData.option_images && formData.option_images.some((img) => img && img.trim())
+          ? formData.option_images.map((img) => (img ? img.trim() : null))
+          : null
       };
 
       if (editingQuestionId) {
@@ -450,22 +470,79 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {formData.options.map((opt, i) => (
-                <div key={i}>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                    Option {String.fromCharCode(65 + i)}
-                  </label>
-                  <input
-                    type="text"
-                    value={opt}
-                    onChange={(e) => handleFormOptionChange(i, e.target.value)}
-                    placeholder={`Choice ${String.fromCharCode(65 + i)}`}
-                    required
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
+            {/* Spatial & Image Properties */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="is_spatial_toggle"
+                  checked={formData.is_spatial}
+                  onChange={(e) => setFormData({ ...formData, is_spatial: e.target.checked })}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-800 border-slate-700"
+                />
+                <label htmlFor="is_spatial_toggle" className="text-xs font-semibold text-slate-200 cursor-pointer">
+                  📐 Spatial / Visual Question
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Question Image URL / SVG
+                </label>
+                <input
+                  type="text"
+                  value={formData.image_url || ''}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  placeholder="https://... or <svg>...</svg>"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              {formData.image_url && (
+                <div className="col-span-full p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center">
+                  <span className="text-[10px] text-slate-400 mb-1">Live Image Preview</span>
+                  {typeof formData.image_url === 'string' && formData.image_url.trim().startsWith('<svg') ? (
+                    <div dangerouslySetInnerHTML={{ __html: formData.image_url }} />
+                  ) : (
+                    <img src={formData.image_url} alt="Question preview" className="max-h-32 object-contain rounded-lg" />
+                  )}
                 </div>
-              ))}
+              )}
+            </div>
+
+            {/* Options with optional choice images */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-2">
+                Response Choices (4 Options) & Optional Option Images
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {formData.options.map((opt, i) => (
+                  <div key={i} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                    <label className="block text-[11px] font-semibold text-indigo-300">
+                      Option {String.fromCharCode(65 + i)}
+                    </label>
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => handleFormOptionChange(i, e.target.value)}
+                      placeholder={`Text for choice ${String.fromCharCode(65 + i)}`}
+                      required
+                      className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    />
+                    <input
+                      type="text"
+                      value={(formData.option_images && formData.option_images[i]) || ''}
+                      onChange={(e) => {
+                        const updated = [...(formData.option_images || ['', '', '', ''])];
+                        updated[i] = e.target.value;
+                        setFormData({ ...formData, option_images: updated });
+                      }}
+                      placeholder={`Image URL for Option ${String.fromCharCode(65 + i)} (Optional)`}
+                      className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -565,11 +642,29 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                   <tr key={q.id} className="hover:bg-slate-900/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono text-slate-400">#{q.id}</td>
                     <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        q.category_type === 'IQ' ? 'bg-indigo-950/80 text-indigo-300 border border-indigo-800/40' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/40'
-                      }`}>
-                        {q.category_type}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          q.category_type === 'IQ'
+                            ? 'bg-blue-950/80 text-blue-300 border border-blue-800/40'
+                            : q.category_type === 'EQ'
+                            ? 'bg-rose-950/80 text-rose-300 border border-rose-800/40'
+                            : q.category_type === 'SQ'
+                            ? 'bg-amber-950/80 text-amber-300 border border-amber-800/40'
+                            : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/40'
+                        }`}>
+                          {q.category_type}
+                        </span>
+                        {q.is_spatial && (
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-purple-950 text-purple-300 border border-purple-800/50">
+                            Spatial
+                          </span>
+                        )}
+                        {q.image_url && (
+                          <span className="px-1 py-0.5 rounded text-[9px] bg-sky-950 text-sky-300 border border-sky-800/50">
+                            🖼️
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 font-medium text-slate-300">{q.sub_category}</td>
                     <td className="py-3.5 px-6 text-slate-200 max-w-md truncate" title={q.question_text}>

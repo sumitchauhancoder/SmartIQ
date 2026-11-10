@@ -83,6 +83,9 @@ class AdminQuestion(BaseModel):
     explanation: str
     diagram_svg: Optional[str] = None
     points: Optional[List[int]] = None
+    image_url: Optional[str] = None
+    is_spatial: Optional[bool] = False
+    option_images: Optional[List[Optional[str]]] = None
 
 
 class HabitItem(BaseModel):
@@ -447,7 +450,7 @@ Output ONLY valid JSON matching this schema:
                 completion = client.chat.completions.create(
                     model=model_id,
                     messages=[
-                        {"role": "system", "content": "You are a senior psychometrics director and cognitive scientist. Provide an unvarnished, honest, scientific psychometric evaluation. Respond with pure JSON only."},
+                        {"role": "system", "content": "You are a professional psychometrician and cognitive psychologist. Analyze the following 4D intelligence profile consisting of IQ (Cognitive), EQ (Emotional), SQ (Spiritual/Values), and AQ (Adaptability/Resilience). Provide a warm, constructive, and highly personalized assessment that highlights key strengths, identifies areas for growth, and suggests practical, actionable daily habits for holistic personal development. Respond with pure JSON only."},
                         {"role": "user", "content": prompt}
                     ],
                     response_format={"type": "json_object"}
@@ -728,7 +731,10 @@ def create_question(question: AdminQuestion, admin: Dict[str, Any] = Depends(aut
         correct_answer_index=question.correct_answer_index,
         explanation=question.explanation,
         diagram_svg=question.diagram_svg,
-        points=question.points
+        points=question.points,
+        image_url=question.image_url,
+        is_spatial=question.is_spatial,
+        option_images=question.option_images
     )
     return {"status": "success", "id": new_id, "message": "Question added successfully"}
 
@@ -749,7 +755,10 @@ def update_question(
         correct_answer_index=question.correct_answer_index,
         explanation=question.explanation,
         diagram_svg=question.diagram_svg,
-        points=question.points
+        points=question.points,
+        image_url=question.image_url,
+        is_spatial=question.is_spatial,
+        option_images=question.option_images
     )
     if not updated:
         raise HTTPException(status_code=404, detail="Question not found")
