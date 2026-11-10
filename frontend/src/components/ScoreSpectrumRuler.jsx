@@ -81,43 +81,43 @@ export default function ScoreSpectrumRuler({ score, title = "Intelligence", isOv
 
         {/* The Gradient Track with 4 Segments */}
         <div className="h-5 sm:h-6 rounded-xl overflow-hidden flex p-0.5 bg-slate-950 border border-slate-800 shadow-inner relative">
-          {/* Segment 1: Below 85 (15/70 = 21.4%) */}
+          {/* Segment 1: Below 85 (15/70 = 21.43%) */}
           <div 
-            style={{ width: '21.4%' }} 
+            style={{ width: '21.43%' }} 
             className="h-full bg-gradient-to-r from-rose-600/70 to-amber-600/70 rounded-l-lg relative group"
             title="Below Average (< 85)"
           ></div>
 
-          {/* Segment 2: 85 - 115 (30/70 = 42.8%) - Most People */}
+          {/* Segment 2: 85 - 115 (30/70 = 42.86%) - Most People */}
           <div 
-            style={{ width: '42.8%' }} 
+            style={{ width: '42.86%' }} 
             className="h-full bg-gradient-to-r from-amber-600/70 via-emerald-500/80 to-teal-600/70 relative group"
             title="Average / Normal Range (85 - 115) - Most People"
           >
             {/* 100 Average Notch Line */}
             <div 
-              className="absolute top-0 bottom-0 w-0.5 bg-white/80 z-10 shadow-sm"
+              className="absolute top-0 bottom-0 w-0.5 bg-white/80 z-10 shadow-sm transform -translate-x-1/2"
               style={{ left: '50%' }}
             ></div>
           </div>
 
-          {/* Segment 3: 115 - 129 (14/70 = 20%) */}
+          {/* Segment 3: 115 - 129 (15/70 = 21.43%) */}
           <div 
-            style={{ width: '20%' }} 
+            style={{ width: '21.43%' }} 
             className="h-full bg-gradient-to-r from-teal-600/70 to-blue-500/80 relative group"
             title="Above Average (115 - 129)"
           ></div>
 
-          {/* Segment 4: 130+ (11/70 = 15.8%) */}
+          {/* Segment 4: 130+ (10/70 = 14.28%) */}
           <div 
-            style={{ width: '15.8%' }} 
+            style={{ width: '14.28%' }} 
             className="h-full bg-gradient-to-r from-blue-500/80 to-purple-500/90 rounded-r-lg relative group"
             title="Exceptional / Top 2% (130+)"
           ></div>
 
           {/* Pin Vertical Indicator Line across track */}
           <div 
-            className="absolute top-0 bottom-0 w-1 bg-white shadow-md z-15 pointer-events-none rounded-full"
+            className="absolute top-0 bottom-0 w-1 bg-white shadow-md z-15 pointer-events-none rounded-full transform -translate-x-1/2"
             style={{ left: `${clampedPercentage}%` }}
           ></div>
         </div>
@@ -131,13 +131,13 @@ export default function ScoreSpectrumRuler({ score, title = "Intelligence", isOv
           <span className="block text-[10px] text-slate-400">Global Average (100)</span>
         </div>
 
-        {/* Min and Max Range Labels */}
-        <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1 font-mono">
-          <span>70 (Low)</span>
-          <span>85</span>
-          <span>115</span>
-          <span>130</span>
-          <span>140+ (High)</span>
+        {/* Min and Max Range Labels - Calibrated exactly to score scale [70 to 140] */}
+        <div className="relative h-4 mt-1 text-[10px] text-slate-500 font-mono">
+          <span className="absolute left-0">70 (Low)</span>
+          <span className="absolute transform -translate-x-1/2" style={{ left: '21.43%' }}>85</span>
+          <span className="absolute transform -translate-x-1/2" style={{ left: '64.29%' }}>115</span>
+          <span className="absolute transform -translate-x-1/2" style={{ left: '85.71%' }}>130</span>
+          <span className="absolute right-0 text-right">140+ (High)</span>
         </div>
       </div>
 
