@@ -14,7 +14,9 @@ import {
   Search, 
   X,
   UserCheck,
-  ArrowLeft
+  ArrowLeft,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { 
   fetchAdminQuestions, 
@@ -123,7 +125,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
+        const img = new window.Image();
         img.onload = () => {
           let { width, height } = img;
           if (width > maxDimension || height > maxDimension) {

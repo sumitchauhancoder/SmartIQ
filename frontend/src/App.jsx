@@ -13,6 +13,58 @@ import Admin from './pages/Admin';
 import IntelligenceChatbot from './components/IntelligenceChatbot';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
+class RouteErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('Route render error caught by boundary:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center p-6 text-center">
+          <div className="glass-panel p-8 rounded-3xl border border-rose-500/40 max-w-md w-full shadow-2xl">
+            <div className="w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-400 flex items-center justify-center mx-auto mb-4">
+              <span className="text-xl font-bold">⚠️</span>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Display Interruption</h3>
+            <p className="text-xs text-slate-400 mb-6">
+              A temporary display error occurred. Click below to recover and refresh.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  window.location.reload();
+                }}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all"
+              >
+                Reload Page
+              </button>
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  window.location.hash = '';
+                  window.location.reload();
+                }}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 transition-all"
+              >
+                Return to Hub
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function AppContent() {
   const { user, role, isAdmin, loading: authLoading } = useAuth();
 
@@ -185,6 +237,7 @@ function AppContent() {
 
       {/* Main Content Area */}
       <main className="flex-1">
+        <RouteErrorBoundary>
         {/* Public Route (Unauthenticated Welcome Dashboard) */}
         {(currentRoute === '/' || currentRoute === '') && (
           <PublicLanding
@@ -260,6 +313,7 @@ function AppContent() {
             onNavigateHome={() => navigateTo('home')}
           />
         )}
+              </RouteErrorBoundary>
       </main>
 
       {/* Footer */}
