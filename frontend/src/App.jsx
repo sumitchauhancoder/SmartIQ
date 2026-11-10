@@ -143,8 +143,11 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenAuth = (isSignUp = false) => {
+  const [postAuthTarget, setPostAuthTarget] = useState(null);
+
+  const handleOpenAuth = (isSignUp = false, targetRoute = null) => {
     setAuthInitialSignUp(isSignUp);
+    setPostAuthTarget(targetRoute);
     setAuthModalOpen(true);
   };
 
@@ -190,6 +193,10 @@ function AppContent() {
   const handleAuthSuccess = (resolvedRole) => {
     if (resolvedRole === 'admin') {
       navigateTo('admin');
+    } else if (postAuthTarget) {
+      const target = postAuthTarget;
+      setPostAuthTarget(null);
+      navigateTo(target);
     } else {
       navigateTo('home');
     }
@@ -242,7 +249,8 @@ function AppContent() {
         {(currentRoute === '/' || currentRoute === '') && (
           <PublicLanding
             onGetStarted={() => handleOpenAuth(true)}
-            onSignIn={() => handleOpenAuth(false)}
+            onSignIn={(target) => handleOpenAuth(false, target)}
+            onNavigate={navigateTo}
           />
         )}
 

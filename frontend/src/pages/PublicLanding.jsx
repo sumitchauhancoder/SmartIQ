@@ -13,10 +13,29 @@ import {
   CheckCircle2,
   ShieldCheck,
   AlertTriangle,
+  Dumbbell,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
-export default function PublicLanding({ onGetStarted, onSignIn }) {
+export default function PublicLanding({ onGetStarted, onSignIn, onNavigate }) {
+  const { user } = useAuth();
   const [quoteIndex, setQuoteIndex] = useState(0);
+
+  const handleGymClick = () => {
+    if (user) {
+      if (onNavigate) {
+        onNavigate('gym');
+      } else {
+        window.location.hash = 'gym';
+      }
+    } else {
+      if (onSignIn) {
+        onSignIn('gym');
+      } else {
+        window.location.hash = 'gym';
+      }
+    }
+  };
 
   const intelligenceQuotes = [
     {
@@ -560,6 +579,34 @@ export default function PublicLanding({ onGetStarted, onSignIn }) {
               className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 transition-all group"
             >
               <span>Start Independent AQ Test (10 Qs)</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+
+        {/* Cognitive Gym & Training Hub Teaser Section */}
+        <div className="mt-12 glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/30 relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-purple-500/10 via-indigo-500/10 to-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+            <div className="space-y-2 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-purple-800/60 text-purple-300 text-xs font-semibold">
+                <Dumbbell className="w-3.5 h-3.5 text-purple-400" />
+                <span>Cognitive Gym & Training Hub</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                Train Your Mind with Daily Drills & Focus Tools
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Step into the gym to sharpen mental agility, practice speed logic duels, run tactical box breathing, boost stamina with Pomodoro deep work sprints, and build Stoic emotional resilience.
+              </p>
+            </div>
+
+            <button
+              onClick={handleGymClick}
+              className="flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-500 hover:from-purple-500 hover:to-emerald-400 text-white shadow-lg shadow-purple-600/30 transition-all flex-shrink-0 group cursor-pointer"
+            >
+              <span>{user ? 'Enter Cognitive Gym' : 'Sign In to Enter Gym'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
