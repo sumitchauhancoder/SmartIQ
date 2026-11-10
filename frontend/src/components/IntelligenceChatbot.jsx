@@ -30,7 +30,7 @@ export default function IntelligenceChatbot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `Hello! I am your **Enigma AI Guide** powered by **Groq**.\n\nAsk me anything about improving in any of the **4 Areas of Intelligence**:\n- **IQ**: Logic, puzzles & clear thinking\n- **EQ**: Handling stress, empathy & relationships\n- **SQ**: Inner calm, values & purpose\n- **AQ**: Adapting to change & fast learning\n\nHow can I help you today?`,
+      content: `Hi! I'm your **Enigma AI Guide**.\n\nAsk me any quick question about improving your **IQ** (thinking), **EQ** (handling stress), **SQ** (calm & values), or **AQ** (adapting to change)!`,
       model: 'Groq Llama 3.3',
       source: 'groq'
     }
@@ -116,7 +116,7 @@ export default function IntelligenceChatbot() {
     setMessages([
       {
         role: 'assistant',
-        content: `Chat cleared! What area of cognition, Stoicism, or adaptability would you like to explore?`,
+        content: `Chat cleared! Ask me anything about IQ, EQ, SQ, or AQ.`,
         model: 'Groq Llama 3.3',
         source: 'groq'
       }
@@ -132,9 +132,9 @@ export default function IntelligenceChatbot() {
   // Quick suggestion chips
   const suggestedPrompts = [
     "How can I improve my adaptability (AQ)?",
-    "Tips to stay calm under pressure (EQ)",
-    "Difference between IQ and EQ in leadership",
-    "Give me a simple 5-minute daily focus routine"
+    "Tips to stay calm under pressure",
+    "Difference between IQ and EQ",
+    "Simple 2-minute daily focus habit"
   ];
 
   const hasScores = userContext.iq_score || userContext.eq_score || userContext.sq_score || userContext.aq_score;
@@ -307,25 +307,25 @@ export default function IntelligenceChatbot() {
             {loading && (
               <div className="flex items-center gap-2 text-slate-400 text-xs py-2 px-3 bg-slate-900/60 rounded-2xl w-fit border border-slate-800">
                 <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
-                <span>Groq AI is synthesizing cognitive analysis...</span>
+                <span>Groq AI is answering...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Prompts Chips (Visible when chat length is small) */}
-          {messages.length <= 3 && !loading && (
-            <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-800/60">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1">
+          {/* Quick Prompts Chips (Only shown on welcome screen before chatting) */}
+          {messages.length === 1 && !loading && (
+            <div className="px-3.5 py-2 bg-slate-900/60 border-t border-slate-800/80">
+              <span className="text-[10px] font-bold text-slate-400 block mb-1.5 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3 text-amber-400" />
-                <span>Suggested Questions:</span>
+                <span>Quick questions:</span>
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {suggestedPrompts.map((prompt, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(prompt)}
-                    className="text-[11px] px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/60 hover:text-white text-slate-300 transition-all text-left"
+                    className="text-[11px] px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/50 text-slate-300 hover:text-white transition-all text-left"
                   >
                     {prompt}
                   </button>

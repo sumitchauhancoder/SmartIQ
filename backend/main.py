@@ -554,73 +554,53 @@ def generate_smart_chat_fallback(query: str, context: Optional[Dict[str, Any]] =
     sq = ctx.get("sq_score")
     aq = ctx.get("aq_score")
 
-    if any(k in q for k in ["aq", "adaptability", "disruption", "unlearn", "pivot", "crisis", "ai"]):
+    if any(k in q for k in ["aq", "adaptability", "change", "pivot", "unlearn", "crisis"]):
         return (
-            "### Adaptability Quotient (AQ) • Peak 10/10 Impact\n\n"
-            "**AQ is your velocity of cognitive adjustment under radical disruption.** While IQ calculates and EQ connects, AQ dictates whether you thrive when the rules of the game change.\n\n"
-            "**Core Pillars of AQ:**\n"
-            "- **The 'What If...?' Agility Habit:** Regularly run counter-factual simulations on your career or projects. Ask: *'If our primary tool/revenue was wiped out tomorrow, what is our pivot in 48 hours?'*\n"
-            "- **Deliberate Unlearning:** Alvin Toffler famously noted: *'The illiterate of the 21st century will not be those who cannot read and write, but those who cannot learn, unlearn, and relearn.'*\n"
-            "- **Antifragile Posture (Nassim Taleb):** Don't just resist shock (robustness); design your workflows so volatility makes you smarter and more capable.\n\n"
-            + (f"*Your current recorded AQ Score is **{aq}**.* " if aq else "")
-            + "Try the **Crisis Simulator drill** in our Cognitive Gym to train your pivot instincts!"
+            "**Adaptability (AQ)** is your ability to bounce back and stay flexible when unexpected changes happen.\n\n"
+            "• **Quick tip:** When plans change suddenly, pause for 10 seconds and ask: *'What is one practical step I can take right now?'*\n"
+            "• **Practice:** Try the **Crisis Simulator** in our Cognitive Gym to train your quick-thinking instincts!"
+            + (f" *(Your AQ score: {aq})*" if aq else "")
         )
 
-    if any(k in q for k in ["sq", "stoic", "spiritual", "meaning", "epictetus", "control", "amor fati", "frankl"]):
+    if any(k in q for k in ["sq", "spiritual", "stoic", "meaning", "values", "calm", "peace"]):
         return (
-            "### Spiritual Quotient (SQ) & Stoic Intelligence • 8/10 Impact\n\n"
-            "**SQ is not about dogma; it is the capacity for existential purpose, core values, and unshakeable inner wholeness.**\n\n"
-            "**Foundational Stoic Principles for SQ:**\n"
-            "- **The Dichotomy of Control (Epictetus):** Divide reality into what is within your volition (opinions, virtues, choices, craft) and what is not (reputation, economy, weather, others' actions). Suffer only for your own character.\n"
-            "- **Amor Fati (Loving Fate):** Don't just endure adversity; actively embrace each event as fuel for virtue and self-realization.\n"
-            "- **Viktor Frankl's Logotherapy:** *'Those who have a 'why' to live, can bear with almost any 'how'.'* Clarify your moral cardinal north star before entering external chaos.\n\n"
-            + (f"*Your current recorded SQ Score is **{sq}**.* " if sq else "")
-            + "Visit the **Stoic Sanctuary** in our Cognitive Gym to test yourself on the Dichotomy of Control Sorter!"
+            "**Spiritual Quotient (SQ)** is about staying calm, grounded, and focused on what you can actually control.\n\n"
+            "• **Quick tip:** Whenever something stresses you out, ask: *'Is this within my control?'* If not, let it go and focus on your own actions.\n"
+            "• **Practice:** Visit the **Stoic Sanctuary** in our Cognitive Gym for quick daily grounding!"
+            + (f" *(Your SQ score: {sq})*" if sq else "")
         )
 
-    if any(k in q for k in ["eq", "empathy", "emotion", "feeling", "listen", "relationship", "conflict"]):
+    if any(k in q for k in ["eq", "emotion", "empathy", "feeling", "listen", "stress", "relationship"]):
         return (
-            "### Emotional Quotient (EQ) • 9.3/10 Impact\n\n"
-            "**EQ is the neurobiological mastery of self-awareness, somatic regulation, and interpersonal resonance.** In high-stakes leadership, emotional composure consistently outperforms raw computational IQ.\n\n"
-            "**High-Leverage EQ Protocols:**\n"
-            "- **10-Minute Nightly Emotional Journal:** Note two moments where your autonomic nervous system spiked. What was the somatic sensation? What need was underneath?\n"
-            "- **The Somatic Sigh (Physiological Regulation):** Two quick nasal inhales followed by a prolonged, unforced mouth exhale drops heart rate and halts amygdala hijacking within 40 seconds.\n"
-            "- **Active Nonviolent Listening (NVC):** Before providing a counter-argument, reflect back the other person's core emotion: *'It sounds like you're feeling anxious about the delivery timeline.'*\n\n"
-            + (f"*Your current recorded EQ Score is **{eq}**.* " if eq else "")
-            + "Practice our **Empathy Lab scenarios** in the Cognitive Gym to refine your conflict responses!"
+            "**Emotional Quotient (EQ)** helps you handle pressure, stay calm, and communicate with empathy.\n\n"
+            "• **Quick tip:** Take two slow, deep breaths before reacting to any tense conversation. It calms your heart rate in seconds.\n"
+            "• **Practice:** Try our **Empathy Lab** in the Cognitive Gym to practice real-life scenario responses!"
+            + (f" *(Your EQ score: {eq})*" if eq else "")
         )
 
-    if any(k in q for k in ["iq", "logic", "math", "pattern", "spatial", "bayes", "chess", "sudoku", "puzzle"]):
+    if any(k in q for k in ["iq", "logic", "math", "pattern", "puzzle", "brain", "think"]):
         return (
-            "### Intelligence Quotient (IQ) • 9/10 Impact\n\n"
-            "**IQ represents raw computational deduction, pattern mechanics, working memory, and Bayesian probability processing.**\n\n"
-            "**Scientific Ways to Train IQ:**\n"
-            "- **Bayesian Updating:** Continually adjust your probability confidence as new facts arrive rather than maintaining binary dogmatic beliefs.\n"
-            "- **Working Memory Sprints:** Engage with timed chess tactical puzzles, sudoku, and mental arithmetic to strengthen prefrontal cortex arborization.\n"
-            "- **Feynman Technique:** Can you explain the abstract concept to a 10-year-old using simple sensory analogies? If not, you don't truly grasp it.\n\n"
-            + (f"*Your current recorded IQ Score is **{iq}**.* " if iq else "")
-            + "Try our **Rapid Deductive Math Duel** in the Cognitive Gym for a high-intensity 30-second focus sprint!"
+            "**Cognitive Intelligence (IQ)** is your skill at solving problems, spotting patterns, and thinking clearly.\n\n"
+            "• **Quick tip:** Spend 5 minutes daily on logic puzzles, chess tactics, or mental math to build sharp mental habits.\n"
+            "• **Practice:** Play our **Rapid Deductive Math Duel** in the Cognitive Gym for a quick 30-second sprint!"
+            + (f" *(Your IQ score: {iq})*" if iq else "")
         )
 
-    if any(k in q for k in ["routine", "gym", "train", "improve", "daily", "exercise", "habit"]):
+    if any(k in q for k in ["routine", "gym", "habit", "daily", "improve"]):
         return (
-            "### The 4D Daily Cognitive Protocol\n\n"
-            "Here is the daily 20-minute master routine derived from our psychometric research:\n\n"
-            "1. **Morning (SQ • 5 mins):** Epictetus audit. Write down 3 looming tasks and label what is strictly within your control vs what is external.\n"
-            "2. **Midday (IQ & AQ • 10 mins):** Run a 30-second logic sprint in our Cognitive Gym, followed by one 'What If...?' scenario regarding your current industry.\n"
-            "3. **Night (EQ • 5 mins):** Nightly emotional reflection journal. Review interpersonal conversations and note where you maintained non-defensive empathy.\n\n"
-            "Consistency compounds neuroplasticity. Which of the 4 quotients would you like to target first today?"
+            "Here is a simple **5-minute daily mental habit**:\n\n"
+            "1. **Morning (1 min - SQ):** Name 1 thing you can control today and let go of what you can't.\n"
+            "2. **Midday (3 mins - IQ & AQ):** Do a quick puzzle or try one new way to solve a task.\n"
+            "3. **Evening (1 min - EQ):** Take 3 slow breaths and reflect on one positive interaction."
         )
 
     return (
-        "### Enigma Cognitive Intelligence Assistant\n\n"
-        "Welcome! I am your AI Intelligence Mentor powered by Groq, specialized in the **4 Dimensions of Human Capability**:\n\n"
-        "- **IQ (Cognitive • 9/10):** Abstract reasoning, logic trees, Bayesian statistics & spatial manipulation.\n"
-        "- **EQ (Emotional • 9.3/10):** Affective empathy, somatic self-regulation & nonviolent communication.\n"
-        "- **SQ (Spiritual • 8/10):** Existential purpose, core values & Epictetus' Dichotomy of Control.\n"
-        "- **AQ (Adaptability • 10/10):** Crisis velocity, AI paradigm assimilation & deliberate unlearning.\n\n"
-        + (f"**Your Current Metrics:** IQ: {iq or '--'} • EQ: {eq or '--'} • SQ: {sq or '--'} • AQ: {aq or '--'}\n\n" if (iq or eq or sq or aq) else "")
-        + "Ask me anything about improving a specific quotient, analyzing your scores, exploring Stoicism, or mastering crisis agility!"
+        "Hi! I'm here to give you quick, direct tips to build your mind:\n\n"
+        "• **IQ**: Smart problem solving\n"
+        "• **EQ**: Handling stress & staying patient\n"
+        "• **SQ**: Inner calm & core values\n"
+        "• **AQ**: Adapting to change fast\n\n"
+        "What specific question or skill would you like help with today?"
     )
 
 
@@ -631,18 +611,13 @@ async def chat_with_intelligence_ai(request: ChatRequest):
     Provides expert insights on IQ, EQ, SQ, AQ, neuroplasticity, and mental training.
     """
     system_prompt = (
-        "You are Enigma AI, a friendly, encouraging, and clear intelligence mentor powered by Groq. Always speak in simple, everyday English that anyone can easily understand, without academic or medical jargon. "
-        "You specialize in the 4 Dimensions of Human Intelligence:\n"
-        "1. IQ (Cognitive Intelligence): Logic, deductive reasoning, mathematical patterns, spatial visualization, Bayesian thinking. (Impact: 9/10)\n"
-        "2. EQ (Emotional Quotient): Self-awareness, somatic regulation, active listening, nonviolent communication, empathetic resonance. (Impact: 9.3/10)\n"
-        "3. SQ (Spiritual Quotient & Stoicism): Finding existential meaning, inner wholeness, core moral values, and Epictetus' Dichotomy of Control (separating what is in your power from what is not, Amor Fati). (Impact: 8/10)\n"
-        "4. AQ (Adaptability Quotient): Crisis velocity, psychological resilience, AI & tech disruption assimilation, rapid unlearning and relearning, OODA loops, and Nassim Taleb's Antifragile mindset. (Impact: 10/10 Peak)\n\n"
-        "Instructions:\n"
-        "- Deliver clear, inspiring, practical, and intellectually engaging answers.\n"
-        "- Use markdown formatting (bolding key concepts, bullet lists) for readability.\n"
-        "- If user context is provided with their scores or archetype, tailor your insights directly to their metrics.\n"
-        "- If asked for exercises, provide concrete, actionable drills from the Cognitive Gym.\n"
-        "- Keep answers punchy and focused (typically 2-4 structured paragraphs or concise bullet points)."
+        "You are Enigma AI, a friendly, concise, and helpful intelligence coach powered by Groq.\n\n"
+        "STRICT GUIDELINES FOR YOUR ANSWERS:\n"
+        "1. BE BRIEF AND DIRECT: Answer the user's specific question directly. Keep answers to 2-4 short sentences or 2-3 quick bullet points maximum. Never write long essays or rambling preambles.\n"
+        "2. SIMPLE, EVERYDAY ENGLISH: Talk like a helpful, supportive friend. Never use academic, psychological, or medical jargon (no words like 'somatic', 'OODA loop', 'Bayesian', 'antifragile', 'neurobiological', 'volition').\n"
+        "3. HIGHLY ACTIONABLE: Provide 1 simple, practical step the user can immediately try.\n"
+        "4. SCORE CONTEXT: If the user asks about their score, acknowledge it warmly with a simple, encouraging tip.\n"
+        "5. NO FILLER: Get straight to the point without introductory fluff like 'Certainly!' or 'In conclusion'."
     )
 
     if request.user_context:
@@ -681,7 +656,7 @@ async def chat_with_intelligence_ai(request: ChatRequest):
                     completion = client.chat.completions.create(
                         model=model_id,
                         messages=groq_messages,
-                        max_tokens=800,
+                        max_tokens=250,
                         temperature=0.7
                     )
                     reply = completion.choices[0].message.content
