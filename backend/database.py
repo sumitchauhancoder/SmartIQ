@@ -168,6 +168,28 @@ def init_postgres_db():
                         "is_spatial": bool(q.get("is_spatial", False))
                     })
                     seeded_count += 1
+                else:
+                    # Update existing questions so diagrams, image URLs and options stay in sync with latest fixes
+                    conn.execute(text("""
+                        UPDATE questions SET
+                            diagram_svg = :diagram_svg,
+                            image_url = :image_url,
+                            is_spatial = :is_spatial,
+                            options = :options,
+                            correct_answer_index = :correct_answer_index,
+                            points = :points,
+                            explanation = :explanation
+                        WHERE question_text = :question_text
+                    """), {
+                        "question_text": q["question_text"],
+                        "diagram_svg": q.get("diagram_svg"),
+                        "image_url": q.get("image_url"),
+                        "is_spatial": bool(q.get("is_spatial", False)),
+                        "options": json.dumps(q["options"]),
+                        "correct_answer_index": q["correct_answer_index"],
+                        "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                        "explanation": q["explanation"]
+                    })
             if seeded_count > 0:
                 print(f"[SmartIQ Database] Seeded {seeded_count} new questions into PostgreSQL.")
     except Exception as e:

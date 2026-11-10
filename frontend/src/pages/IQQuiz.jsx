@@ -463,26 +463,22 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
         </h2>
 
         {/* Optional Question Image / Spatial Diagram */}
-        {currentQ.image_url && (
-          <div className="my-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex justify-center items-center overflow-x-auto">
-            {typeof currentQ.image_url === 'string' && currentQ.image_url.trim().startsWith('<svg') ? (
-              <div dangerouslySetInnerHTML={{ __html: currentQ.image_url }} />
+        {(currentQ.image_url || currentQ.diagram_svg) && (
+          <div className="my-4 p-3 sm:p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex justify-center items-center overflow-hidden max-h-56 sm:max-h-64 [&_svg]:max-h-48 [&_svg]:w-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:mx-auto [&_img]:max-h-48 [&_img]:w-auto [&_img]:max-w-full [&_img]:object-contain">
+            {currentQ.image_url ? (
+              typeof currentQ.image_url === 'string' && currentQ.image_url.trim().startsWith('<svg') ? (
+                <div dangerouslySetInnerHTML={{ __html: currentQ.image_url }} />
+              ) : (
+                <img
+                  src={currentQ.image_url}
+                  alt="Question Diagram"
+                  className="rounded-xl shadow-md"
+                />
+              )
             ) : (
-              <img
-                src={currentQ.image_url}
-                alt="Question Diagram"
-                className="max-h-72 max-w-full object-contain rounded-xl shadow-md"
-              />
+              <div dangerouslySetInnerHTML={{ __html: currentQ.diagram_svg }} />
             )}
           </div>
-        )}
-
-        {/* Optional SVG Diagram */}
-        {currentQ.diagram_svg && !currentQ.image_url && (
-          <div 
-            className="my-5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex justify-center items-center overflow-x-auto"
-            dangerouslySetInnerHTML={{ __html: currentQ.diagram_svg }}
-          />
         )}
 
         {/* Options */}
