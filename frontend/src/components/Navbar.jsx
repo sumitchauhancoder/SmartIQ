@@ -63,7 +63,7 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl h-16 w-full flex-shrink-0">
+    <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950 h-16 w-full flex-shrink-0 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         
         {/* Brand Logo - Fixed Width Anchor to prevent layout shift */}
@@ -134,7 +134,7 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
               {/* User Dropdown */}
               {userDropdownOpen && (
                 <div 
-                  className="absolute right-0 mt-2 w-56 rounded-2xl glass-panel border border-slate-700/80 p-2 shadow-2xl z-50 animate-fadeIn bg-slate-950/95"
+                  className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-700 p-2 shadow-2xl z-50 animate-fadeIn bg-slate-950"
                   onMouseLeave={() => setUserDropdownOpen(false)}
                 >
                   <div className="px-3 py-2 border-b border-slate-800">
@@ -200,18 +200,18 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
         </div>
       </div>
 
-      {/* Mobile Drawer Dropdown (< lg screens) */}
+      {/* Mobile Drawer Dropdown (< lg screens) - Solid Opaque Background */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950/98 backdrop-blur-2xl px-4 pt-3 pb-5 space-y-1.5 shadow-2xl animate-fadeIn">
+        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-3 pb-5 space-y-2 shadow-2xl animate-fadeIn">
           {user && (
-            <div className="p-3 mb-2 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div className="p-3 mb-2 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-sm">
               <div>
                 <p className="text-[10px] font-bold uppercase text-slate-400">Account ({role})</p>
                 <p className="text-xs font-bold text-white truncate max-w-[190px]">{user.email}</p>
               </div>
               <button
                 onClick={() => { signOut(); setMobileMenuOpen(false); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-950/50 text-rose-300 border border-rose-800/50 hover:bg-rose-900/40 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Logout</span>
@@ -219,7 +219,7 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentRoute === item.id;
@@ -229,8 +229,8 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
                   onClick={() => handleNav(item.id)}
                   className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all text-left ${
                     isActive
-                      ? 'bg-indigo-600/25 text-indigo-200 border-indigo-500/50 shadow-sm shadow-indigo-500/10'
-                      : 'text-slate-300 hover:bg-slate-800/60 border-slate-800/60'
+                      ? 'bg-indigo-950 text-indigo-200 border-indigo-500/60 shadow-sm'
+                      : 'bg-slate-900 text-slate-200 hover:bg-slate-800 border-slate-800'
                   }`}
                 >
                   <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
