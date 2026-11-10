@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Lightbulb,
   Gamepad2,
+  Palette,
   Bookmark,
   Pause,
   Volume2,
@@ -69,6 +70,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   // Sub-mode selectors for IQ and EQ
   const [iqSubMode, setIqSubMode] = useState('duel'); // 'duel' | 'pomodoro'
   const [eqSubMode, setEqSubMode] = useState('breathwork'); // 'breathwork' | 'scenarios'
+  const [sqSubMode, setSqSubMode] = useState('compass'); // 'compass' | 'sorter'
+  const [aqSubMode, setAqSubMode] = useState('stroop'); // 'stroop' | 'simulator'
 
   // =========================================================================
   // Tool 1: Deep Work Neural Focus Pomodoro State (IQ)
@@ -204,7 +207,217 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
     setBreathPhaseTimeLeft(currentPattern.phases[0].duration);
   };
 
-  // Game 1: IQ - Speed Logic & Math Duel State (10 Shuffled Challenges Sprint)
+  // =========================================================================
+  // Tool 3: The Moral Compass - Rapid Values Clash State (SQ)
+  // =========================================================================
+  const moralCompassDilemmas = [
+    {
+      dilemma: "A close colleague takes full credit for your weeks of hard work during an executive review.",
+      optionA: {
+        text: "Keep your inner peace calm, let go of wounded ego, and privately document the objective facts with the lead.",
+        virtue: "Wisdom",
+        label: "Objective Discernment",
+        expl: "Wisdom separates emotional grievance from objective correction without petty drama."
+      },
+      optionB: {
+        text: "Confront them furiously in the hallway and demand an immediate public retraction to vindicate your pride.",
+        virtue: "Impulse",
+        label: "Ego Escalation",
+        expl: "Reacting from offended pride poisons relationships and surrenders your emotional autonomy."
+      }
+    },
+    {
+      dilemma: "You notice an executive quietly altering compliance metrics right before a critical audit.",
+      optionA: {
+        text: "Blow the whistle with firm moral resolve, despite the acute risk to your promotion and safety.",
+        virtue: "Courage",
+        label: "Moral Courage",
+        expl: "Courage is doing what is right and honorable regardless of personal vulnerability."
+      },
+      optionB: {
+        text: "Look the other way to protect your paycheck, rationalizing that it is someone else's problem.",
+        virtue: "Impulse",
+        label: "Safe Compromise",
+        expl: "Compromising your integrity for temporary comfort fractures self-respect."
+      }
+    },
+    {
+      dilemma: "Your passion project receives harsh, mocking public critique from an influential industry figure.",
+      optionA: {
+        text: "Amor Fati: Treat the harsh critique as rigorous pressure testing to eliminate flaws and strengthen the craft.",
+        virtue: "Temperance",
+        label: "Stoic Equanimity",
+        expl: "Temperance absorbs external friction and extracts fuel without despair or defensiveness."
+      },
+      optionB: {
+        text: "Complain publicly about how unfair critics are and abandon the vision in cynical frustration.",
+        virtue: "Impulse",
+        label: "Fragile Resentment",
+        expl: "Allowing external judgment to crush your purpose surrenders your agency to strangers."
+      }
+    },
+    {
+      dilemma: "You witness a teammate being unfairly blamed and scapegoated for a shared team deadline slip.",
+      optionA: {
+        text: "Step in publicly: 'I was part of that project and take equal responsibility for this shortfall.'",
+        virtue: "Justice",
+        label: "Uncompromising Duty",
+        expl: "Justice protects the vulnerable and honors fair collective accountability."
+      },
+      optionB: {
+        text: "Remain silent and sigh in relief that you were not the one singled out.",
+        virtue: "Impulse",
+        label: "Passive Bystander",
+        expl: "Silence in the presence of injustice slowly erodes character."
+      }
+    },
+    {
+      dilemma: "You are offered a lucrative deal that requires subtly deceiving customers through misleading marketing.",
+      optionA: {
+        text: "Reject the money outright: 'No financial gain is worth compromising the standard of truth.'",
+        virtue: "Wisdom",
+        label: "Virtue as Chief Good",
+        expl: "Wisdom knows that peace of mind and clean character are priceless."
+      },
+      optionB: {
+        text: "Take the cash: 'Everyone stretches the truth in business anyway.'",
+        virtue: "Impulse",
+        label: "Rationalized Greed",
+        expl: "Relativism destroys the boundary between right and wrong."
+      }
+    },
+    {
+      dilemma: "You face a catastrophic technical outage 2 hours before a major product launch. Panic is spreading rapidly.",
+      optionA: {
+        text: "Radiate calm composure: 'Panic fixes nothing. Let's isolate the root cause systematically step-by-step.'",
+        virtue: "Temperance",
+        label: "Tranquility Under Siege",
+        expl: "Emotional self-mastery anchors others during a storm."
+      },
+      optionB: {
+        text: "Vent loudly in the team chat and assign blame to the engineer who touched the repo.",
+        virtue: "Impulse",
+        label: "Panic Propagation",
+        expl: "Blame and panic only deepen operational paralysis."
+      }
+    }
+  ];
+
+  const [compassIndex, setCompassIndex] = useState(0);
+  const [compassVirtues, setCompassVirtues] = useState({ Wisdom: 0, Courage: 0, Justice: 0, Temperance: 0 });
+  const [compassHistory, setCompassHistory] = useState([]);
+  const [compassComplete, setCompassComplete] = useState(false);
+
+  const handleCompassChoice = (chosenOption) => {
+    if (chosenOption.virtue !== 'Impulse') {
+      setCompassVirtues((prev) => ({
+        ...prev,
+        [chosenOption.virtue]: (prev[chosenOption.virtue] || 0) + 1
+      }));
+    }
+    setCompassHistory((prev) => [...prev, chosenOption]);
+    playGymChime(550, 0.4);
+
+    if (compassIndex + 1 < moralCompassDilemmas.length) {
+      setCompassIndex((i) => i + 1);
+    } else {
+      setCompassComplete(true);
+      playGymChime(660, 1.0);
+    }
+  };
+
+  const handleResetCompass = () => {
+    setCompassIndex(0);
+    setCompassVirtues({ Wisdom: 0, Courage: 0, Justice: 0, Temperance: 0 });
+    setCompassHistory([]);
+    setCompassComplete(false);
+  };
+
+  // =========================================================================
+  // Tool 4: The Stroop Color Clash - Cognitive Flexibility Drill (AQ)
+  // =========================================================================
+  const STROOP_PALETTE = [
+    { name: 'RED', hex: '#EF4444', textClass: 'text-red-500', btnClass: 'border-red-500/50 hover:bg-red-500/20 text-red-300' },
+    { name: 'BLUE', hex: '#3B82F6', textClass: 'text-blue-500', btnClass: 'border-blue-500/50 hover:bg-blue-500/20 text-blue-300' },
+    { name: 'GREEN', hex: '#10B981', textClass: 'text-emerald-500', btnClass: 'border-emerald-500/50 hover:bg-emerald-500/20 text-emerald-300' },
+    { name: 'YELLOW', hex: '#F59E0B', textClass: 'text-amber-400', btnClass: 'border-amber-500/50 hover:bg-amber-500/20 text-amber-300' },
+    { name: 'PURPLE', hex: '#A855F7', textClass: 'text-purple-400', btnClass: 'border-purple-500/50 hover:bg-purple-500/20 text-purple-300' }
+  ];
+
+  const generateStroopChallenge = () => {
+    const wordIdx = Math.floor(Math.random() * STROOP_PALETTE.length);
+    let colorIdx;
+    if (Math.random() < 0.15) {
+      colorIdx = wordIdx; // 15% congruent
+    } else {
+      do {
+        colorIdx = Math.floor(Math.random() * STROOP_PALETTE.length);
+      } while (colorIdx === wordIdx);
+    }
+    return {
+      word: STROOP_PALETTE[wordIdx].name,
+      ink: STROOP_PALETTE[colorIdx]
+    };
+  };
+
+  const [stroopRunning, setStroopRunning] = useState(false);
+  const [stroopTimer, setStroopTimer] = useState(30);
+  const [stroopScore, setStroopScore] = useState(0);
+  const [stroopStreak, setStroopStreak] = useState(0);
+  const [stroopAttempts, setStroopAttempts] = useState(0);
+  const [stroopHits, setStroopHits] = useState(0);
+  const [stroopChallenge, setStroopChallenge] = useState(() => generateStroopChallenge());
+  const [stroopFeedback, setStroopFeedback] = useState(null); // 'correct' | 'wrong' | null
+  const [stroopGameOver, setStroopGameOver] = useState(false);
+
+  useEffect(() => {
+    let interval = null;
+    if (stroopRunning && stroopTimer > 0) {
+      interval = setInterval(() => {
+        setStroopTimer((t) => t - 1);
+      }, 1000);
+    } else if (stroopRunning && stroopTimer <= 0) {
+      setStroopGameOver(true);
+      setStroopRunning(false);
+      playGymChime(587, 1.2);
+    }
+    return () => clearInterval(interval);
+  }, [stroopRunning, stroopTimer]);
+
+  const handleStartStroop = () => {
+    setStroopScore(0);
+    setStroopStreak(0);
+    setStroopAttempts(0);
+    setStroopHits(0);
+    setStroopTimer(30);
+    setStroopGameOver(false);
+    setStroopFeedback(null);
+    setStroopChallenge(generateStroopChallenge());
+    setStroopRunning(true);
+  };
+
+  const handleStroopSelect = (chosenColorName) => {
+    if (!stroopRunning) return;
+    const isCorrect = chosenColorName === stroopChallenge.ink.name;
+    setStroopAttempts((a) => a + 1);
+
+    if (isCorrect) {
+      const added = 100 + stroopStreak * 25;
+      setStroopScore((s) => s + added);
+      setStroopStreak((st) => st + 1);
+      setStroopHits((h) => h + 1);
+      setStroopFeedback('correct');
+      playGymChime(784, 0.2);
+    } else {
+      setStroopStreak(0);
+      setStroopFeedback('wrong');
+      playGymChime(220, 0.3);
+    }
+
+    setStroopChallenge(generateStroopChallenge());
+  };
+
+    // Game 1: IQ - Speed Logic & Math Duel State (10 Shuffled Challenges Sprint)
   // =========================================================================
   const iqMasterChallenges = [
     {
@@ -1490,6 +1703,142 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
 
         {/* 3. SQ Interactive Drill */}
         {activePillar === 'SQ' && (
+          <div>
+            {/* SQ Sub-Mode Switcher */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setSqSubMode('compass')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  sqSubMode === 'compass'
+                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>The Moral Compass (Values Duel)</span>
+              </button>
+              <button
+                onClick={() => setSqSubMode('sorter')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  sqSubMode === 'sorter'
+                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Dichotomy Sorter</span>
+              </button>
+            </div>
+
+            {sqSubMode === 'compass' ? (
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/30 relative overflow-hidden shadow-xl animate-fadeIn">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-950 text-amber-300 border border-amber-800/50 mb-1 inline-block">
+                      Logotherapy & Stoic Virtues • Philosophical Crucible
+                    </span>
+                    <h3 className="text-lg font-bold text-white">The Moral Compass: Rapid Values Clash</h3>
+                  </div>
+
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                    <span className="text-[10px] uppercase text-slate-400 block font-bold">Progress</span>
+                    <span className="text-base font-black text-amber-400 font-mono">
+                      {compassComplete ? 'Done' : `${compassIndex + 1} / ${moralCompassDilemmas.length}`}
+                    </span>
+                  </div>
+                </div>
+
+                {!compassComplete ? (
+                  <div>
+                    <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 mb-6 text-center">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-2">
+                        Dilemma {compassIndex + 1} of {moralCompassDilemmas.length}
+                      </span>
+                      <h4 className="text-sm sm:text-base font-bold text-white max-w-xl mx-auto leading-relaxed">
+                        "{moralCompassDilemmas[compassIndex].dilemma}"
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                      {[
+                        moralCompassDilemmas[compassIndex].optionA,
+                        moralCompassDilemmas[compassIndex].optionB
+                      ].map((opt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleCompassChoice(opt)}
+                          className="p-5 rounded-2xl border text-left bg-slate-900/60 border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/60 text-slate-200 transition-all flex flex-col justify-between group"
+                        >
+                          <p className="text-xs sm:text-sm font-semibold text-white mb-4 leading-relaxed group-hover:text-amber-200">
+                            {opt.text}
+                          </p>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90">
+                              Choose Path {idx === 0 ? 'A' : 'B'}
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <p className="text-center text-[11px] text-slate-500 italic">
+                      "When we are no longer able to change a situation, we are challenged to change ourselves." — Viktor Frankl
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 animate-fadeIn">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-950/80 border border-amber-600/60 flex items-center justify-center text-amber-400 mx-auto mb-4">
+                      <Compass className="w-8 h-8" />
+                    </div>
+
+                    <h4 className="text-xl font-black text-white mb-1">
+                      Your Moral Compass Archetype Revealed
+                    </h4>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
+                      Based on your philosophical trade-offs across courage, equanimity, justice, and wisdom:
+                    </p>
+
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-950 border border-amber-500/30 max-w-lg mx-auto mb-6 text-left">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-xs uppercase font-bold text-amber-400">Dominant Spiritual Archetype</span>
+                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-900/60 text-amber-200 border border-amber-700/50">
+                          Stoic Clarity
+                        </span>
+                      </div>
+
+                      <h5 className="text-base font-black text-white mb-3">
+                        {compassVirtues.Wisdom + compassVirtues.Temperance >= compassVirtues.Courage + compassVirtues.Justice
+                          ? '🏛️ The Sovereign Stoic Anchor'
+                          : '⚔️ The Noble Moral Vanguard'}
+                      </h5>
+                      <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                        {compassVirtues.Wisdom + compassVirtues.Temperance >= compassVirtues.Courage + compassVirtues.Justice
+                          ? 'Your primary alignment is rooted in emotional non-reactivity, objective discernment, and preserving tranquility regardless of external provocations.'
+                          : 'Your primary alignment is driven by uncompromising duty, protecting collective fairness, and moral courage in the face of pressure.'}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        {Object.entries(compassVirtues).map(([virtue, count]) => (
+                          <div key={virtue} className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
+                            <span className="text-[10px] uppercase text-slate-400 block font-bold">{virtue}</span>
+                            <span className="text-sm font-black text-amber-300 font-mono">{count} Alignments</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleResetCompass}
+                      className="px-6 py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/30 transition-all inline-flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Retake Values Clash</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/30 relative overflow-hidden shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
               <div>
@@ -1564,10 +1913,147 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
               </div>
             )}
           </div>
+            )}
+          </div>
         )}
 
         {/* 4. AQ Interactive Drill */}
         {activePillar === 'AQ' && (
+          <div>
+            {/* AQ Sub-Mode Switcher */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setAqSubMode('stroop')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  aqSubMode === 'stroop'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Palette className="w-3.5 h-3.5" />
+                <span>Stroop Color Clash (30s)</span>
+              </button>
+              <button
+                onClick={() => setAqSubMode('simulator')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  aqSubMode === 'simulator'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Crisis Simulator</span>
+              </button>
+            </div>
+
+            {aqSubMode === 'stroop' ? (
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 relative overflow-hidden shadow-xl animate-fadeIn">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-950 text-emerald-300 border border-emerald-800/50 mb-1 inline-block">
+                      Cognitive Flexibility • Prefrontal Inhibition Sprint
+                    </span>
+                    <h3 className="text-lg font-bold text-white">The Stroop Color Clash (Rapid Unlearning)</h3>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Timer</span>
+                      <span className={`text-base font-black font-mono ${stroopTimer <= 5 ? 'text-rose-400 animate-pulse' : 'text-white'}`}>
+                        {stroopTimer}s
+                      </span>
+                    </div>
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Score</span>
+                      <span className="text-base font-black text-emerald-400 font-mono">{stroopScore}</span>
+                    </div>
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Streak</span>
+                      <span className="text-base font-black text-amber-400 font-mono">🔥 {stroopStreak}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {!stroopRunning && !stroopGameOver ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-emerald-400 mx-auto mb-4">
+                      <Palette className="w-8 h-8" />
+                    </div>
+                    <h4 className="text-base font-bold text-white mb-2">Override Your Brain's Automatic Reflexes</h4>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
+                      A word will appear written in a conflicting font color. You must click the <strong>FONT INK COLOR</strong>, ignoring what the word actually spells!
+                    </p>
+                    <button
+                      onClick={handleStartStroop}
+                      className="px-8 py-3.5 rounded-2xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all inline-flex items-center gap-2"
+                    >
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Start 30s Color Sprint</span>
+                    </button>
+                  </div>
+                ) : stroopGameOver ? (
+                  <div className="text-center py-8 animate-fadeIn">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-emerald-400 mx-auto mb-4">
+                      <Award className="w-8 h-8" />
+                    </div>
+                    <h4 className="text-xl font-black text-white mb-1">
+                      Sprint Complete! Cognitive Flexibility Evaluated
+                    </h4>
+                    <p className="text-sm text-slate-300 mb-2">
+                      Final Score: <span className="font-mono font-bold text-emerald-400">{stroopScore} pts</span> • Accuracy: <span className="font-bold text-white">{stroopAttempts > 0 ? Math.round((stroopHits / stroopAttempts) * 100) : 0}%</span> ({stroopHits}/{stroopAttempts} hits)
+                    </p>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
+                      {stroopScore >= 1200
+                        ? '⚡ Hyper-Fluid Chameleon! Rare prefrontal inhibitory speed and unlearning capability.'
+                        : stroopScore >= 700
+                        ? '🎯 High Executive Agility! Strong reflex control under rapid pressure.'
+                        : '🌱 Good Effort! Daily Stroop sprints strengthen neuroplastic task-switching.'}
+                    </p>
+
+                    <button
+                      onClick={handleStartStroop}
+                      className="px-6 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all inline-flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Play New 30s Color Sprint</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">
+                      Tap the color the word is painted in:
+                    </p>
+
+                    <div className="p-8 rounded-2xl bg-slate-950/90 border border-slate-800/80 mb-6 flex items-center justify-center">
+                      <span
+                        className="text-5xl sm:text-6xl font-black tracking-widest font-mono select-none transition-transform active:scale-95"
+                        style={{ color: stroopChallenge.ink.hex }}
+                      >
+                        {stroopChallenge.word}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 max-w-2xl mx-auto">
+                      {STROOP_PALETTE.map((pal) => (
+                        <button
+                          key={pal.name}
+                          onClick={() => handleStroopSelect(pal.name)}
+                          className={`p-3.5 rounded-xl border text-xs font-black tracking-wider transition-all active:scale-95 bg-slate-900/80 ${pal.btnClass}`}
+                        >
+                          {pal.name}
+                        </button>
+                      ))}
+                    </div>
+
+                    {stroopFeedback && (
+                      <p className={`text-xs font-bold mt-4 animate-pulse ${stroopFeedback === 'correct' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {stroopFeedback === 'correct' ? '✓ Fast Shift!' : '✗ Stroop Interference Trap!'}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 relative overflow-hidden shadow-xl">
             <div className="mb-4">
               <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-950 text-emerald-300 border border-emerald-800/50 mb-1 inline-block">
@@ -1624,6 +2110,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
                 Next Disruption Scenario →
               </button>
             </div>
+          </div>
+            )}
           </div>
         )}
       </div>
