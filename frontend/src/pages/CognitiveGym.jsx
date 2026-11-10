@@ -476,8 +476,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
       {
         title: "Stoicism as a Philosophy for an Ordinary Life",
         creator: "Massimo Pigliucci (TEDxAthens)",
-        duration: "18 mins",
-        url: "https://www.youtube.com/watch?v=R9oxmRT0Wdk",
+        duration: "19 mins",
+        url: "https://www.youtube.com/watch?v=Yhn1Fe8cT0Q",
         takeaway: "How ancient Greco-Roman Stoicism and the dichotomy of control serve as a practical toolkit for calm and resilience in everyday life."
       },
       {
@@ -491,7 +491,7 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
         title: "What If Money Was No Object?",
         creator: "Alan Watts",
         duration: "3 mins",
-        url: "https://www.youtube.com/watch?v=50zewk5WAUM",
+        url: "https://www.youtube.com/watch?v=khOaAHK7efc",
         takeaway: "Why dedicating your life to what you genuinely value creates deeper inner wholeness than chasing hollow external metrics."
       }
     ],
@@ -549,25 +549,25 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
     ],
     EQ: [
       {
-        title: "The SCARF Model: Brain-Based Approaches to Collaboration",
-        author: "Dr. David Rock (NeuroLeadership Institute)",
+        title: "Emotional Intelligence (EQ): Components and Examples",
+        author: "Simply Psychology (Saul Mcleod, PhD)",
         readTime: "8 min read",
-        summary: "The 5 social triggers that activate threat vs reward neurobiology: Status, Certainty, Autonomy, Relatedness, and Fairness.",
-        link: "https://neuroleadership.com/our-solutions/scarf/"
+        summary: "The 5 foundational pillars of EQ: self-awareness, self-regulation, internal motivation, empathy, and social relationship skills.",
+        link: "https://www.simplypsychology.org/emotional-intelligence.html"
       },
       {
-        title: "What Great Listeners Actually Do",
-        author: "Jack Zenger & Joseph Folkman (Harvard Business Review)",
-        readTime: "8 min read",
-        summary: "Research from thousands of leaders proves great listening is not a passive sponge, but an active 'trampoline' that clarifies thinking and builds trust.",
-        link: "https://hbr.org/2016/07/what-great-listeners-actually-do"
+        title: "Active Listening: The Master Key to Effective Communication",
+        author: "Farnam Street (Shane Parrish)",
+        readTime: "7 min read",
+        summary: "Why real listening requires deliberate effort: suspending internal monologue, understanding true intent, and validating emotional cues.",
+        link: "https://fs.blog/active-listening/"
       },
       {
-        title: "Breathwork Protocols for Health, Focus and Stress (Physiological Sigh)",
-        author: "Dr. Andrew Huberman (Huberman Lab)",
-        readTime: "6 min read",
-        summary: "How a double-inhale followed by an extended exhale mechanically reopens lung alveoli and rapidly drops heart rate to stop emotional panic.",
-        link: "https://www.hubermanlab.com/newsletter/breathwork-protocols-for-health-focus-and-stress"
+        title: "Box Breathing: Somatic Self-Regulation Under Stress",
+        author: "Healthline Medical Network",
+        readTime: "5 min read",
+        summary: "How tactical 4-4-4-4 square breathing regulates autonomic carbon dioxide levels, lowers heart rate, and resets the nervous system.",
+        link: "https://www.healthline.com/health/box-breathing"
       }
     ],
     SQ: [
@@ -586,11 +586,11 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
         link: "https://dailystoic.com/amor-fati/"
       },
       {
-        title: "Logotherapy: Viktor Frankl's Will to Meaning",
-        author: "Psychology Today",
+        title: "Logotherapy: Viktor Frankl's Theory of Meaning",
+        author: "Simply Psychology",
         readTime: "8 min read",
         summary: "How human beings discover existential purpose through creative work, authentic love, and courage in the face of unavoidable suffering.",
-        link: "https://www.psychologytoday.com/us/therapy-types/logotherapy"
+        link: "https://www.simplypsychology.org/logotherapy.html"
       }
     ],
     AQ: [
