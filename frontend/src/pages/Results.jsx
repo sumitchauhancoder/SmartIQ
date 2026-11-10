@@ -83,6 +83,34 @@ function calculatePsychometrics(score) {
 }
 
 
+// Helper to normalize any sub-category to the 12 canonical items
+const normalizeSub = (type, sub) => {
+  if (!sub) return '';
+  const cat = (type || '').toUpperCase();
+  const lower = sub.toLowerCase();
+  if (cat === 'IQ') {
+    if (lower.includes('spatial') || lower.includes('dice') || lower.includes('geometry') || lower.includes('symmetry')) return 'Spatial';
+    if (lower.includes('math') || lower.includes('arithmetic') || lower.includes('number')) return 'Math';
+    return 'Logic';
+  }
+  if (cat === 'EQ') {
+    if (['empathy', 'listening', 'peer', 'social', 'team', 'conflict', 'inclusion'].some(k => lower.includes(k))) return 'Empathy';
+    if (['regulation', 'feedback', 'criticism', 'dialogue', 'resilience'].some(k => lower.includes(k))) return 'Self-Regulation';
+    return 'Self-Awareness';
+  }
+  if (cat === 'SQ') {
+    if (['stoic', 'control', 'equanimity', 'impermanence', 'obstacle', 'perspective'].some(k => lower.includes(k))) return 'Philosophy & Stoicism';
+    if (['purpose', 'solitude', 'gratitude', 'intention'].some(k => lower.includes(k))) return 'Purpose & Meaning';
+    return 'Core Values & Wholeness';
+  }
+  if (cat === 'AQ') {
+    if (['crisis', 'fallback', 'resilience', 'interruption', 'ambiguity', 'disruption'].some(k => lower.includes(k))) return 'Crisis Management & Resilience';
+    if (['ai', 'tech', 'environment', 'novel', 'cloud'].some(k => lower.includes(k))) return 'AI & Tech Disruption';
+    return 'Unlearning & Agility';
+  }
+  return sub;
+};
+
 export default function Results({ 
   resultsData, 
   iqData: propIQ, 
@@ -296,7 +324,44 @@ export default function Results({
     }
 
     const score = testData[`${type.toLowerCase()}_score`];
-    const breakdown = testData[`${type.toLowerCase()}_breakdown`] || {};
+    const rawBreakdown = testData[`${type.toLowerCase()}_breakdown`] || {};
+    const CANONICAL_SUBS = {
+      IQ: ['Logic', 'Math', 'Spatial'],
+      EQ: ['Self-Awareness', 'Self-Regulation', 'Empathy'],
+      SQ: ['Philosophy & Stoicism', 'Purpose & Meaning', 'Core Values & Wholeness'],
+      AQ: ['Crisis Management & Resilience', 'AI & Tech Disruption', 'Unlearning & Agility']
+    };
+    const canonicalSubs = CANONICAL_SUBS[type] || ['Logic', 'Math', 'Spatial'];
+    const breakdown = {};
+    canonicalSubs.forEach((subKey) => {
+      if (rawBreakdown[subKey] !== undefined) {
+        breakdown[subKey] = rawBreakdown[subKey];
+      } else {
+        const matching = Object.entries(rawBreakdown).filter(([k]) => {
+          const lk = k.toLowerCase();
+          const ls = subKey.toLowerCase();
+          if (ls === 'spatial') return lk.includes('spatial') || lk.includes('dice') || lk.includes('geometry') || lk.includes('symmetry');
+          if (ls === 'math') return lk.includes('math') || lk.includes('arithmetic') || lk.includes('number');
+          if (ls === 'logic') return lk.includes('logic') || lk.includes('analogy') || lk.includes('relation') || lk.includes('pattern');
+          if (ls === 'empathy') return ['empathy', 'listening', 'peer', 'social', 'team', 'conflict'].some(w => lk.includes(w));
+          if (ls === 'self-regulation') return ['regulation', 'feedback', 'criticism', 'dialogue', 'resilience'].some(w => lk.includes(w));
+          if (ls === 'self-awareness') return ['awareness', 'accountability', 'humility', 'integrity'].some(w => lk.includes(w));
+          if (ls.includes('stoic')) return ['stoic', 'control', 'equanimity', 'impermanence', 'obstacle', 'perspective'].some(w => lk.includes(w));
+          if (ls.includes('purpose')) return ['purpose', 'solitude', 'gratitude', 'intention'].some(w => lk.includes(w));
+          if (ls.includes('values')) return ['values', 'wholeness', 'worth', 'generosity', 'forgiveness'].some(w => lk.includes(w));
+          if (ls.includes('crisis')) return ['crisis', 'fallback', 'resilience', 'interruption', 'ambiguity'].some(w => lk.includes(w));
+          if (ls.includes('ai')) return ['ai', 'tech', 'environment', 'novel', 'cloud'].some(w => lk.includes(w));
+          if (ls.includes('unlearning')) return ['unlearning', 'agility', 'pivot', 'learning', 'habits'].some(w => lk.includes(w));
+          return lk.includes(ls);
+        });
+        if (matching.length > 0) {
+          const avg = Math.round(matching.reduce((acc, [, v]) => acc + v, 0) / matching.length);
+          breakdown[subKey] = avg;
+        } else {
+          breakdown[subKey] = Math.round(Math.min(100, Math.max(50, ((score || 100) / 140) * 100)));
+        }
+      }
+    });
     const ai = testData.ai_analysis || {};
     const answers = testData[`${type.toLowerCase()}_answers`] || [];
     const incorrect = testData.incorrect_questions || [];
@@ -457,7 +522,7 @@ export default function Results({
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-300">Question {idx + 1} • {ans.sub_category}</span>
+                      <span className="font-bold text-slate-300">Question {idx + 1} • {normalizeSub(type, ans.sub_category)}</span>
                       <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
                         ans.is_correct || ans.points_earned >= 3
                           ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'

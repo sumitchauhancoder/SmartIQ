@@ -13,6 +13,47 @@ from questions_seed import SEEDED_QUESTIONS
 
 load_dotenv()
 
+# The 12 Canonical 4D Sub-Categories (Strictly 3 per category)
+CANONICAL_SUBCATEGORIES = {
+    "IQ": ["Logic", "Math", "Spatial"],
+    "EQ": ["Self-Awareness", "Self-Regulation", "Empathy"],
+    "SQ": ["Philosophy & Stoicism", "Purpose & Meaning", "Core Values & Wholeness"],
+    "AQ": ["Crisis Management & Resilience", "AI & Tech Disruption", "Unlearning & Agility"]
+}
+
+def normalize_sub_category(category_type: str, sub_category: str) -> str:
+    cat = (category_type or "").upper()
+    valid_subs = CANONICAL_SUBCATEGORIES.get(cat, [])
+    if sub_category in valid_subs:
+        return sub_category
+    
+    sub_lower = (sub_category or "").lower()
+    if cat == "IQ":
+        if "spatial" in sub_lower or "dice" in sub_lower or "geometry" in sub_lower or "symmetry" in sub_lower:
+            return "Spatial"
+        if "arithmetic" in sub_lower or "math" in sub_lower or "number" in sub_lower:
+            return "Math"
+        return "Logic"
+    elif cat == "EQ":
+        if any(w in sub_lower for w in ["empathy", "listening", "peer", "social", "inclusion", "team", "conflict"]):
+            return "Empathy"
+        if any(w in sub_lower for w in ["regulation", "feedback", "criticism", "dialogue", "resilience"]):
+            return "Self-Regulation"
+        return "Self-Awareness"
+    elif cat == "SQ":
+        if any(w in sub_lower for w in ["stoic", "control", "equanimity", "impermanence", "obstacle", "perspective", "failure"]):
+            return "Philosophy & Stoicism"
+        if any(w in sub_lower for w in ["purpose", "solitude", "gratitude", "intention", "expediency"]):
+            return "Purpose & Meaning"
+        return "Core Values & Wholeness"
+    elif cat == "AQ":
+        if any(w in sub_lower for w in ["crisis", "resilience", "fallback", "interruption", "prioritization", "ambiguity", "disruption"]):
+            return "Crisis Management & Resilience"
+        if any(w in sub_lower for w in ["ai", "tech", "environment", "upskilling", "cloud", "novel"]):
+            return "AI & Tech Disruption"
+        return "Unlearning & Agility"
+    return sub_category or "Logic"
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 # Normalize connection string for SQLAlchemy to explicitly use the installed psycopg2 driver
@@ -172,6 +213,7 @@ def init_postgres_db():
                     # Update existing questions so diagrams, image URLs and options stay in sync with latest fixes
                     conn.execute(text("""
                         UPDATE questions SET
+                            sub_category = :sub_category,
                             diagram_svg = :diagram_svg,
                             image_url = :image_url,
                             is_spatial = :is_spatial,
@@ -309,6 +351,29 @@ def init_sqlite_db():
                 1 if q.get("is_spatial") else 0
             ))
             seeded_count += 1
+        else:
+            cursor.execute("""
+                UPDATE questions SET
+                    sub_category = ?,
+                    diagram_svg = ?,
+                    options_json = ?,
+                    correct_answer_index = ?,
+                    points_json = ?,
+                    explanation = ?,
+                    image_url = ?,
+                    is_spatial = ?
+                WHERE question_text = ?
+            """, (
+                q["sub_category"],
+                q.get("diagram_svg"),
+                json.dumps(q["options"]),
+                q["correct_answer_index"],
+                json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                q["explanation"],
+                q.get("image_url"),
+                1 if q.get("is_spatial") else 0,
+                q["question_text"]
+            ))
     if seeded_count > 0:
         conn.commit()
         print(f"[SmartIQ Database] Seeded {seeded_count} new questions into SQLite.")
@@ -351,7 +416,7 @@ def get_active_questions(category_type: Optional[str] = None, limit: Optional[in
                 questions.append({
                     "id": r.get("id"),
                     "category_type": r.get("category_type"),
-                    "sub_category": r.get("sub_category"),
+                    "sub_category": normalize_sub_category(r.get("category_type"), r.get("sub_category")),
                     "question_text": r.get("question_text"),
                     "diagram_svg": r.get("diagram_svg"),
                     "options": opts,
@@ -389,7 +454,7 @@ def get_active_questions(category_type: Optional[str] = None, limit: Optional[in
         questions.append({
             "id": row["id"],
             "category_type": row["category_type"],
-            "sub_category": row["sub_category"],
+            "sub_category": normalize_sub_category(row["category_type"], row["sub_category"]),
             "question_text": row["question_text"],
             "diagram_svg": row["diagram_svg"],
             "options": json.loads(row["options_json"]),
@@ -426,7 +491,7 @@ def get_all_questions_admin() -> List[Dict[str, Any]]:
                 questions.append({
                     "id": r.get("id"),
                     "category_type": r.get("category_type"),
-                    "sub_category": r.get("sub_category"),
+                    "sub_category": normalize_sub_category(r.get("category_type"), r.get("sub_category")),
                     "question_text": r.get("question_text"),
                     "diagram_svg": r.get("diagram_svg"),
                     "options": opts,
@@ -452,7 +517,7 @@ def get_all_questions_admin() -> List[Dict[str, Any]]:
         questions.append({
             "id": row["id"],
             "category_type": row["category_type"],
-            "sub_category": row["sub_category"],
+            "sub_category": normalize_sub_category(row["category_type"], row["sub_category"]),
             "question_text": row["question_text"],
             "diagram_svg": row["diagram_svg"],
             "options": json.loads(row["options_json"]),

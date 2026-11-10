@@ -125,8 +125,17 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     const incorrect = [];
 
     answers.forEach((ans) => {
-      const sub = ans.sub_category || 'Logic';
-      if (!subTotals[sub]) subTotals[sub] = { correct: 0, total: 0 };
+      let sub = ans.sub_category || 'Logic';
+      if (!['Logic', 'Math', 'Spatial'].includes(sub)) {
+        const lower = sub.toLowerCase();
+        if (lower.includes('spatial') || lower.includes('dice') || lower.includes('geometry') || lower.includes('symmetry')) {
+          sub = 'Spatial';
+        } else if (lower.includes('arithmetic') || lower.includes('math') || lower.includes('number')) {
+          sub = 'Math';
+        } else {
+          sub = 'Logic';
+        }
+      }
       subTotals[sub].total += 1;
 
       if (ans.is_correct) {

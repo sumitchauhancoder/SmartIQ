@@ -128,8 +128,17 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     };
 
     answers.forEach((ans) => {
-      const sub = ans.sub_category || 'Crisis Management & Resilience';
-      if (!subTotals[sub]) subTotals[sub] = { earned: 0, max: 0 };
+      let sub = ans.sub_category || 'Crisis Management & Resilience';
+      if (!['Crisis Management & Resilience', 'AI & Tech Disruption', 'Unlearning & Agility'].includes(sub)) {
+        const lower = sub.toLowerCase();
+        if (['crisis', 'resilience', 'fallback', 'interruption', 'prioritization', 'ambiguity', 'disruption'].some(k => lower.includes(k))) {
+          sub = 'Crisis Management & Resilience';
+        } else if (['ai', 'tech', 'environment', 'upskilling', 'cloud', 'novel'].some(k => lower.includes(k))) {
+          sub = 'AI & Tech Disruption';
+        } else {
+          sub = 'Unlearning & Agility';
+        }
+      }
       subTotals[sub].earned += ans.points_earned;
       subTotals[sub].max += 4;
       totalPoints += ans.points_earned;

@@ -8,7 +8,7 @@
 export const FALLBACK_QUESTIONS = [
   {
     "category_type": "IQ",
-    "sub_category": "Pattern Logic",
+    "sub_category": "Math",
     "question_text": "What number comes next in the sequence: 3, 6, 11, 18, 27, ___?",
     "options": [
       "34",
@@ -31,7 +31,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Word Analogy",
+    "sub_category": "Logic",
     "question_text": "Light is to Glint as Sound is to ___.",
     "options": [
       "Silence",
@@ -54,7 +54,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Coding Logic",
+    "sub_category": "Logic",
     "question_text": "If BCA is coded as 231 and PROJECT is coded as 161815105320, what is the code for GROQ?",
     "options": [
       "7181517",
@@ -77,7 +77,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Directional Sense",
+    "sub_category": "Logic",
     "question_text": "You walk 10m North, turn right and walk 10m, then turn left and walk 5m. Which direction are you facing?",
     "options": [
       "North",
@@ -100,7 +100,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Fast Arithmetic",
+    "sub_category": "Math",
     "question_text": "A bat and a ball cost ₹110 in total. The bat costs ₹100 more than the ball. How much does the ball cost?",
     "options": [
       "₹5",
@@ -123,7 +123,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Odd One Out",
+    "sub_category": "Math",
     "question_text": "Which number does not belong in this group: 27, 64, 125, 144, 216?",
     "options": [
       "64",
@@ -146,7 +146,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Letter Patterns",
+    "sub_category": "Logic",
     "question_text": "Complete the sequence: AZ, CX, EV, GT, ___.",
     "options": [
       "HS",
@@ -169,7 +169,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial & Dice Logic",
+    "sub_category": "Spatial",
     "question_text": "A standard dice is rolled. What is the value directly opposite to the face showing 4?",
     "options": [
       "2",
@@ -192,7 +192,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Blood Relations",
+    "sub_category": "Logic",
     "question_text": "Pointing to a man, a girl says, 'He is the only son of my grandfather's only child.' How is the man related to the girl?",
     "options": [
       "Brother",
@@ -215,7 +215,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial / Symbol Logic",
+    "sub_category": "Spatial",
     "question_text": "A square paper is folded in half from left to right, then a small triangle hole is punched right in the center fold crease. When unfolded, what shape is formed in the middle?",
     "options": [
       "One Triangle",
@@ -238,7 +238,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial Reasoning",
+    "sub_category": "Spatial",
     "question_text": "In a flat cross-shaped cube net, which pairs of square faces end up parallel and directly opposite each other when folded into a 3D box?",
     "options": [
       "Faces separated by exactly one square along the fold line",
@@ -261,7 +261,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Mechanical & Spatial",
+    "sub_category": "Spatial",
     "question_text": "Gear A turns clockwise and meshes directly with Gear B. Gear B meshes directly with Gear C. Which direction does Gear C turn?",
     "options": [
       "Clockwise",
@@ -284,7 +284,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial Symmetry",
+    "sub_category": "Spatial",
     "question_text": "If a vertical flat mirror is placed to the right of the capital word 'CODE', which single letter looks identical to its reflection?",
     "options": [
       "C",
@@ -307,7 +307,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Fast Arithmetic",
+    "sub_category": "Math",
     "question_text": "An electric scooter covers 60 km in exactly 45 minutes at constant speed. What is its average speed in km/h?",
     "options": [
       "75 km/h",
@@ -330,7 +330,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial & Geometry",
+    "sub_category": "Spatial",
     "question_text": "At exactly 3:00, what is the angle formed between the minute hand and the hour hand of an analog clock?",
     "options": [
       "60 degrees",
@@ -353,7 +353,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Deductive Logic",
+    "sub_category": "Math",
     "question_text": "In a coding club of 50 students, 30 build with Python, 25 build with React, and 10 build with both. How many students build with neither?",
     "options": [
       "5",
@@ -376,7 +376,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Pattern Logic",
+    "sub_category": "Math",
     "question_text": "Find the next number in the pattern: 2, 5, 10, 17, 26, ___?",
     "options": [
       "35",
@@ -399,7 +399,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Word Analogy",
+    "sub_category": "Logic",
     "question_text": "Architect is to Building as Composer is to ___.",
     "options": [
       "Symphony",
@@ -422,7 +422,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Spatial Reasoning",
+    "sub_category": "Spatial",
     "question_text": "A 3x3x3 wooden cube is painted blue on all 6 outer sides and cut into 27 equal 1x1x1 small cubes. How many small cubes have blue paint on EXACTLY one face?",
     "options": [
       "6",
@@ -445,7 +445,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "IQ",
-    "sub_category": "Deductive Logic",
+    "sub_category": "Logic",
     "question_text": "If all laptops are computers, and some computers are portable workstations, which conclusion is definitely TRUE?",
     "options": [
       "All laptops are portable workstations",
@@ -490,7 +490,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Active Empathy",
+    "sub_category": "Empathy",
     "question_text": "A close friend is venting about their bad day. Your best response is to:",
     "options": [
       "Tell them how they can fix their problems.",
@@ -512,7 +512,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Conflict Resolution",
+    "sub_category": "Empathy",
     "question_text": "Two of your group project members are fighting about design elements. You should:",
     "options": [
       "Side with the person you like better.",
@@ -556,7 +556,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Social Awareness",
+    "sub_category": "Empathy",
     "question_text": "You notice a peer sitting alone and looking excluded at a networking event. You:",
     "options": [
       "Ignore them so you don't make it awkward.",
@@ -578,7 +578,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Receiving Feedback",
+    "sub_category": "Self-Regulation",
     "question_text": "Your evaluator tells you your code is messy and unoptimized. You:",
     "options": [
       "Get defensive and explain why your way is better.",
@@ -600,7 +600,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Influence & Persuasion",
+    "sub_category": "Self-Awareness",
     "question_text": "You need to convince your team to use an unfamiliar open-source tool. You:",
     "options": [
       "Demand they use it because you are the team leader.",
@@ -622,7 +622,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Non-Verbal Decoding",
+    "sub_category": "Empathy",
     "question_text": "Your teammate is saying 'Yes, I can take on more work,' but their arms are crossed, and they are sighing heavily. You:",
     "options": [
       "Take them at their word and assign the task.",
@@ -644,7 +644,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Accountability",
+    "sub_category": "Self-Awareness",
     "question_text": "You accidentally pushed a bug that broke the staging environment. You:",
     "options": [
       "Wait silently to see if anyone notices.",
@@ -666,7 +666,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Resilience & Mindset",
+    "sub_category": "Self-Regulation",
     "question_text": "You failed to secure a highly competitive internship you prepared months for. Your mindset is:",
     "options": [
       "'The system is rigged against me.'",
@@ -688,7 +688,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Team Collaboration",
+    "sub_category": "Empathy",
     "question_text": "A team member misses an agreed deadline on a shared assignment. Your most productive first response is to:",
     "options": [
       "Remove them from the group chat immediately.",
@@ -732,7 +732,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Empathy & Inclusion",
+    "sub_category": "Empathy",
     "question_text": "During a group discussion, a quiet teammate tries to speak but gets interrupted by louder peers. You:",
     "options": [
       "Let the louder members dominate to finish faster.",
@@ -754,7 +754,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Humility & Teamwork",
+    "sub_category": "Self-Awareness",
     "question_text": "A professor publicly praises your group project presentation. You:",
     "options": [
       "Take all the credit for yourself.",
@@ -776,7 +776,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Constructive Dialogue",
+    "sub_category": "Self-Regulation",
     "question_text": "A peer strongly disagrees with your proposed technical approach during a debate. You:",
     "options": [
       "Take it personally and raise your voice.",
@@ -798,7 +798,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Peer Support",
+    "sub_category": "Empathy",
     "question_text": "You notice a close classmate is withdrawing, missing classes, and looking unusually exhausted. You:",
     "options": [
       "Assume they became unmotivated.",
@@ -820,7 +820,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Constructive Criticism",
+    "sub_category": "Self-Regulation",
     "question_text": "When a peer gives you friendly feedback on your public speaking style, your primary instinct is:",
     "options": [
       "Assume they are trying to put you down.",
@@ -864,7 +864,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Active Listening",
+    "sub_category": "Empathy",
     "question_text": "When someone is sharing a vulnerable personal struggle with you, the most supportive action is to:",
     "options": [
       "Immediately compare it to an even worse problem you experienced.",
@@ -886,7 +886,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "EQ",
-    "sub_category": "Integrity Under Pressure",
+    "sub_category": "Self-Awareness",
     "question_text": "You find an unmonitored shortcut that would let you finish an assignment without actually doing the work. You:",
     "options": [
       "Take the shortcut to get quick marks.",
@@ -908,7 +908,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Dichotomy of Control",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "Your final project presentation is delayed by an hour due to an electricity failure. Your internal reaction is:",
     "options": [
       "Anger at the college infrastructure.",
@@ -930,7 +930,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Material Perspective",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "You lose your expensive smartphone. A stoic mindset suggests:",
     "options": [
       "Letting it completely ruin your week.",
@@ -952,7 +952,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Purpose & Values",
+    "sub_category": "Purpose & Meaning",
     "question_text": "Why do you want to build a successful career?",
     "options": [
       "Solely to show off wealth to my relatives.",
@@ -974,7 +974,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Humility & Grounding",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "Your professor praises your project in front of the entire class. You:",
     "options": [
       "Let it go to your head and feel superior to others.",
@@ -996,7 +996,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Reframing Obstacles",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "When facing a massive personal setback, you remind yourself that:",
     "options": [
       "Life is inherently unfair to you.",
@@ -1018,7 +1018,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Self-Comparison",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "A classmate who works less hard than you lands a high-paying job. You:",
     "options": [
       "Feel bitter and try to point out their flaws.",
@@ -1040,7 +1040,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Mindfulness & Presence",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "When you eat a meal or sit in class, your mind is usually:",
     "options": [
       "Replaying embarrassing moments from 3 years ago.",
@@ -1062,7 +1062,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Equanimity Under Criticism",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "Someone calls your hard-earned project 'garbage.' You:",
     "options": [
       "Fire back with a personal insult.",
@@ -1084,7 +1084,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Interconnectedness",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "When writing code or collaborating, you view your peers as:",
     "options": [
       "Rivals who must be defeated.",
@@ -1106,7 +1106,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Impermanence",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "Reminding yourself that 'this too shall pass' makes you feel:",
     "options": [
       "Hopeless and unmotivated.",
@@ -1128,7 +1128,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Dichotomy of Control",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "You are stuck in heavy traffic on the way to a significant event. A grounded reaction is to:",
     "options": [
       "Honk aggressively and curse the traffic.",
@@ -1150,7 +1150,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Living by Principles",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "Offered an easy chance to gain popularity by spreading a humiliating rumor about a peer, you:",
     "options": [
       "Spread the rumor to fit in with the group.",
@@ -1172,7 +1172,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Perspective in Failure",
+    "sub_category": "Philosophy & Stoicism",
     "question_text": "After weeks of hard work, an application you built crashes in front of users. You tell yourself:",
     "options": [
       "'I am a total failure and should quit.'",
@@ -1194,7 +1194,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Solitude & Reflection",
+    "sub_category": "Purpose & Meaning",
     "question_text": "When you spend an evening in quiet solitude without phone notifications, you feel:",
     "options": [
       "Overwhelmed by boredom and dread.",
@@ -1216,7 +1216,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Generosity",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "A junior student asks you for help with a basic concept you learned long ago. You:",
     "options": [
       "Tell them to read the documentation and walk away.",
@@ -1238,7 +1238,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Gratitude",
+    "sub_category": "Purpose & Meaning",
     "question_text": "At the end of an ordinary, uneventful day, your typical reflection is:",
     "options": [
       "Frustration that you didn't become famous today.",
@@ -1260,7 +1260,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Internal vs External Worth",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "You see peers flaunting luxury gadgets and lifestyle photos online. Your internal reaction is:",
     "options": [
       "Feeling inadequate and desiring to borrow money to match them.",
@@ -1282,7 +1282,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Forgiveness",
+    "sub_category": "Core Values & Wholeness",
     "question_text": "A classmate makes an honest mistake that damages a shared assignment. You:",
     "options": [
       "Hold a grudge and refuse to speak with them again.",
@@ -1304,7 +1304,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Integrity Over Expediency",
+    "sub_category": "Purpose & Meaning",
     "question_text": "You notice an error in a grading sheet where you were accidentally given 15 bonus marks. You:",
     "options": [
       "Stay quiet and celebrate the unearned marks.",
@@ -1326,7 +1326,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "SQ",
-    "sub_category": "Living Intentionally",
+    "sub_category": "Purpose & Meaning",
     "question_text": "When making major decisions about your future studies or career, your guiding compass is:",
     "options": [
       "Whatever impresses people the most on social media.",
@@ -1348,7 +1348,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Framework Agility",
+    "sub_category": "Unlearning & Agility",
     "question_text": "Your project guide suddenly asks you to change your project backend from Node.js to Python. You:",
     "options": [
       "Argue aggressively against it.",
@@ -1370,7 +1370,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Graceful Fallbacks",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "During your live project demo, the Groq API key limits drop or time out. You:",
     "options": [
       "Freeze up and panic in front of the external examiner.",
@@ -1392,7 +1392,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Ambiguity Tolerance",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "You are given a project requirement document that is incredibly vague. You:",
     "options": [
       "Do nothing until you are given explicit instructions.",
@@ -1414,7 +1414,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Unlearning Legacy Habits",
+    "sub_category": "Unlearning & Agility",
     "question_text": "You find out a coding pattern you've used for years is now considered insecure legacy code. You:",
     "options": [
       "Keep using it because 'it works for me.'",
@@ -1436,7 +1436,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Pivoting Under Disruption",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "A core library your app depends on is suddenly deprecated and taken offline. You:",
     "options": [
       "Give up on the project entirely.",
@@ -1458,7 +1458,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Debugging Resilience",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "You are stuck on a difficult code bug for 3 hours. Your sequence of action is:",
     "options": [
       "Stare at the screen and get increasingly frustrated.",
@@ -1480,7 +1480,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Remote & Async Agility",
+    "sub_category": "Unlearning & Agility",
     "question_text": "Your team has to move from offline meetings to a fully remote, asynchronous setup. You:",
     "options": [
       "Insist on offline meetings anyway.",
@@ -1502,7 +1502,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "User-Centric Pivoting",
+    "sub_category": "Unlearning & Agility",
     "question_text": "Your early beta testers hate your web app's navigation layout. You:",
     "options": [
       "Assume the users are not tech-savvy enough.",
@@ -1524,7 +1524,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Crisis Prioritization",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "You have three deadlines falling on the exact same day. Your approach is to:",
     "options": [
       "Multitask randomly across all three and finish none.",
@@ -1546,7 +1546,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Novel Problem Solving",
+    "sub_category": "AI & Tech Disruption",
     "question_text": "When your standard debugging method fails to find a memory leak, you:",
     "options": [
       "Try alternative profiling and memory monitoring tools you haven't used before.",
@@ -1568,7 +1568,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "AI Tool Integration",
+    "sub_category": "AI & Tech Disruption",
     "question_text": "A new AI coding tool is released that automates repetitive boilerplate code. You:",
     "options": [
       "Refuse to touch it because 'real developers write every line by hand.'",
@@ -1590,7 +1590,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Rapid Upskilling",
+    "sub_category": "AI & Tech Disruption",
     "question_text": "You join an internship and find the company uses a database technology you never studied in college. You:",
     "options": [
       "Complain that college didn't prepare you properly.",
@@ -1612,7 +1612,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Scope Adjustment",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "Two weeks before product launch, you realize the original scope is too large for the remaining time. You:",
     "options": [
       "Rush through every feature with messy, broken code.",
@@ -1634,7 +1634,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Adapting Communication",
+    "sub_category": "Unlearning & Agility",
     "question_text": "You are presenting technical software results to non-technical business stakeholders. You:",
     "options": [
       "Use heavy technical jargon, acronyms, and raw SQL queries to sound smart.",
@@ -1656,7 +1656,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Crisis Pivoting",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "Your team's scheduled presentation laptop won't connect to the projector 5 minutes before the pitch. You:",
     "options": [
       "Cancel the pitch and blame the audio-visual staff.",
@@ -1678,7 +1678,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Role Flexibility",
+    "sub_category": "Unlearning & Agility",
     "question_text": "Your team's UI designer falls sick right before a hackathon deadline. You:",
     "options": [
       "Give up because you are primarily a backend developer.",
@@ -1700,7 +1700,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Iterative Learning",
+    "sub_category": "Unlearning & Agility",
     "question_text": "A code review flags 12 suggestions on a pull request you were confident in. You:",
     "options": [
       "Take offense and argue on every single comment.",
@@ -1722,7 +1722,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Testing New Environments",
+    "sub_category": "AI & Tech Disruption",
     "question_text": "Your university switches from local servers to a cloud infrastructure platform (Render / Vercel). You:",
     "options": [
       "Complain that local servers were easier.",
@@ -1744,7 +1744,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Resilience Under Interruption",
+    "sub_category": "Crisis Management & Resilience",
     "question_text": "An unexpected power cut closes your computer lab right in the middle of a project sprint. You:",
     "options": [
       "Waste the rest of the day waiting.",
@@ -1766,7 +1766,7 @@ export const FALLBACK_QUESTIONS = [
   },
   {
     "category_type": "AQ",
-    "sub_category": "Thriving in Ambiguity",
+    "sub_category": "Unlearning & Agility",
     "question_text": "When you are asked to solve an open-ended problem with no existing documentation or stackoverflow answers, your instinct is:",
     "options": [
       "Conclude that it cannot be solved.",

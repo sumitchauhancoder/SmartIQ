@@ -127,8 +127,17 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     };
 
     answers.forEach((ans) => {
-      const sub = ans.sub_category || 'Philosophy & Stoicism';
-      if (!subTotals[sub]) subTotals[sub] = { earned: 0, max: 0 };
+      let sub = ans.sub_category || 'Philosophy & Stoicism';
+      if (!['Philosophy & Stoicism', 'Purpose & Meaning', 'Core Values & Wholeness'].includes(sub)) {
+        const lower = sub.toLowerCase();
+        if (['stoic', 'control', 'equanimity', 'impermanence', 'obstacle', 'perspective', 'failure'].some(k => lower.includes(k))) {
+          sub = 'Philosophy & Stoicism';
+        } else if (['purpose', 'solitude', 'gratitude', 'intention', 'expediency'].some(k => lower.includes(k))) {
+          sub = 'Purpose & Meaning';
+        } else {
+          sub = 'Core Values & Wholeness';
+        }
+      }
       subTotals[sub].earned += ans.points_earned;
       subTotals[sub].max += 4;
       totalPoints += ans.points_earned;

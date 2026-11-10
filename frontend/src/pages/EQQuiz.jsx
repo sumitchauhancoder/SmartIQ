@@ -127,8 +127,17 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     };
 
     answers.forEach((ans) => {
-      const sub = ans.sub_category || 'Self-Awareness';
-      if (!subTotals[sub]) subTotals[sub] = { earned: 0, max: 0 };
+      let sub = ans.sub_category || 'Self-Awareness';
+      if (!['Self-Awareness', 'Self-Regulation', 'Empathy'].includes(sub)) {
+        const lower = sub.toLowerCase();
+        if (['empathy', 'listening', 'peer', 'social', 'inclusion', 'team', 'conflict'].some(k => lower.includes(k))) {
+          sub = 'Empathy';
+        } else if (['regulation', 'feedback', 'criticism', 'dialogue', 'resilience'].some(k => lower.includes(k))) {
+          sub = 'Self-Regulation';
+        } else {
+          sub = 'Self-Awareness';
+        }
+      }
       subTotals[sub].earned += ans.points_earned;
       subTotals[sub].max += 4;
       totalPoints += ans.points_earned;
