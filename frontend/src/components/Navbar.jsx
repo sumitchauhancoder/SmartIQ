@@ -123,7 +123,7 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
                 className="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full bg-slate-900 border border-slate-700 hover:border-slate-600 text-xs text-slate-300 transition-colors select-none"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                <span className="max-w-[110px] truncate font-medium">{user.email?.split('@')[0]}</span>
+                <span className="max-w-[110px] truncate font-medium">{user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0]}</span>
                 <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded flex-shrink-0 ${
                   isAdmin ? 'bg-indigo-950 text-indigo-300 border border-indigo-700/60' : 'bg-slate-800 text-slate-400'
                 }`}>
@@ -139,7 +139,8 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
                 >
                   <div className="px-3 py-2 border-b border-slate-800">
                     <p className="text-[10px] uppercase font-bold text-slate-400">Signed In As</p>
-                    <p className="text-xs font-bold text-white truncate">{user.email}</p>
+                    <p className="text-xs font-bold text-white truncate">{user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0]}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
                     <span className="inline-block mt-1 text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/50">
                       Role: {role}
                     </span>
@@ -187,7 +188,7 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
             </button>
           ) : (
             <span className="text-xs font-semibold text-slate-300 max-w-[100px] truncate">
-              {user.email?.split('@')[0]}
+              {user.user_metadata?.full_name || user.user_metadata?.display_name || user.email?.split('@')[0]}
             </span>
           )}
           <button

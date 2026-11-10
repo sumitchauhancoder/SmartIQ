@@ -9,9 +9,12 @@ const AuthContext = createContext({
   token: null,
   loading: true,
   isConfigured: false,
+  displayName: 'User',
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
+  resetPassword: async () => {},
+  updatePassword: async () => {},
   refreshProfile: async () => {},
 });
 
@@ -20,6 +23,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState('user');
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const fetchUserRole = async (userId, userEmail = '') => {
     if (userEmail && userEmail.toLowerCase() === 'sumitchauhancoder@gmail.com') {
@@ -88,7 +92,10 @@ export function AuthProvider({ children }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+async (event, newSession) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordRecovery(true);
+        }
         setSession(newSession);
         setUser(newSession?.user ?? null);
         if (newSession?.user) {
@@ -115,13 +122,46 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const signUp = async (email, password) => {
+  const signUp = async (email, password, fullName = '') => {
     if (!supabase) throw new Error('Supabase is not configured.');
+    const options = fullName ? { data: { full_name: fullName.trim(), display_name: fullName.trim() } } : {};
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options,
     });
     if (error) throw error;
+
+    if (data?.user?.id && fullName.trim()) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ display_name: fullName.trim(), full_name: fullName.trim() })
+          .eq('id', data.user.id);
+      } catch (err) {
+        // Ignored if column not defined
+      }
+    }
+    return data;
+  };
+
+  const resetPassword = async (email) => {
+    if (!supabase) throw new Error('Supabase is not configured.');
+    const redirectUrl = window.location.origin + '/#reset-password';
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const updatePassword = async (newPassword) => {
+    if (!supabase) throw new Error('Supabase is not configured.');
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) throw error;
+    setIsPasswordRecovery(false);
     return data;
   };
 
@@ -146,10 +186,15 @@ export function AuthProvider({ children }) {
     isAdmin: role === 'admin',
     token: session?.access_token || null,
     loading,
+    displayName: user?.user_metadata?.full_name || user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'User',
+    isPasswordRecovery,
+    setIsPasswordRecovery,
     isConfigured: isSupabaseConfigured,
     signIn,
     signUp,
     signOut,
+    resetPassword,
+    updatePassword,
     refreshProfile,
   };
 
