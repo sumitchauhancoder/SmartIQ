@@ -23,7 +23,14 @@ import {
   ChevronRight,
   Lightbulb,
   Gamepad2,
-  Bookmark
+  Bookmark,
+  Pause,
+  Volume2,
+  VolumeX,
+  Wind,
+  Timer,
+  Coffee,
+  Target
 } from 'lucide-react';
 
 export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
@@ -36,6 +43,167 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   }, [initialPillar]);
 
   // =========================================================================
+  // =========================================================================
+  // Audio & Sub-Mode Utilities for Gym Interactive Labs
+  // =========================================================================
+  const playGymChime = (freq = 520, duration = 0.8) => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch {
+      // AudioContext blocked without user gesture
+    }
+  };
+
+  // Sub-mode selectors for IQ and EQ
+  const [iqSubMode, setIqSubMode] = useState('duel'); // 'duel' | 'pomodoro'
+  const [eqSubMode, setEqSubMode] = useState('breathwork'); // 'breathwork' | 'scenarios'
+
+  // =========================================================================
+  // Tool 1: Deep Work Neural Focus Pomodoro State (IQ)
+  // =========================================================================
+  const [pomoMode, setPomoMode] = useState('sprint'); // 'sprint' (25m), 'flow' (50m), 'break' (5m)
+  const [pomoSeconds, setPomoSeconds] = useState(25 * 60);
+  const [pomoRunning, setPomoRunning] = useState(false);
+  const [pomoIntention, setPomoIntention] = useState('');
+  const [pomoLockedIntention, setPomoLockedIntention] = useState('');
+  const [pomoCompleted, setPomoCompleted] = useState(0);
+  const [pomoSound, setPomoSound] = useState(true);
+
+  const POMO_CONFIGS = {
+    sprint: { label: '25m Focus Sprint', totalSec: 25 * 60, icon: Timer, color: 'blue' },
+    flow: { label: '50m Deep Flow', totalSec: 50 * 60, icon: Brain, color: 'indigo' },
+    break: { label: '5m Quick Recharge', totalSec: 5 * 60, icon: Coffee, color: 'emerald' }
+  };
+
+  useEffect(() => {
+    let interval = null;
+    if (pomoRunning && pomoSeconds > 0) {
+      interval = setInterval(() => {
+        setPomoSeconds((s) => s - 1);
+      }, 1000);
+    } else if (pomoRunning && pomoSeconds <= 0) {
+      setPomoRunning(false);
+      if (pomoSound) {
+        playGymChime(659, 1.0);
+        setTimeout(() => playGymChime(880, 1.4), 250);
+      }
+      if (pomoMode !== 'break') {
+        setPomoCompleted((c) => c + 1);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [pomoRunning, pomoSeconds, pomoSound, pomoMode]);
+
+  const handlePomoModeSelect = (modeKey) => {
+    setPomoMode(modeKey);
+    setPomoRunning(false);
+    setPomoSeconds(POMO_CONFIGS[modeKey].totalSec);
+  };
+
+  const handleResetPomo = () => {
+    setPomoRunning(false);
+    setPomoSeconds(POMO_CONFIGS[pomoMode].totalSec);
+  };
+
+  // =========================================================================
+  // Tool 2: Somatic Breathwork Studio State (EQ)
+  // =========================================================================
+  const BREATH_PATTERNS = {
+    box: {
+      id: 'box',
+      name: 'Box Breathing',
+      tagline: 'Navy SEAL Tactical Calm',
+      desc: 'Equal 4-part rhythm (4s in, 4s hold, 4s out, 4s hold) to stabilize acute nervous system friction.',
+      phases: [
+        { name: 'Inhale', duration: 4, instruction: 'Breathe in slowly through your nose', scale: 1.35 },
+        { name: 'Hold Full', duration: 4, instruction: 'Hold lungs gently full with relaxed posture', scale: 1.35 },
+        { name: 'Exhale', duration: 4, instruction: 'Smooth, even release through your mouth', scale: 0.85 },
+        { name: 'Hold Empty', duration: 4, instruction: 'Rest empty before the next breath', scale: 0.85 }
+      ]
+    },
+    sigh: {
+      id: 'sigh',
+      name: 'Physiological Sigh',
+      tagline: 'Stanford Fast-Reset Protocol',
+      desc: 'Double-inhale followed by an extended sigh to rapidly reinflate lung alveoli and drop heart rate.',
+      phases: [
+        { name: 'Deep Inhale', duration: 3, instruction: 'Deep inhale through your nose to fill lungs', scale: 1.25 },
+        { name: 'Top-Off Inhale', duration: 1, instruction: 'Sharp second sip of air into upper chest', scale: 1.4 },
+        { name: 'Extended Exhale', duration: 6, instruction: 'Slow, long sigh all the way out', scale: 0.8 }
+      ]
+    },
+    relax: {
+      id: 'relax',
+      name: '4-7-8 Deep Calm',
+      tagline: 'Parasympathetic Downshift',
+      desc: 'Ancient pranayama ratio that calms racing mental chatter and soothes somatic tension.',
+      phases: [
+        { name: 'Inhale', duration: 4, instruction: 'Gentle inhale through your nose', scale: 1.3 },
+        { name: 'Deep Hold', duration: 7, instruction: 'Hold air and soften facial tension', scale: 1.3 },
+        { name: 'Exhale', duration: 8, instruction: 'Whoosh exhale completely through mouth', scale: 0.8 }
+      ]
+    }
+  };
+
+  const [breathPatternKey, setBreathPatternKey] = useState('box');
+  const [breathActive, setBreathActive] = useState(false);
+  const [breathPhaseIndex, setBreathPhaseIndex] = useState(0);
+  const [breathPhaseTimeLeft, setBreathPhaseTimeLeft] = useState(4);
+  const [breathCycles, setBreathCycles] = useState(0);
+  const [breathSound, setBreathSound] = useState(true);
+
+  const currentPattern = BREATH_PATTERNS[breathPatternKey] || BREATH_PATTERNS.box;
+  const currentPhase = currentPattern.phases[breathPhaseIndex] || currentPattern.phases[0];
+
+  useEffect(() => {
+    let interval = null;
+    if (breathActive) {
+      interval = setInterval(() => {
+        setBreathPhaseTimeLeft((prev) => {
+          if (prev <= 1) {
+            const nextIdx = (breathPhaseIndex + 1) % currentPattern.phases.length;
+            setBreathPhaseIndex(nextIdx);
+            const nextDuration = currentPattern.phases[nextIdx].duration;
+            if (breathSound) {
+              playGymChime(nextIdx === 0 ? 587 : 440, 0.6);
+            }
+            if (nextIdx === 0) {
+              setBreathCycles((c) => c + 1);
+            }
+            return nextDuration;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [breathActive, breathPhaseIndex, currentPattern, breathSound]);
+
+  const handleSelectBreathPattern = (key) => {
+    setBreathPatternKey(key);
+    setBreathActive(false);
+    setBreathPhaseIndex(0);
+    setBreathPhaseTimeLeft(BREATH_PATTERNS[key].phases[0].duration);
+  };
+
+  const handleResetBreath = () => {
+    setBreathActive(false);
+    setBreathPhaseIndex(0);
+    setBreathPhaseTimeLeft(currentPattern.phases[0].duration);
+  };
+
   // Game 1: IQ - Speed Logic & Math Duel State (10 Shuffled Challenges Sprint)
   // =========================================================================
   const iqMasterChallenges = [
@@ -727,6 +895,142 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
 
         {/* 1. IQ Interactive Drill */}
         {activePillar === 'IQ' && (
+          <div>
+            {/* IQ Sub-Mode Switcher */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setIqSubMode('duel')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  iqSubMode === 'duel'
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Speed Logic Duel (30s)</span>
+              </button>
+              <button
+                onClick={() => setIqSubMode('pomodoro')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  iqSubMode === 'pomodoro'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Timer className="w-3.5 h-3.5" />
+                <span>Neural Focus Pomodoro</span>
+              </button>
+            </div>
+
+            {iqSubMode === 'pomodoro' ? (
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/30 relative overflow-hidden shadow-xl animate-fadeIn">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-950 text-indigo-300 border border-indigo-800/50 mb-1 inline-block">
+                      Deep Work Protocol • Neuro-Cognitive Sprint
+                    </span>
+                    <h3 className="text-lg font-bold text-white">Neural Focus Pomodoro Engine</h3>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPomoSound((s) => !s)}
+                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+                      title={pomoSound ? 'Mute sound chimes' : 'Enable sound chimes'}
+                    >
+                      {pomoSound ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4" />}
+                    </button>
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Sessions</span>
+                      <span className="text-base font-black text-indigo-400 font-mono">⚡ {pomoCompleted}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mode Pills */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                  {Object.entries(POMO_CONFIGS).map(([key, cfg]) => {
+                    const Icon = cfg.icon;
+                    const isSelected = pomoMode === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => handlePomoModeSelect(key)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                            : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        <span>{cfg.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Large Countdown Display */}
+                <div className="text-center py-6">
+                  <div className="text-6xl sm:text-7xl font-black font-mono tracking-tight text-white mb-3">
+                    {String(Math.floor(pomoSeconds / 60)).padStart(2, '0')}:{String(pomoSeconds % 60).padStart(2, '0')}
+                  </div>
+                  
+                  {/* Intention statement */}
+                  <div className="max-w-md mx-auto mb-6">
+                    {pomoRunning || pomoLockedIntention ? (
+                      <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-700/50 text-xs text-indigo-200 flex items-center justify-center gap-2">
+                        <Target className="w-4 h-4 text-indigo-400 shrink-0" />
+                        <span className="font-semibold">Target:</span>
+                        <span className="italic truncate">{pomoLockedIntention || pomoIntention || 'Uninterrupted Deep Work'}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={pomoIntention}
+                          onChange={(e) => setPomoIntention(e.target.value)}
+                          placeholder="What ONE problem will you solve in this sprint?"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-indigo-500 text-xs text-white placeholder-slate-500 focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Controls */}
+                  <div className="flex items-center justify-center gap-3">
+                    <button
+                      onClick={() => {
+                        if (!pomoRunning && pomoIntention) {
+                          setPomoLockedIntention(pomoIntention);
+                        }
+                        setPomoRunning((r) => !r);
+                      }}
+                      className="px-8 py-3 rounded-2xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all inline-flex items-center gap-2"
+                    >
+                      {pomoRunning ? (
+                        <>
+                          <Pause className="w-4 h-4 fill-current" />
+                          <span>Pause Sprint</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 fill-current" />
+                          <span>Start Sprint</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleResetPomo}
+                      className="px-5 py-3 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all inline-flex items-center gap-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Reset</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-blue-500/30 relative overflow-hidden shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
               <div>
@@ -979,10 +1283,146 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
               </div>
             )}
           </div>
+            )}
+          </div>
         )}
 
         {/* 2. EQ Interactive Drill */}
         {activePillar === 'EQ' && (
+          <div>
+            {/* EQ Sub-Mode Switcher */}
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setEqSubMode('breathwork')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  eqSubMode === 'breathwork'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Wind className="w-3.5 h-3.5" />
+                <span>Somatic Breathwork Studio</span>
+              </button>
+              <button
+                onClick={() => setEqSubMode('scenarios')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  eqSubMode === 'scenarios'
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>Empathy Conflict Lab</span>
+              </button>
+            </div>
+
+            {eqSubMode === 'breathwork' ? (
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/30 relative overflow-hidden shadow-xl animate-fadeIn">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-950 text-rose-300 border border-rose-800/50 mb-1 inline-block">
+                      Autonomic Self-Regulation • Somatic Studio
+                    </span>
+                    <h3 className="text-lg font-bold text-white">{currentPattern.name}</h3>
+                    <p className="text-xs text-rose-300/80">{currentPattern.tagline}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setBreathSound((s) => !s)}
+                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+                      title={breathSound ? 'Mute phase bell' : 'Enable phase bell'}
+                    >
+                      {breathSound ? <Volume2 className="w-4 h-4 text-rose-400" /> : <VolumeX className="w-4 h-4" />}
+                    </button>
+                    <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase text-slate-400 block font-bold">Cycles</span>
+                      <span className="text-base font-black text-rose-400 font-mono">🫁 {breathCycles}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pattern Selectors */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+                  {Object.entries(BREATH_PATTERNS).map(([k, pat]) => (
+                    <button
+                      key={k}
+                      onClick={() => handleSelectBreathPattern(k)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                        breathPatternKey === k
+                          ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                          : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {pat.name}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-center text-xs text-slate-400 max-w-md mx-auto mb-4">
+                  {currentPattern.desc}
+                </p>
+
+                {/* Breathing Bubble */}
+                <div className="relative w-64 h-64 mx-auto flex items-center justify-center my-4">
+                  {/* Ambient Glow */}
+                  <div
+                    className="absolute inset-0 rounded-full bg-gradient-to-tr from-rose-500/20 via-pink-500/15 to-purple-500/20 blur-2xl transition-all"
+                    style={{
+                      transform: breathActive ? `scale(${currentPhase.scale * 1.1})` : 'scale(1)',
+                      transitionDuration: `${currentPhase.duration}s`
+                    }}
+                  />
+
+                  {/* Pulsing Core */}
+                  <div
+                    className="w-48 h-48 rounded-full border-2 border-rose-400/40 bg-gradient-to-br from-rose-950/70 via-slate-900/80 to-purple-950/60 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-2xl shadow-rose-500/20 transition-all ease-in-out"
+                    style={{
+                      transform: breathActive ? `scale(${currentPhase.scale})` : 'scale(1)',
+                      transitionDuration: `${currentPhase.duration}s`
+                    }}
+                  >
+                    <span className="text-[11px] uppercase tracking-widest text-rose-300 font-bold mb-1">
+                      {breathActive ? currentPhase.name : 'Ready'}
+                    </span>
+                    <span className="text-4xl font-black text-white font-mono">
+                      {breathActive ? `${breathPhaseTimeLeft}s` : `${currentPhase.duration}s`}
+                    </span>
+                    <span className="text-[10px] text-slate-300 font-medium px-4 mt-1 line-clamp-2">
+                      {breathActive ? currentPhase.instruction : 'Press Start to Center'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <button
+                    onClick={() => setBreathActive((a) => !a)}
+                    className="px-8 py-3 rounded-2xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all inline-flex items-center gap-2"
+                  >
+                    {breathActive ? (
+                      <>
+                        <Pause className="w-4 h-4 fill-current" />
+                        <span>Pause Studio</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 fill-current" />
+                        <span>Start Breathing</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={handleResetBreath}
+                    className="px-5 py-3 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all inline-flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Reset</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
           <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/30 relative overflow-hidden shadow-xl">
             <div className="mb-4">
               <span className="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-950 text-rose-300 border border-rose-800/50 mb-1 inline-block">
@@ -1043,6 +1483,8 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
                 Next Scenario →
               </button>
             </div>
+          </div>
+            )}
           </div>
         )}
 
