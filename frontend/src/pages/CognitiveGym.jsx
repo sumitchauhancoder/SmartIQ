@@ -428,94 +428,94 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   const videoMasterclasses = {
     IQ: [
       {
-        title: "The Essence of Calculus & Visual Mathematical Thinking",
+        title: "The Essence of Calculus (Chapter 1)",
         creator: "3Blue1Brown (Grant Sanderson)",
-        duration: "21 mins",
+        duration: "17 mins",
         url: "https://www.youtube.com/watch?v=WUvTyaaNkzM",
         takeaway: "How to develop visual geometric intuition for abstract equations instead of rote memorization."
       },
       {
-        title: "The Science of Thinking & Cognitive Illusion Traps",
-        creator: "Veritasium",
-        duration: "18 mins",
-        url: "https://www.youtube.com/watch?v=UBVV8pch1Rs",
+        title: "The Science of Thinking",
+        creator: "Veritasium (Derek Muller)",
+        duration: "12 mins",
+        url: "https://www.youtube.com/watch?v=UBVV8pch1dM",
         takeaway: "Why human brains default to cognitive shortcuts and how to engage Kahneman's System 2 deliberate reasoning."
       },
       {
-        title: "How to Optimize Focus, Working Memory & Neuroplasticity",
-        creator: "Dr. Andrew Huberman (Huberman Lab)",
-        duration: "28 mins",
-        url: "https://www.youtube.com/watch?v=LG53Vxum0as",
-        takeaway: "Dopamine dynamics, focused attention intervals, and physiological protocols to enhance cognitive endurance."
+        title: "Learning How to Learn: Focused vs Diffuse Thinking",
+        creator: "Dr. Barbara Oakley (TEDx)",
+        duration: "18 mins",
+        url: "https://www.youtube.com/watch?v=O96fE1E-rf8",
+        takeaway: "How switching between focused and diffuse modes of thinking enables the brain to solve deep mathematical and logical problems."
       }
     ],
     EQ: [
       {
-        title: "Emotional Intelligence: Why It Can Matter More Than IQ",
-        creator: "Daniel Goleman",
-        duration: "24 mins",
+        title: "Daniel Goleman Introduces Emotional Intelligence",
+        creator: "Daniel Goleman (Big Think)",
+        duration: "5 mins",
         url: "https://www.youtube.com/watch?v=Y7m9eNoB3NU",
         takeaway: "The 4 core pillars of emotional quotient: self-awareness, self-management, social awareness, and relationship management."
       },
       {
-        title: "The Power of Vulnerability & Empathetic Connection",
+        title: "The Power of Vulnerability",
         creator: "Dr. Brené Brown (TED)",
         duration: "20 mins",
         url: "https://www.youtube.com/watch?v=iCvmsMzlF7o",
-        takeaway: "Why emotional authenticity and non-defensive vulnerability are the foundation of deep trust and influence."
+        takeaway: "Why emotional authenticity and non-defensive vulnerability are the foundation of deep trust and human connection."
       },
       {
-        title: "Nonviolent Communication (NVC) Framework",
-        creator: "Marshall Rosenberg",
-        duration: "32 mins",
-        url: "https://www.youtube.com/watch?v=l7TONauJGfc",
-        takeaway: "The 4-step framework: Observations, Feelings, Needs, and Requests to dissolve interpersonal defensiveness."
+        title: "10 Ways to Have a Better Conversation",
+        creator: "Celeste Headlee (TED)",
+        duration: "12 mins",
+        url: "https://www.youtube.com/watch?v=R1vskiVDwl4",
+        takeaway: "Practical rules for active empathetic listening: set aside personal ego, avoid conversational hijacking, and truly listen."
       }
     ],
     SQ: [
       {
-        title: "Marcus Aurelius: The Stoic Art of Inner Peace & Duty",
-        creator: "The Daily Stoic (Ryan Holiday)",
-        duration: "19 mins",
-        url: "https://www.youtube.com/watch?v=5897dMWJiSM",
-        takeaway: "How Roman Emperor Marcus Aurelius managed wars, betrayal, and plague using daily Stoic journaling and cardinal virtue."
+        title: "Stoicism as a Philosophy for an Ordinary Life",
+        creator: "Massimo Pigliucci (TEDxAthens)",
+        duration: "18 mins",
+        url: "https://www.youtube.com/watch?v=R9oxmRT0Wdk",
+        takeaway: "How ancient Greco-Roman Stoicism and the dichotomy of control serve as a practical toolkit for calm and resilience in everyday life."
       },
       {
-        title: "Man's Search for Meaning: Viktor Frankl's Core Principle",
-        creator: "Logotherapy Masterclass",
-        duration: "15 mins",
-        url: "https://www.youtube.com/watch?v=crfvU_52-3k",
-        takeaway: "Those who have a 'why' to live can bear almost any 'how'. Finding purpose in inevitable suffering."
+        title: "There's More to Life Than Being Happy",
+        creator: "Emily Esfahani Smith (TED)",
+        duration: "12 mins",
+        url: "https://www.youtube.com/watch?v=y9Trdafp83U",
+        takeaway: "Viktor Frankl's insight that chasing shallow happiness drains us; true spiritual grounding comes from the 4 pillars of meaning."
       },
       {
-        title: "The Wisdom of Insecurity & Finding Inner Wholeness",
+        title: "What If Money Was No Object?",
         creator: "Alan Watts",
-        duration: "22 mins",
-        url: "https://www.youtube.com/watch?v=bLhb_eKjUu8",
-        takeaway: "Releasing neurotic control and discovering equanimity by embracing reality as it is."
+        duration: "3 mins",
+        url: "https://www.youtube.com/watch?v=50zewk5WAUM",
+        takeaway: "Why dedicating your life to what you genuinely value creates deeper inner wholeness than chasing hollow external metrics."
       }
     ],
     AQ: [
       {
-        title: "3 Ways to Measure and Improve Your Adaptability Quotient (AQ)",
+        title: "3 Ways to Measure Your Adaptability — and How to Improve It",
         creator: "Natalie Fratto (TED)",
-        duration: "12 mins",
-        url: "https://www.youtube.com/watch?v=h_7Z5pZ41x8",
-        takeaway: "The 3 metrics of high AQ: Asking 'What If...?', Deliberate unlearning, and proactive exploration of novel territory."
+        duration: "6 mins",
+        url: "https://www.youtube.com/watch?v=xJM_CQN8-ns",
+        takeaway: "The 3 metrics of high AQ: Asking 'What If...?', Deliberate unlearning, and proactive exploration over safe exploitation."
       },
       {
-        title: "Day 1 Mentality & High-Velocity Decision Making",
-        creator: "Jeff Bezos (Amazon Principles)",
-        duration: "17 mins",
-        url: "https://www.youtube.com/watch?v=4YmI-3k5mvg",
-        takeaway: "Type 1 vs Type 2 decisions: how to avoid decision paralysis and pivot before 100% of information is available."
-      },
-      {
-        title: "The Illiterate of the 21st Century: Learn, Unlearn, Relearn",
-        creator: "Alvin Toffler Framework",
+        title: "How to Make Hard Choices",
+        creator: "Ruth Chang (TED)",
         duration: "14 mins",
-        url: "https://www.youtube.com/watch?v=wX78iKhInsc",
-        takeaway: "Why old expertise becomes obsolete and how rapid unlearning is the ultimate meta-skill of the modern era."
+        url: "https://www.youtube.com/watch?v=8GQZuzIdeQQ",
+        takeaway: "How to avoid decision paralysis when options are on par, and how making bold pivots allows you to author your own path."
+      },
+      {
+        title: "The Power of Believing That You Can Improve (Growth Mindset)",
+        creator: "Dr. Carol Dweck (TED)",
+        duration: "10 mins",
+        url: "https://www.youtube.com/watch?v=J-swZaKN2Ic",
+        takeaway: "How embracing the 'Power of Yet' transforms unexpected changes and failures into a springboard for rapid adaptability."
       }
     ]
   };
@@ -526,23 +526,23 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
   const articleLibrary = {
     IQ: [
       {
-        title: "Bayesian Updating: How to Think Like a Superforecaster",
+        title: "Predicting the Future with Bayes’ Theorem",
         author: "Farnam Street (Shane Parrish)",
-        readTime: "9 min read",
+        readTime: "8 min read",
         summary: "Learn how to dynamically revise your beliefs as new evidence arrives instead of stubbornly defending initial assumptions.",
         link: "https://fs.blog/bayes-theorem/"
       },
       {
-        title: "The Feynman Technique for Accelerated Conceptual Mastery",
-        author: "Richard Feynman Institute",
-        readTime: "7 min read",
+        title: "The Feynman Learning Technique",
+        author: "Farnam Street",
+        readTime: "6 min read",
         summary: "The 4-step mental algorithm to test true comprehension: simplify, explain to a 12-year-old, pinpoint gaps, and re-synthesize.",
         link: "https://fs.blog/feynman-technique/"
       },
       {
-        title: "Mental Models Index: First Principles & Inversion",
-        author: "Cognitive Science Review",
-        readTime: "12 min read",
+        title: "Mental Models: The Best Way to Make Intelligent Decisions",
+        author: "Farnam Street (Shane Parrish)",
+        readTime: "10 min read",
         summary: "Master Charlie Munger's mental model latticework to solve complex engineering and logical problems.",
         link: "https://fs.blog/mental-models/"
       }
@@ -553,67 +553,67 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
         author: "Dr. David Rock (NeuroLeadership Institute)",
         readTime: "8 min read",
         summary: "The 5 social triggers that activate threat vs reward neurobiology: Status, Certainty, Autonomy, Relatedness, and Fairness.",
-        link: "https://neuroleadership.com/your-brain-at-work/scarf-model-overview/"
+        link: "https://neuroleadership.com/our-solutions/scarf/"
       },
       {
-        title: "Somatic Self-Regulation: The Physiological Sigh Protocol",
-        author: "Huberman Neurobiology Review",
+        title: "What Great Listeners Actually Do",
+        author: "Jack Zenger & Joseph Folkman (Harvard Business Review)",
+        readTime: "8 min read",
+        summary: "Research from thousands of leaders proves great listening is not a passive sponge, but an active 'trampoline' that clarifies thinking and builds trust.",
+        link: "https://hbr.org/2016/07/what-great-listeners-actually-do"
+      },
+      {
+        title: "Breathwork Protocols for Health, Focus and Stress (Physiological Sigh)",
+        author: "Dr. Andrew Huberman (Huberman Lab)",
         readTime: "6 min read",
-        summary: "How double-inhale followed by extended exhale activates the parasympathetic nervous system to drop heart rate in 40 seconds.",
-        link: "https://www.hubermanlab.com/"
-      },
-      {
-        title: "The Art of Active Empathetic Listening in High-Stakes Conflict",
-        author: "Harvard Business Review",
-        readTime: "10 min read",
-        summary: "Moving beyond superficial nodding to mirror emotions, label underlying anxieties, and co-create psychological safety.",
-        link: "https://hbr.org/2018/01/how-to-become-a-better-listener"
+        summary: "How a double-inhale followed by an extended exhale mechanically reopens lung alveoli and rapidly drops heart rate to stop emotional panic.",
+        link: "https://www.hubermanlab.com/newsletter/breathwork-protocols-for-health-focus-and-stress"
       }
     ],
     SQ: [
       {
-        title: "The Enchiridion of Epictetus: A Manual for Living with Serenity",
-        author: "Epictetus / Stoic Classics",
-        readTime: "14 min read",
-        summary: "The definitive ancient guide to mastering the dichotomy of control, enduring slander with equanimity, and valuing virtue above all else.",
-        link: "https://dailystoic.com/epictetus-quotes/"
+        title: "The Stoic Guide to Epictetus & The Dichotomy of Control",
+        author: "Daily Stoic (Ryan Holiday)",
+        readTime: "10 min read",
+        summary: "The definitive guide to Epictetus: mastering what is within your control, enduring adversity with equanimity, and valuing inner virtue.",
+        link: "https://dailystoic.com/epictetus/"
       },
       {
         title: "Amor Fati: The Art of Loving Everything That Happens",
-        author: "Friedrich Nietzsche & Daily Stoic",
+        author: "Daily Stoic (Ryan Holiday)",
         readTime: "7 min read",
-        summary: "Not merely tolerating adversity, but enthusiastically loving whatever occurs as fuel for moral character and growth.",
+        summary: "Not merely tolerating adversity, but enthusiastically treating whatever happens as fuel for moral character and growth.",
         link: "https://dailystoic.com/amor-fati/"
       },
       {
-        title: "Logotherapy & The Will to Meaning",
-        author: "Viktor E. Frankl",
-        readTime: "11 min read",
-        summary: "How human beings can discover purpose in work, love, and courage in the face of unavoidable suffering.",
+        title: "Logotherapy: Viktor Frankl's Will to Meaning",
+        author: "Psychology Today",
+        readTime: "8 min read",
+        summary: "How human beings discover existential purpose through creative work, authentic love, and courage in the face of unavoidable suffering.",
         link: "https://www.psychologytoday.com/us/therapy-types/logotherapy"
       }
     ],
     AQ: [
       {
-        title: "Antifragile: Things That Gain from Disorder",
-        author: "Nassim Nicholas Taleb",
-        readTime: "15 min read",
-        summary: "The difference between fragile (shatters under stress), robust (resists stress), and antifragile (thrives and grows stronger from volatility).",
-        link: "https://fs.blog/antifragile-a-definition/"
+        title: "10 Principles to Live an Antifragile Life",
+        author: "Farnam Street (Shane Parrish)",
+        readTime: "9 min read",
+        summary: "The difference between fragile (breaks under stress), robust (resists stress), and antifragile (thrives and grows stronger from volatility).",
+        link: "https://fs.blog/antifragile-life/"
       },
       {
-        title: "The OODA Loop: Rapid Decision Cycles in Fluid Disruption",
-        author: "Col. John Boyd & Defense Strategy",
+        title: "The OODA Loop: How Fighter Pilots Make Fast and Accurate Decisions",
+        author: "Farnam Street (Shane Parrish)",
         readTime: "10 min read",
-        summary: "Observe, Orient, Decide, Act: how to operate at higher tempo than the environment changes to maintain tactical initiative.",
-        link: "https://fs.blog/john-boyd-ooda-loop/"
+        summary: "Observe, Orient, Decide, Act: how Colonel John Boyd's mental model enables you to operate at a higher tempo than environmental chaos.",
+        link: "https://fs.blog/ooda-loop/"
       },
       {
-        title: "The Habit of Voluntary Discomfort: Hardening Adaptability",
-        author: "Seneca & Modern Resilience Science",
-        readTime: "8 min read",
-        summary: "Practicing controlled novelty and physical/cognitive discomfort regularly so unpredictable crises never catch you off-guard.",
-        link: "https://dailystoic.com/voluntary-discomfort/"
+        title: "Carol Dweck: A Summary of Growth and Fixed Mindsets",
+        author: "Farnam Street (Shane Parrish)",
+        readTime: "7 min read",
+        summary: "Why believing skills are malleable rather than fixed enables frictionless unlearning, resilient problem-solving, and effortless adaptation.",
+        link: "https://fs.blog/carol-dweck-mindset/"
       }
     ]
   };
