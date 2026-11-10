@@ -1184,38 +1184,16 @@ export default function CognitiveGym({ onNavigate, initialPillar = 'IQ' }) {
 
                 {/* Large Countdown Display */}
                 <div className="text-center py-6">
-                  <div className="text-6xl sm:text-7xl font-black font-mono tracking-tight text-white mb-3">
+                  <div className="text-6xl sm:text-7xl font-black font-mono tracking-tight text-white mb-6">
                     {String(Math.floor(pomoSeconds / 60)).padStart(2, '0')}:{String(pomoSeconds % 60).padStart(2, '0')}
                   </div>
                   
-                  {/* Intention statement */}
-                  <div className="max-w-md mx-auto mb-6">
-                    {pomoRunning || pomoLockedIntention ? (
-                      <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-700/50 text-xs text-indigo-200 flex items-center justify-center gap-2">
-                        <Target className="w-4 h-4 text-indigo-400 shrink-0" />
-                        <span className="font-semibold">Target:</span>
-                        <span className="italic truncate">{pomoLockedIntention || pomoIntention || 'Uninterrupted Deep Work'}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={pomoIntention}
-                          onChange={(e) => setPomoIntention(e.target.value)}
-                          placeholder="What ONE problem will you solve in this sprint?"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 focus:border-indigo-500 text-xs text-white placeholder-slate-500 focus:outline-none"
-                        />
-                      </div>
-                    )}
-                  </div>
+
 
                   {/* Controls */}
                   <div className="flex items-center justify-center gap-3">
                     <button
                       onClick={() => {
-                        if (!pomoRunning && pomoIntention) {
-                          setPomoLockedIntention(pomoIntention);
-                        }
                         setPomoRunning((r) => !r);
                       }}
                       className="px-8 py-3 rounded-2xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition-all inline-flex items-center gap-2"
