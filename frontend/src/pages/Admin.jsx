@@ -107,7 +107,80 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     }
   };
 
-  const handleOpenCreate = () => {
+  // Helper to read and optimize images directly from device into compact Base64
+  const compressAndConvertImage = (file, maxDimension = 900, quality = 0.85) => {
+    return new Promise((resolve, reject) => {
+      if (!file) return resolve(null);
+      
+      // If SVG, read as text directly
+      if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(e.target.result); // Fallback to raw base64
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const base64 = await compressAndConvertImage(file);
+      setFormData((prev) => ({
+        ...prev,
+        image_url: base64,
+        is_spatial: true // Auto-flag spatial when image is attached
+      }));
+    } catch (err) {
+      console.error('Image upload failed:', err);
+    }
+  };
+
+  const handleOptionImageUpload = async (index, e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const base64 = await compressAndConvertImage(file, 400, 0.8);
+      setFormData((prev) => {
+        const updated = [...(prev.option_images || ['', '', '', ''])];
+        updated[index] = base64;
+        return { ...prev, option_images: updated };
+      });
+    } catch (err) {
+      console.error('Option image upload failed:', err);
+    }
+  };
+
+    const handleOpenCreate = () => {
     setEditingQuestionId(null);
     setFormData({
       category_type: 'IQ',
@@ -515,29 +588,75 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                 </label>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Question Image URL / SVG
-                </label>
-                <input
-                  type="text"
-                  value={formData.image_url || ''}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://... or <svg>...</svg>"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              {formData.image_url && (
-                <div className="col-span-full p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center">
-                  <span className="text-[10px] text-slate-400 mb-1">Live Image Preview</span>
-                  {typeof formData.image_url === 'string' && formData.image_url.trim().startsWith('<svg') ? (
-                    <div dangerouslySetInnerHTML={{ __html: formData.image_url }} />
-                  ) : (
-                    <img src={formData.image_url} alt="Question preview" className="max-h-32 object-contain rounded-lg" />
+              <div className="col-span-full">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                    <ImageIcon className="w-4 h-4 text-indigo-400" />
+                    <span>Question Visual / Image</span>
+                  </label>
+                  {formData.image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, image_url: '' })}
+                      className="text-[11px] text-rose-400 hover:text-rose-300 font-semibold"
+                    >
+                      ✕ Remove Image
+                    </button>
                   )}
                 </div>
-              )}
+
+                {/* Direct File Upload & URL Field */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  {/* Option 1: Direct File Picker from PC */}
+                  <div>
+                    <input
+                      type="file"
+                      id="main-question-image-picker"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      onChange={handleMainImageUpload}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="main-question-image-picker"
+                      className="w-full py-2.5 px-3 rounded-xl bg-indigo-950/60 border border-indigo-700/60 hover:bg-indigo-900/50 hover:border-indigo-500 text-indigo-200 text-xs font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>📁 Choose Image from PC</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 block mt-1 text-center">
+                      Direct PNG, JPG, or SVG (auto-converts to data)
+                    </span>
+                  </div>
+
+                  {/* Option 2: Fallback Web URL or SVG code */}
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.image_url || ''}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="Or paste https:// link / <svg> code"
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
+                    />
+                    <span className="text-[10px] text-slate-500 block mt-1">
+                      Optional: external link or raw SVG
+                    </span>
+                  </div>
+                </div>
+
+                {/* Live Image Preview Card */}
+                {formData.image_url && (
+                  <div className="p-3 rounded-2xl bg-slate-950 border border-indigo-500/40 flex flex-col items-center shadow-inner">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 mb-2">
+                      Live Image Preview
+                    </span>
+                    {typeof formData.image_url === 'string' && formData.image_url.trim().startsWith('<svg') ? (
+                      <div className="max-h-40 max-w-full overflow-hidden flex items-center justify-center p-2 bg-slate-900 rounded-xl" dangerouslySetInnerHTML={{ __html: formData.image_url }} />
+                    ) : (
+                      <img src={formData.image_url} alt="Question preview" className="max-h-40 max-w-full object-contain rounded-xl border border-slate-800" />
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Options with optional choice images */}
@@ -559,17 +678,53 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                       required
                       className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
-                    <input
-                      type="text"
-                      value={(formData.option_images && formData.option_images[i]) || ''}
-                      onChange={(e) => {
-                        const updated = [...(formData.option_images || ['', '', '', ''])];
-                        updated[i] = e.target.value;
-                        setFormData({ ...formData, option_images: updated });
-                      }}
-                      placeholder={`Image URL for Option ${String.fromCharCode(65 + i)} (Optional)`}
-                      className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={(formData.option_images && formData.option_images[i]) || ''}
+                        onChange={(e) => {
+                          const updated = [...(formData.option_images || ['', '', '', ''])];
+                          updated[i] = e.target.value;
+                          setFormData({ ...formData, option_images: updated });
+                        }}
+                        placeholder={`Option ${String.fromCharCode(65 + i)} image URL or file`}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500 font-mono"
+                      />
+                      <input
+                        type="file"
+                        id={`opt-img-upload-${i}`}
+                        accept="image/*"
+                        onChange={(e) => handleOptionImageUpload(i, e)}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor={`opt-img-upload-${i}`}
+                        className="p-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 cursor-pointer shrink-0 transition-colors"
+                        title="Upload image for this choice"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-indigo-400" />
+                      </label>
+                      {formData.option_images && formData.option_images[i] && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...(formData.option_images || ['', '', '', ''])];
+                            updated[i] = '';
+                            setFormData({ ...formData, option_images: updated });
+                          }}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 px-1 font-bold"
+                          title="Clear image"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {formData.option_images && formData.option_images[i] && (
+                      <div className="mt-1 flex items-center gap-2 p-1 bg-slate-950 rounded-lg border border-slate-800">
+                        <img src={formData.option_images[i]} alt={`Option ${String.fromCharCode(65 + i)} preview`} className="h-8 w-8 object-cover rounded" />
+                        <span className="text-[10px] text-emerald-400 font-semibold">Image Attached</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
