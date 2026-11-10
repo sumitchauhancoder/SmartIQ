@@ -111,6 +111,105 @@ const normalizeSub = (type, sub) => {
   return sub;
 };
 
+// Holistic 4D Intelligence Synthesizer across all completed assessments
+function synthesizeUnified4DProfile(iq, eq, sq, aq) {
+  const scores = [];
+  if (iq) scores.push({ key: 'IQ', name: 'Cognitive IQ', val: iq });
+  if (eq) scores.push({ key: 'EQ', name: 'Emotional EQ', val: eq });
+  if (sq) scores.push({ key: 'SQ', name: 'Spiritual SQ', val: sq });
+  if (aq) scores.push({ key: 'AQ', name: 'Adaptability AQ', val: aq });
+
+  if (scores.length === 0) {
+    return {
+      archetype: 'The Multidimensional Strategist',
+      summary: 'Complete test modules to unlock your personalized 4D intelligence synthesis.',
+      edge: 'Balanced potential across logic, emotional resonance, stoic grounding, and adaptability.',
+      emotionalProfile: 'Calm composure, adaptive empathy, and fluid execution.',
+      growthHabits: []
+    };
+  }
+
+  const compositeAvg = Math.round(scores.reduce((a, b) => a + b.val, 0) / scores.length);
+  const scoreBreakdownText = scores.map(s => `${s.name}: ${s.val}`).join(' • ');
+
+  let archetype = 'The Balanced 4D Integrator';
+  let summary = '';
+  let edge = '';
+  let emotionalProfile = '';
+
+  if (compositeAvg >= 124 && scores.length >= 3) {
+    archetype = 'The Transcendent 4D Polymath';
+    summary = `With an exceptional composite score of ${compositeAvg} pts across your completed assessments (${scoreBreakdownText}), you place well into the Top 5% worldwide compared to the global human baseline of 100. You combine sharp analytical deduction with deep moral grounding, acute emotional perception, and dependable adaptability.`;
+    edge = `Rare multidimensional synergy: You effortlessly bridge high first-principles logic (${iq ? `IQ: ${iq}` : ''}) with existential clarity (${sq ? `SQ: ${sq}` : ''}) and emotional resonance (${eq ? `EQ: ${eq}` : ''}). You can architect complex systems while anchoring teams with purpose and empathy.`;
+    emotionalProfile = `Grounded philosophical equanimity: Master of the dichotomy of control (${sq ? `SQ: ${sq}` : ''}) and high emotional self-regulation (${eq ? `EQ: ${eq}` : ''}). You focus on what you can influence rather than agonizing over external chaos, using your adaptability (${aq ? `AQ: ${aq}` : ''}) to pivot strategies constructively when conditions change.`;
+  } else if ((iq || 0) >= 120 && (sq || 0) >= 120) {
+    archetype = 'The Principled Systems Sage';
+    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you unite deep first-principles logic with unshakeable philosophical grounding. You excel at deconstructing complex technical problems while staying anchored in timeless ethical values.`;
+    edge = `High abstract deduction anchored in immutable principles. You solve intricate architectural dilemmas without losing sight of human purpose and long-term consequences.`;
+    emotionalProfile = `Quiet intellectual composure. Immune to flattery or panic; you evaluate challenges with objective stoic detachment and rational clarity.`;
+  } else if ((iq || 0) >= 120 && (eq || 0) >= 120) {
+    archetype = 'The High-Cognition Empathetic Leader';
+    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you possess the rare combination of high cognitive intelligence and high emotional resonance. You can analyze data rigorously while reading interpersonal dynamics with natural warmth.`;
+    edge = `Bilingual in logic and empathy: You can formulate data-backed technical strategies and articulate them with emotional resonance and clarity.`;
+    emotionalProfile = `High psychological safety and emotional poise. You defuse tension with active listening and collaborative problem solving.`;
+  } else if ((eq || 0) >= 120 && (sq || 0) >= 120) {
+    archetype = 'The Resonant Stoic Visionary';
+    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you possess profound emotional and spiritual maturity. You lead through quiet moral authority, compassionate empathy, and unshakeable inner calm.`;
+    edge = `Unshakeable ethical clarity and restorative emotional leadership. People look to you as a steady harbor during times of friction and ambiguity.`;
+    emotionalProfile = `Serene and deeply grounded. You process criticism without defensiveness and handle interpersonal conflict with restorative grace.`;
+  } else if ((aq || 0) >= 120 && (iq || 0) >= 120) {
+    archetype = 'The Agile Algorithmic Disruptor';
+    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you thrive at the intersection of analytical problem-solving and fast-moving technological change. You assimilate new paradigms (like AI and modern frameworks) effortlessly.`;
+    edge = `Rapid unlearning and relearning coupled with rigorous logical models. You identify structural bottlenecks and test innovative prototypes at speed.`;
+    emotionalProfile = `Fast-paced, resilient, and forward-looking. You treat sudden setbacks as fascinating data points rather than catastrophic roadblocks.`;
+  } else if ((aq || 0) >= 115 && (eq || 0) >= 115) {
+    archetype = 'The Fluid Crisis Leader';
+    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you shine when conditions are volatile. You keep your team calm, adapt your strategy on the fly, and transform organizational confusion into focused execution.`;
+    edge = `De-escalation under uncertainty and agile consensus-building. You help others feel secure while navigating rapid operational pivots.`;
+    emotionalProfile = `Inspiring, flexible, and unflappable under shifting priorities.`;
+  } else if (compositeAvg >= 115) {
+    archetype = 'The Multidimensional Strategist';
+    summary = `With a strong composite score of ${compositeAvg} pts (${scoreBreakdownText}), you are comfortably above the global human average of 100. You demonstrate a healthy, dependable balance across analytical reasoning, empathy, stoic stability, and adaptability.`;
+    edge = `Well-rounded cognitive versatility: You adapt your thinking style smoothly depending on whether a situation demands logic, emotional support, ethical conviction, or quick pivoting.`;
+    emotionalProfile = `Calm, steady, and constructive. You handle everyday responsibilities and transitions with confidence and composure.`;
+  } else if (compositeAvg >= 95) {
+    archetype = 'The Balanced 4D Integrator';
+    summary = `Your composite score of ${compositeAvg} pts (${scoreBreakdownText}) places you right in the healthy world average range (World Average: 100). You have solid, practical everyday capabilities across thinking, relating to others, and handling change.`;
+    edge = `Practical common-sense problem solving and dependable day-to-day execution. Regular training in the Cognitive Gym will help you unlock high-tier mastery.`;
+    emotionalProfile = `Generally steady in standard environments; taking short pauses before reacting helps you stay composed during unexpected stress.`;
+  } else {
+    archetype = 'The Developing Multidimensional Explorer';
+    summary = `With a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you are building your cognitive foundations. Targeted practice in the Cognitive Gym and daily reflective habits will create rapid gains across all four intelligence areas.`;
+    edge = `Eager to learn and improve. Focus on foundational logic puzzles, active listening, and daily calm breathing to strengthen your resilience.`;
+    emotionalProfile = `Can feel overwhelmed by sudden pressure; benefits from building structured routines and daily reflection.`;
+  }
+
+  const growthHabits = [
+    {
+      habit: "Combinatorial Puzzle & Speed Drills (IQ)",
+      frequency: "Weekly (15-20 mins)",
+      action: "Spend 10 minutes solving math puzzles, playing chess, or trying speed drills in the Cognitive Gym."
+    },
+    {
+      habit: "10-Minute Reflective Emotional Journal (EQ)",
+      frequency: "Nightly",
+      action: "Note moments during the day where you felt calm or stressed, and practice listening actively to others."
+    },
+    {
+      habit: "Stoic Control Audit & Amor Fati (SQ)",
+      frequency: "Daily (Morning)",
+      action: "Focus your energy strictly on choices within your control, letting go of outcomes dictated by external factors."
+    },
+    {
+      habit: "The 'What If...?' Agility Simulation (AQ)",
+      frequency: "Daily (10 mins)",
+      action: "Challenge a fixed daily habit by asking: 'If this tool or constraint changed tomorrow, how would I pivot?'"
+    }
+  ];
+
+  return { archetype, summary, edge, emotionalProfile, growthHabits };
+}
+
 export default function Results({ 
   resultsData, 
   iqData: propIQ, 
@@ -171,21 +270,32 @@ export default function Results({
   const sqBreakdown = sq?.sq_breakdown || {};
   const aqBreakdown = aq?.aq_breakdown || {};
 
-  // Unified Archetype Synthesis: Prefer combined resultsData if present, or latest test's AI analysis
-  let archetype = 'The Multidimensional Strategist';
-  let summary = 'You exhibit a dynamic cross-section of analytical reasoning, emotional awareness, philosophical grounding, and crisis agility.';
-  let edge = 'Balanced multi-vector cognition across diverse high-complexity problem domains.';
-  let emotionalProfile = 'Calm composure, adaptive empathy, and fluid pivot execution.';
-  let growthHabits = [];
+  // Unified 4D Archetype Synthesis:
+  // When viewing the Unified 4D Matrix, analyze ALL completed tests TOGETHER as a holistic synthesis!
+  const combinedSynthesis = synthesizeUnified4DProfile(iqScore, eqScore, sqScore, aqScore);
+  let archetype = combinedSynthesis.archetype;
+  let summary = combinedSynthesis.summary;
+  let edge = combinedSynthesis.edge;
+  let emotionalProfile = combinedSynthesis.emotionalProfile;
+  let growthHabits = combinedSynthesis.growthHabits;
 
-  const sourceAnalysis = resultsData?.ai_analysis || aq?.ai_analysis || sq?.ai_analysis || eq?.ai_analysis || iq?.ai_analysis;
-
-  if (sourceAnalysis) {
-    archetype = sourceAnalysis.archetype_title || archetype;
-    summary = sourceAnalysis.core_summary || summary;
-    edge = sourceAnalysis.cognitive_edge || edge;
-    emotionalProfile = sourceAnalysis.emotional_profile || emotionalProfile;
-    growthHabits = sourceAnalysis.growth_habits || [];
+  if (resultsData?.test_type === 'COMBINED' && resultsData?.ai_analysis) {
+    const ai = resultsData.ai_analysis;
+    archetype = ai.archetype_title || combinedSynthesis.archetype;
+    summary = ai.core_summary || combinedSynthesis.summary;
+    edge = ai.cognitive_edge || combinedSynthesis.edge;
+    emotionalProfile = ai.emotional_profile || combinedSynthesis.emotionalProfile;
+    growthHabits = ai.growth_habits || combinedSynthesis.growthHabits;
+  } else if (completedCount === 1) {
+    // Only fall back to single test analysis if user has completed exactly 1 test
+    const singleSource = aq?.ai_analysis || sq?.ai_analysis || eq?.ai_analysis || iq?.ai_analysis;
+    if (singleSource) {
+      archetype = singleSource.archetype_title || combinedSynthesis.archetype;
+      summary = singleSource.core_summary || combinedSynthesis.summary;
+      edge = singleSource.cognitive_edge || combinedSynthesis.edge;
+      emotionalProfile = singleSource.emotional_profile || combinedSynthesis.emotionalProfile;
+      growthHabits = singleSource.growth_habits || combinedSynthesis.growthHabits;
+    }
   }
 
   // Fallback default habits if empty
