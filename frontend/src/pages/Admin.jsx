@@ -20,7 +20,8 @@ import {
   createAdminQuestion, 
   updateAdminQuestion, 
   deleteAdminQuestion, 
-  fetchAdminStats 
+  fetchAdminStats,
+  resetAdminQuestions
 } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,7 +31,22 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
   const [stats, setStats] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [loadError, setLoadError] = useState('');
+
+  const handleResetPool = async () => {
+    if (!window.confirm("Clean out legacy questions and reset the pool to exactly the 80 approved project questions (20 IQ, 20 EQ, 20 SQ, 20 AQ)?")) return;
+    setResetting(true);
+    try {
+      await resetAdminQuestions(token);
+      await loadDashboard();
+      alert("Success! Question pool has been cleaned and synchronized to the 80 project questions.");
+    } catch (err) {
+      alert(`Reset failed: ${err.message || 'Please check admin connection'}`);
+    } finally {
+      setResetting(false);
+    }
+  };
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('ALL');
@@ -362,13 +378,26 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
           </div>
         </div>
 
-        <button
-          onClick={handleOpenCreate}
-          className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Create New Question</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={handleResetPool}
+            disabled={resetting}
+            title="Clean legacy questions & sync pool to the 80 project questions"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-600 text-slate-300 transition-all shadow-sm"
+          >
+            <RotateCcw className={`w-3.5 h-3.5 ${resetting ? 'animate-spin text-indigo-400' : 'text-slate-400'}`} />
+            <span>{resetting ? 'Syncing...' : 'Clean & Sync 80 Questions'}</span>
+          </button>
+
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md shadow-indigo-600/20"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Create New Question</span>
+          </button>
+        </div>
       </div>
 
       {/* Create / Edit Question Modal */}

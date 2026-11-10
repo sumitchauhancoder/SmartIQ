@@ -779,3 +779,9 @@ def get_admin_stats(admin: Dict[str, Any] = Depends(auth.require_admin)):
     """Returns aggregated platform metrics, distributions, and tab switch frequencies."""
     stats = database.get_admin_stats()
     return {"status": "success", "data": stats}
+
+@app.post("/api/admin/questions/reset-seed")
+def reset_questions_to_seed(admin: Dict[str, Any] = Depends(auth.require_admin)):
+    """Wipes legacy questions and synchronizes the question pool to the approved 80 project questions."""
+    database.reset_pool_to_seed()
+    return {"status": "success", "message": "Question pool synchronized to 80 project questions successfully"}

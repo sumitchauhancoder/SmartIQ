@@ -203,6 +203,25 @@ export async function deleteAdminQuestion(id, tokenOrKey) {
 /**
  * Admin API: Fetch platform statistics
  */
+/**
+ * Admin API: Reset and synchronize question pool to the approved 80 project questions
+ */
+export async function resetAdminQuestions(tokenOrKey) {
+  const headers = await resolveAuthHeaders(tokenOrKey, {
+    'Accept': 'application/json'
+  });
+  const res = await fetch(`${API_BASE_URL}/api/admin/questions/reset-seed`, {
+    method: 'POST',
+    headers
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error(`[SmartIQ Admin API] Failed resetAdminQuestions: HTTP ${res.status}`, errorText);
+    throw new Error(`Failed to reset question pool (${res.status}): ${errorText}`);
+  }
+  return res.json();
+}
+
 export async function fetchAdminStats(tokenOrKey) {
   const headers = await resolveAuthHeaders(tokenOrKey, { 'Accept': 'application/json' });
   const res = await fetch(`${API_BASE_URL}/api/admin/stats`, { headers });

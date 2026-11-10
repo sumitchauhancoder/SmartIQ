@@ -127,6 +127,17 @@ def init_postgres_db():
             except Exception as admin_err:
                 print(f"[SmartIQ Database] Notice on superadmin role sync: {admin_err}")
 
+            # Purge legacy / deprecated questions not in the approved 80 SEEDED_QUESTIONS pool
+            approved_texts = [q["question_text"] for q in SEEDED_QUESTIONS]
+            if approved_texts:
+                try:
+                    conn.execute(
+                        text("DELETE FROM questions WHERE question_text NOT IN :approved_texts"),
+                        {"approved_texts": tuple(approved_texts)}
+                    )
+                except Exception as purge_err:
+                    print(f"[SmartIQ Database] Notice on legacy question purge: {purge_err}")
+
             # Seed questions that don't already exist in the pool
             insert_stmt = text("""
                 INSERT INTO questions (
@@ -936,3 +947,61 @@ def get_admin_stats() -> Dict[str, Any]:
         },
         "recent_submissions": recent
     }
+
+def reset_pool_to_seed() -> bool:
+    """Wipes obsolete questions and strictly synchronizes the question pool to the 80 SEEDED_QUESTIONS."""
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        with _engine.begin() as conn:
+            conn.execute(text("TRUNCATE TABLE questions RESTART IDENTITY CASCADE;"))
+            insert_stmt = text("""
+                INSERT INTO questions (
+                    category_type, sub_category, question_text, diagram_svg,
+                    options, correct_answer_index, points, explanation, image_url, is_spatial
+                ) VALUES (
+                    :category_type, :sub_category, :question_text, :diagram_svg,
+                    :options, :correct_answer_index, :points, :explanation, :image_url, :is_spatial
+                )
+            """)
+            for q in SEEDED_QUESTIONS:
+                conn.execute(insert_stmt, {
+                    "category_type": q["category_type"],
+                    "sub_category": q["sub_category"],
+                    "question_text": q["question_text"],
+                    "diagram_svg": q.get("diagram_svg"),
+                    "options": json.dumps(q["options"]),
+                    "correct_answer_index": q["correct_answer_index"],
+                    "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                    "explanation": q["explanation"],
+                    "image_url": q.get("image_url"),
+                    "is_spatial": bool(q.get("is_spatial", False))
+                })
+        return True
+
+    # SQLite
+    conn = get_sqlite_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM questions")
+    for q in SEEDED_QUESTIONS:
+        cursor.execute("""
+            INSERT INTO questions (
+                category_type, sub_category, question_text, diagram_svg,
+                options_json, correct_answer_index, points_json, explanation, is_active,
+                image_url, is_spatial, option_images_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+        """, (
+            q["category_type"].upper(),
+            q["sub_category"],
+            q["question_text"],
+            q.get("diagram_svg"),
+            json.dumps(q["options"]),
+            q["correct_answer_index"],
+            json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+            q["explanation"],
+            q.get("image_url"),
+            1 if q.get("is_spatial") else 0,
+            json.dumps(q.get("option_images")) if q.get("option_images") else None
+        ))
+    conn.commit()
+    conn.close()
+    return True
