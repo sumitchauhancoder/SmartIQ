@@ -173,7 +173,8 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     try {
       const base64 = await compressAndConvertImage(file, 400, 0.8);
       setFormData((prev) => {
-        const updated = [...(prev.option_images || ['', '', '', ''])];
+        const fallback = Array(prev.options?.length || 4).fill('');
+        const updated = [...(prev.option_images && prev.option_images.length === fallback.length ? prev.option_images : fallback)];
         updated[index] = base64;
         return { ...prev, option_images: updated };
       });
@@ -182,7 +183,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     }
   };
 
-    const handleOpenCreate = () => {
+  const handleOpenCreate = () => {
     setEditingQuestionId(null);
     setFormData({
       category_type: 'IQ',
@@ -202,29 +203,31 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
 
   const handleOpenEdit = (q) => {
     setEditingQuestionId(q.id);
-    const opts = Array.isArray(q.options) ? q.options : ['', '', '', ''];
-    while (opts.length < 4) opts.push('');
+    const cat = q.category_type || 'IQ';
+    const targetCount = cat === 'IQ' ? 4 : 5;
 
-    let optImgs = ['', '', '', ''];
+    const opts = Array.isArray(q.options) ? [...q.options] : [];
+    while (opts.length < targetCount) opts.push('');
+
+    let optImgs = [];
     if (Array.isArray(q.option_images)) {
       optImgs = [...q.option_images];
-      while (optImgs.length < 4) optImgs.push('');
     } else if (Array.isArray(q.options)) {
       optImgs = q.options.map((o) => (typeof o === 'object' && o !== null ? o.image_url || '' : ''));
-      while (optImgs.length < 4) optImgs.push('');
     }
+    while (optImgs.length < targetCount) optImgs.push('');
 
     setFormData({
-      category_type: q.category_type || 'IQ',
-      sub_category: q.sub_category || 'Logic',
+      category_type: cat,
+      sub_category: q.sub_category || (cat === 'EQ' ? 'Self-Awareness' : cat === 'SQ' ? 'Philosophy & Stoicism' : cat === 'AQ' ? 'Crisis Management & Resilience' : 'Logic'),
       question_text: q.question_text || '',
-      options: opts.slice(0, 4),
-      correct_answer_index: q.correct_answer_index !== undefined ? q.correct_answer_index : 0,
+      options: opts.slice(0, targetCount),
+      correct_answer_index: q.correct_answer_index !== undefined ? Math.min(q.correct_answer_index, targetCount - 1) : 0,
       explanation: q.explanation || '',
       diagram_svg: q.diagram_svg || '',
       image_url: q.image_url || '',
       is_spatial: Boolean(q.is_spatial),
-      option_images: optImgs.slice(0, 4)
+      option_images: optImgs.slice(0, targetCount)
     });
     setFormStatus({ message: '', isError: false });
     setShowFormModal(true);
@@ -240,8 +243,9 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
     e.preventDefault();
     setFormStatus({ message: '', isError: false });
 
-    if (!formData.question_text || formData.options.some((opt) => !opt.trim())) {
-      setFormStatus({ message: 'Please provide question text and all 4 response choices.', isError: true });
+    const targetCount = formData.category_type === 'IQ' ? 4 : 5;
+    if (!formData.question_text || formData.options.length !== targetCount || formData.options.some((opt) => !opt.trim())) {
+      setFormStatus({ message: `Please provide question text and all ${targetCount} response choices.`, isError: true });
       return;
     }
 
@@ -509,10 +513,33 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                     else if (val === 'SQ') defaultSub = 'Philosophy & Stoicism';
                     else if (val === 'AQ') defaultSub = 'Crisis Management & Resilience';
 
+                    const targetCount = val === 'IQ' ? 4 : 5;
+                    let newOptions = [...formData.options];
+                    let newOptionImages = [...(formData.option_images || [])];
+
+                    if (newOptions.length < targetCount) {
+                      while (newOptions.length < targetCount) newOptions.push('');
+                    } else if (newOptions.length > targetCount) {
+                      newOptions = newOptions.slice(0, targetCount);
+                    }
+
+                    if (newOptionImages.length < targetCount) {
+                      while (newOptionImages.length < targetCount) newOptionImages.push('');
+                    } else if (newOptionImages.length > targetCount) {
+                      newOptionImages = newOptionImages.slice(0, targetCount);
+                    }
+
+                    const newCorrectIndex = formData.correct_answer_index >= targetCount 
+                      ? targetCount - 1 
+                      : formData.correct_answer_index;
+
                     setFormData({
                       ...formData,
                       category_type: val,
-                      sub_category: defaultSub
+                      sub_category: defaultSub,
+                      options: newOptions,
+                      option_images: newOptionImages,
+                      correct_answer_index: newCorrectIndex
                     });
                   }}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
@@ -664,11 +691,11 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
             {/* Options with optional choice images */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-2">
-                Response Choices (4 Options) & Optional Option Images
+                Response Choices ({formData.options.length} Options) & Optional Option Images
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {formData.options.map((opt, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                  <div key={i} className={`p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 ${i === 4 && formData.options.length === 5 ? 'sm:col-span-2' : ''}`}>
                     <label className="block text-[11px] font-semibold text-indigo-300">
                       Option {String.fromCharCode(65 + i)}
                     </label>
@@ -685,7 +712,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                         type="text"
                         value={(formData.option_images && formData.option_images[i]) || ''}
                         onChange={(e) => {
-                          const updated = [...(formData.option_images || ['', '', '', ''])];
+                          const updated = [...(formData.option_images || Array(formData.options.length).fill(''))];
                           updated[i] = e.target.value;
                           setFormData({ ...formData, option_images: updated });
                         }}
@@ -710,7 +737,7 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
                         <button
                           type="button"
                           onClick={() => {
-                            const updated = [...(formData.option_images || ['', '', '', ''])];
+                            const updated = [...(formData.option_images || Array(formData.options.length).fill(''))];
                             updated[i] = '';
                             setFormData({ ...formData, option_images: updated });
                           }}
@@ -735,17 +762,18 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  {formData.category_type === 'IQ' ? 'Correct Answer Index' : 'Optimal Answer Index (4-pt Choice)'}
+                  {formData.category_type === 'IQ' ? 'Correct Answer Index' : `Optimal Answer Index (${formData.options.length}-Choice Scale)`}
                 </label>
                 <select
                   value={formData.correct_answer_index}
                   onChange={(e) => setFormData({ ...formData, correct_answer_index: parseInt(e.target.value) })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-indigo-500"
                 >
-                  <option value={0}>Option A (Index 0)</option>
-                  <option value={1}>Option B (Index 1)</option>
-                  <option value={2}>Option C (Index 2)</option>
-                  <option value={3}>Option D (Index 3)</option>
+                  {formData.options.map((_, idx) => (
+                    <option key={idx} value={idx}>
+                      Option {String.fromCharCode(65 + idx)} (Index {idx})
+                    </option>
+                  ))}
                 </select>
               </div>
 
