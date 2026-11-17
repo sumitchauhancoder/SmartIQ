@@ -869,7 +869,7 @@ def record_submission(
 
 
 def get_admin_stats() -> Dict[str, Any]:
-    """Computes aggregated platform metrics and performance distributions across IQ, EQ, SQ, and AQ."""
+    """Computes aggregated platform metrics and performance distributions across IQ, EQ, SQ, and AQ normalized to 0-100%."""
     if _use_postgres and _engine:
         from sqlalchemy import text
         try:
@@ -887,10 +887,10 @@ def get_admin_stats() -> Dict[str, Any]:
                 if total_tests == 0:
                     return {
                         "total_tests": 0,
-                        "average_iq": 100,
-                        "average_eq": 100,
-                        "average_sq": 100,
-                        "average_aq": 100,
+                        "average_iq": 60.0,
+                        "average_eq": 60.0,
+                        "average_sq": 60.0,
+                        "average_aq": 60.0,
                         "tab_switch_rate": 0.0,
                         "pool_distribution": pool_distribution,
                         "iq_distribution": {"below_average": 0, "average": 0, "gifted": 0, "genius": 0},
@@ -899,20 +899,20 @@ def get_admin_stats() -> Dict[str, Any]:
 
                 avg_row = conn.execute(text("""
                     SELECT 
-                        AVG(iq_score) as avg_iq,
-                        AVG(eq_score) as avg_eq,
-                        AVG(sq_score) as avg_sq,
-                        AVG(aq_score) as avg_aq,
+                        AVG(CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE iq_score END) as avg_iq,
+                        AVG(CASE WHEN eq_score > 100 THEN ((eq_score - 70.0) / 75.0) * 100.0 ELSE eq_score END) as avg_eq,
+                        AVG(CASE WHEN sq_score > 100 THEN ((sq_score - 70.0) / 75.0) * 100.0 ELSE sq_score END) as avg_sq,
+                        AVG(CASE WHEN aq_score > 100 THEN ((aq_score - 70.0) / 75.0) * 100.0 ELSE aq_score END) as avg_aq,
                         AVG(tab_switch_count) as avg_switches
                     FROM submissions
                 """)).mappings().first()
 
                 dist_row = conn.execute(text("""
                     SELECT 
-                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 90 THEN 1 ELSE 0 END), 0) as below_average,
-                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 90 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 115 THEN 1 ELSE 0 END), 0) as average,
-                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 115 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 130 THEN 1 ELSE 0 END), 0) as gifted,
-                        COALESCE(SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 130 THEN 1 ELSE 0 END), 0) as genius
+                        COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 40 THEN 1 ELSE 0 END), 0) as developing,
+                        COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 40 AND (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 65 THEN 1 ELSE 0 END), 0) as balanced,
+                        COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 65 AND (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 85 THEN 1 ELSE 0 END), 0) as proficient,
+                        COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 85 THEN 1 ELSE 0 END), 0) as exceptional
                     FROM submissions
                 """)).mappings().first()
 
@@ -923,21 +923,33 @@ def get_admin_stats() -> Dict[str, Any]:
                     LIMIT 10
                 """)).mappings().all()
 
+                norm_recent = []
+                for r in recent_rows:
+                    item = dict(r)
+                    for k in ["iq_score", "eq_score", "sq_score", "aq_score"]:
+                        val = item.get(k)
+                        if val is not None:
+                            if val > 100:
+                                item[k] = max(0, min(100, round(((val - 70.0) / 75.0) * 100.0)))
+                            else:
+                                item[k] = max(0, min(100, round(float(val))))
+                    norm_recent.append(item)
+
                 return {
                     "total_tests": total_tests,
-                    "average_iq": round(float(avg_row["avg_iq"] or 100), 1),
-                    "average_eq": round(float(avg_row["avg_eq"] or 100), 1),
-                    "average_sq": round(float(avg_row["avg_sq"] or 100), 1),
-                    "average_aq": round(float(avg_row["avg_aq"] or 100), 1),
+                    "average_iq": round(float(avg_row["avg_iq"] or 60.0), 1),
+                    "average_eq": round(float(avg_row["avg_eq"] or 60.0), 1),
+                    "average_sq": round(float(avg_row["avg_sq"] or 60.0), 1),
+                    "average_aq": round(float(avg_row["avg_aq"] or 60.0), 1),
                     "tab_switch_rate": round(float(avg_row["avg_switches"] or 0.0), 2),
                     "pool_distribution": pool_distribution,
                     "iq_distribution": {
-                        "below_average": int(dist_row["below_average"]),
-                        "average": int(dist_row["average"]),
-                        "gifted": int(dist_row["gifted"]),
-                        "genius": int(dist_row["genius"])
+                        "below_average": int(dist_row["developing"] if dist_row else 0),
+                        "average": int(dist_row["balanced"] if dist_row else 0),
+                        "gifted": int(dist_row["proficient"] if dist_row else 0),
+                        "genius": int(dist_row["exceptional"] if dist_row else 0)
                     },
-                    "recent_submissions": [dict(r) for r in recent_rows]
+                    "recent_submissions": norm_recent
                 }
         except Exception as e:
             print(f"[SmartIQ Database] Error getting Postgres stats ({e}). Using SQLite fallback.")
@@ -956,10 +968,10 @@ def get_admin_stats() -> Dict[str, Any]:
         conn.close()
         return {
             "total_tests": 0,
-            "average_iq": 100,
-            "average_eq": 100,
-            "average_sq": 100,
-            "average_aq": 100,
+            "average_iq": 60.0,
+            "average_eq": 60.0,
+            "average_sq": 60.0,
+            "average_aq": 60.0,
             "tab_switch_rate": 0.0,
             "pool_distribution": pool_distribution,
             "iq_distribution": {"below_average": 0, "average": 0, "gifted": 0, "genius": 0},
@@ -968,10 +980,10 @@ def get_admin_stats() -> Dict[str, Any]:
 
     cursor.execute("""
         SELECT 
-            AVG(iq_score) as avg_iq,
-            AVG(eq_score) as avg_eq,
-            AVG(sq_score) as avg_sq,
-            AVG(aq_score) as avg_aq,
+            AVG(CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE iq_score END) as avg_iq,
+            AVG(CASE WHEN eq_score > 100 THEN ((eq_score - 70.0) / 75.0) * 100.0 ELSE eq_score END) as avg_eq,
+            AVG(CASE WHEN sq_score > 100 THEN ((sq_score - 70.0) / 75.0) * 100.0 ELSE sq_score END) as avg_sq,
+            AVG(CASE WHEN aq_score > 100 THEN ((aq_score - 70.0) / 75.0) * 100.0 ELSE aq_score END) as avg_aq,
             AVG(tab_switch_count) as avg_switches
         FROM submissions
     """)
@@ -979,10 +991,10 @@ def get_admin_stats() -> Dict[str, Any]:
 
     cursor.execute("""
         SELECT 
-            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 90 THEN 1 ELSE 0 END) as below_average,
-            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 90 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 115 THEN 1 ELSE 0 END) as average,
-            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 115 AND COALESCE(iq_score, eq_score, sq_score, aq_score, 100) < 130 THEN 1 ELSE 0 END) as gifted,
-            SUM(CASE WHEN COALESCE(iq_score, eq_score, sq_score, aq_score, 100) >= 130 THEN 1 ELSE 0 END) as genius
+            COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 40 THEN 1 ELSE 0 END), 0) as developing,
+            COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 40 AND (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 65 THEN 1 ELSE 0 END), 0) as balanced,
+            COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 65 AND (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) < 85 THEN 1 ELSE 0 END), 0) as proficient,
+            COALESCE(SUM(CASE WHEN (CASE WHEN iq_score > 100 THEN ((iq_score - 70.0) / 75.0) * 100.0 ELSE COALESCE(iq_score, 60) END) >= 85 THEN 1 ELSE 0 END), 0) as exceptional
         FROM submissions
     """)
     dist_row = cursor.fetchone()
@@ -993,45 +1005,32 @@ def get_admin_stats() -> Dict[str, Any]:
         ORDER BY id DESC
         LIMIT 10
     """)
-    recent = [dict(r) for r in cursor.fetchall()]
+    recent = []
+    for r in cursor.fetchall():
+        item = dict(r)
+        for k in ["iq_score", "eq_score", "sq_score", "aq_score"]:
+            val = item.get(k)
+            if val is not None:
+                if val > 100:
+                    item[k] = max(0, min(100, round(((val - 70.0) / 75.0) * 100.0)))
+                else:
+                    item[k] = max(0, min(100, round(float(val))))
+        recent.append(item)
     conn.close()
 
     return {
         "total_tests": total_tests,
-        "average_iq": round(stats_row["avg_iq"] or 100, 1) if stats_row["avg_iq"] else 100,
-        "average_eq": round(stats_row["avg_eq"] or 100, 1) if stats_row["avg_eq"] else 100,
-        "average_sq": round(stats_row["avg_sq"] or 100, 1) if stats_row["avg_sq"] else 100,
-        "average_aq": round(stats_row["avg_aq"] or 100, 1) if stats_row["avg_aq"] else 100,
-        "tab_switch_rate": round(stats_row["avg_switches"] or 0.0, 2) if stats_row["avg_switches"] else 0.0,
+        "average_iq": round(float(stats_row["avg_iq"] or 60.0), 1) if stats_row["avg_iq"] else 60.0,
+        "average_eq": round(float(stats_row["avg_eq"] or 60.0), 1) if stats_row["avg_eq"] else 60.0,
+        "average_sq": round(float(stats_row["avg_sq"] or 60.0), 1) if stats_row["avg_sq"] else 60.0,
+        "average_aq": round(float(stats_row["avg_aq"] or 60.0), 1) if stats_row["avg_aq"] else 60.0,
+        "tab_switch_rate": round(float(stats_row["avg_switches"] or 0.0), 2) if stats_row["avg_switches"] else 0.0,
         "pool_distribution": pool_distribution,
         "iq_distribution": {
-            "below_average": dist_row["below_average"] or 0,
-            "average": dist_row["average"] or 0,
-            "gifted": dist_row["gifted"] or 0,
-            "genius": dist_row["genius"] or 0
-        },
-        "recent_submissions": recent
-    }
-
-    cursor.execute("""
-        SELECT session_id, iq_score, eq_score, tab_switch_count, archetype_title, created_at
-        FROM submissions
-        ORDER BY id DESC
-        LIMIT 10
-    """)
-    recent = [dict(r) for r in cursor.fetchall()]
-    conn.close()
-
-    return {
-        "total_tests": total_tests,
-        "average_iq": round(stats_row["avg_iq"] or 100, 1),
-        "average_eq": round(stats_row["avg_eq"] or 100, 1),
-        "tab_switch_rate": round(stats_row["avg_switches"] or 0.0, 2),
-        "iq_distribution": {
-            "below_average": dist_row["below_average"] or 0,
-            "average": dist_row["average"] or 0,
-            "gifted": dist_row["gifted"] or 0,
-            "genius": dist_row["genius"] or 0
+            "below_average": int(dist_row["developing"] if dist_row else 0),
+            "average": int(dist_row["balanced"] if dist_row else 0),
+            "gifted": int(dist_row["proficient"] if dist_row else 0),
+            "genius": int(dist_row["exceptional"] if dist_row else 0)
         },
         "recent_submissions": recent
     }
@@ -1362,26 +1361,42 @@ def save_assessment_submission(user_id: Optional[str], raw_scores: Dict[str, flo
                         "responses": json.dumps(responses)
                     }
                 )
-            return record_id
         except Exception as e:
             print(f"[Assessment DB] Error saving to PostgreSQL: {e}")
 
     # SQLite
-    conn = get_sqlite_conn()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO assessment_results (id, user_id, raw_scores, composite_score, tier, ai_analysis, responses)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        record_id,
-        user_id,
-        json.dumps(raw_scores),
-        composite_score,
-        tier,
-        json.dumps(ai_analysis),
-        json.dumps(responses)
-    ))
-    conn.commit()
-    conn.close()
+    else:
+        conn = get_sqlite_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO assessment_results (id, user_id, raw_scores, composite_score, tier, ai_analysis, responses)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            record_id,
+            user_id,
+            json.dumps(raw_scores),
+            composite_score,
+            tier,
+            json.dumps(ai_analysis),
+            json.dumps(responses)
+        ))
+        conn.commit()
+        conn.close()
+
+    # Dual-record into submissions table for unified platform metrics
+    try:
+        record_submission(
+            session_id=record_id,
+            user_id=user_id,
+            iq_score=round(raw_scores.get("IQ", 60.0)),
+            eq_score=round(raw_scores.get("EQ", 60.0)),
+            sq_score=round(raw_scores.get("SQ", 60.0)),
+            aq_score=round(raw_scores.get("AQ", 60.0)),
+            test_type="ASSESSMENT_4D",
+            archetype_title=ai_analysis.get("archetypeTitle") if isinstance(ai_analysis, dict) else None
+        )
+    except Exception as e:
+        print(f"[Assessment DB] Dual-record to submissions notice: {e}")
+
     return record_id
 

@@ -397,25 +397,33 @@ export default function Admin({ onOpenAuth, onNavigateHome }) {
 
           <div className="glass-panel p-4 rounded-2xl border border-blue-500/30">
             <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-1">Avg IQ</span>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_iq}</div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {stats.average_iq !== undefined ? `${stats.average_iq}%` : '60%'}
+            </div>
             <span className="text-[10px] text-slate-500 mt-0.5 block">Cognitive Logic</span>
           </div>
 
           <div className="glass-panel p-4 rounded-2xl border border-rose-500/30">
             <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">Avg EQ</span>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_eq}</div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {stats.average_eq !== undefined ? `${stats.average_eq}%` : '60%'}
+            </div>
             <span className="text-[10px] text-slate-500 mt-0.5 block">Emotional</span>
           </div>
 
           <div className="glass-panel p-4 rounded-2xl border border-amber-500/30">
             <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">Avg SQ</span>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_sq || 100}</div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {stats.average_sq !== undefined ? `${stats.average_sq}%` : '60%'}
+            </div>
             <span className="text-[10px] text-slate-500 mt-0.5 block">Stoic & Meaning</span>
           </div>
 
           <div className="glass-panel p-4 rounded-2xl border border-emerald-500/30">
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Avg AQ</span>
-            <div className="text-xl sm:text-2xl font-black text-white font-mono">{stats.average_aq || 100}</div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono">
+              {stats.average_aq !== undefined ? `${stats.average_aq}%` : '60%'}
+            </div>
             <span className="text-[10px] text-slate-500 mt-0.5 block">Adaptability</span>
           </div>
 
