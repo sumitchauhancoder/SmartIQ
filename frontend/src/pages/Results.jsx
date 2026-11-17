@@ -27,61 +27,59 @@ import {
 import PerformanceChart from '../components/PerformanceChart';
 import ScoreSpectrumRuler from '../components/ScoreSpectrumRuler';
 
-// Empirical Gaussian Normal Psychometrics (Global Mean = 100, Std Dev = 15)
+// Helper to normalize any raw score or legacy Wechsler score (70-145) to 0-100%
+export const normalizeToPercent = (s) => {
+  if (s === null || s === undefined) return null;
+  const num = Number(s);
+  if (isNaN(num)) return null;
+  if (num <= 100) return Math.max(0, Math.min(100, Math.round(num)));
+  // Legacy Wechsler (70-145) to 0-100%
+  return Math.max(0, Math.min(100, Math.round(((num - 85) / 60) * 100)));
+};
+
+// Standardized 4-Tier Evaluation Engine (0-39% Developing, 40-64% Balanced, 65-84% Proficient, 85-100% Exceptional)
 function calculatePsychometrics(score) {
-  const numScore = Number(score) || 100;
-  const zScore = (numScore - 100) / 15.0;
+  const numScore = normalizeToPercent(score) ?? 50;
 
-  // Standard normal CDF approximation (Abramowitz & Stegun formula)
-  const absZ = Math.abs(zScore);
-  const t = 1.0 / (1.0 + 0.2316419 * absZ);
-  const d = 0.3989422804014327 * Math.exp(-absZ * absZ / 2.0);
-  let cdf = 1.0 - d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-  if (zScore < 0) cdf = 1.0 - cdf;
-
-  const percentile = Math.min(99, Math.max(1, Math.round(cdf * 100)));
-
+  let tier = '';
   let classification = '';
   let badgeColor = '';
   let honestDiagnostic = '';
 
-  if (numScore >= 130) {
-    classification = 'Exceptional (Top 2% Worldwide)';
-    badgeColor = 'border-purple-500/50 text-purple-300 bg-purple-950/60';
-    honestDiagnostic = 'Outstanding performance (Top 2% in the world). You learn quickly and solve tricky problems with ease. Watch out for overthinking or rushing past simple answers.';
-  } else if (numScore >= 120) {
-    classification = 'Superior (Top 9% Worldwide)';
-    badgeColor = 'border-indigo-500/50 text-indigo-300 bg-indigo-950/60';
-    honestDiagnostic = 'Great performance (Top 9% in the world). You think clearly and plan ahead well above average. Remember to double-check details before making quick decisions.';
-  } else if (numScore >= 110) {
-    classification = 'High Average (Top 25% Worldwide)';
-    badgeColor = 'border-blue-500/50 text-blue-300 bg-blue-950/60';
-    honestDiagnostic = 'Above average performance (Top 25% in the world). You have strong, dependable problem-solving skills, but you can feel rushed when time is tight.';
-  } else if (numScore >= 90) {
-    classification = 'Average Range (World Median)';
+  if (numScore >= 85) {
+    tier = 'Exceptional';
+    classification = 'Exceptional Tier (85–100%)';
     badgeColor = 'border-emerald-500/50 text-emerald-300 bg-emerald-950/60';
-    honestDiagnostic = 'Right in the healthy average range (Middle 50% of people). You handle daily decisions well. Under heavy stress or when tired, taking a quick pause will help you make the best choice.';
-  } else if (numScore >= 80) {
-    classification = 'Low Average Range';
+    honestDiagnostic = 'Outstanding performance. You demonstrate exceptional precision, abstract processing, and fluid execution well above the balanced baseline.';
+  } else if (numScore >= 65) {
+    tier = 'Proficient';
+    classification = 'Proficient Tier (65–84%)';
+    badgeColor = 'border-blue-500/50 text-blue-300 bg-blue-950/60';
+    honestDiagnostic = 'Strong, dependable capability. You solve multi-step problems with clarity and adapt comfortably to complex demands.';
+  } else if (numScore >= 40) {
+    tier = 'Balanced';
+    classification = 'Balanced Tier (40–64%)';
     badgeColor = 'border-amber-500/50 text-amber-300 bg-amber-950/60';
-    honestDiagnostic = 'A bit below average. You may occasionally feel stuck on tricky puzzles or tense situations. Quick daily practice in our Cognitive Gym will help build your speed and confidence.';
+    honestDiagnostic = 'Solid everyday baseline. You handle standard situations reliably. Targeted practice in the Cognitive Gym will elevate you into proficiency.';
   } else {
-    classification = 'Significantly Below Average';
+    tier = 'Developing';
+    classification = 'Developing Tier (0–39%)';
     badgeColor = 'border-rose-500/50 text-rose-300 bg-rose-950/60';
-    honestDiagnostic = "Room for improvement. Don't worry—these skills grow with practice! Try a few speed rounds in the Cognitive Gym to sharpen your mental reflexes.";
+    honestDiagnostic = 'Foundational development area. Focus on structured routines and daily drills in the Cognitive Gym to build speed and confidence.';
   }
 
+  const percentile = Math.min(99, Math.max(1, Math.round(numScore)));
+
   return {
-    zScore: (zScore >= 0 ? '+' : '') + zScore.toFixed(2),
+    score: numScore,
+    tier,
     percentile,
     classification,
     badgeColor,
     honestDiagnostic,
-    populationMean: 100,
-    populationStdDev: 15
+    benchmark: 60
   };
 }
-
 
 // Helper to normalize any sub-category to the 12 canonical items
 const normalizeSub = (type, sub) => {
@@ -111,13 +109,18 @@ const normalizeSub = (type, sub) => {
   return sub;
 };
 
-// Holistic 4D Intelligence Synthesizer across all completed assessments
-function synthesizeUnified4DProfile(iq, eq, sq, aq) {
+// Holistic 4D Intelligence Synthesizer across all completed assessments (0-100% Scale + Top-2 Archetype Matrix)
+function synthesizeUnified4DProfile(rawIq, rawEq, rawSq, rawAq) {
+  const iq = normalizeToPercent(rawIq);
+  const eq = normalizeToPercent(rawEq);
+  const sq = normalizeToPercent(rawSq);
+  const aq = normalizeToPercent(rawAq);
+
   const scores = [];
-  if (iq) scores.push({ key: 'IQ', name: 'Cognitive IQ', val: iq });
-  if (eq) scores.push({ key: 'EQ', name: 'Emotional EQ', val: eq });
-  if (sq) scores.push({ key: 'SQ', name: 'Spiritual SQ', val: sq });
-  if (aq) scores.push({ key: 'AQ', name: 'Adaptability AQ', val: aq });
+  if (iq !== null) scores.push({ key: 'IQ', name: 'Cognitive IQ', val: iq });
+  if (eq !== null) scores.push({ key: 'EQ', name: 'Emotional EQ', val: eq });
+  if (sq !== null) scores.push({ key: 'SQ', name: 'Spiritual SQ', val: sq });
+  if (aq !== null) scores.push({ key: 'AQ', name: 'Adaptability AQ', val: aq });
 
   if (scores.length === 0) {
     return {
@@ -125,64 +128,51 @@ function synthesizeUnified4DProfile(iq, eq, sq, aq) {
       summary: 'Complete test modules to unlock your personalized 4D intelligence synthesis.',
       edge: 'Balanced potential across logic, emotional resonance, stoic grounding, and adaptability.',
       emotionalProfile: 'Calm composure, adaptive empathy, and fluid execution.',
-      growthHabits: []
+      growthHabits: [],
+      compositeAvg: 50,
+      tierName: 'Balanced',
+      balanceType: 'Well-Rounded Generalist',
+      spread: 0,
+      topStrength: 'IQ',
+      growthArea: 'AQ'
     };
   }
 
   const compositeAvg = Math.round(scores.reduce((a, b) => a + b.val, 0) / scores.length);
-  const scoreBreakdownText = scores.map(s => `${s.name}: ${s.val}`).join(' • ');
+  const scoreBreakdownText = scores.map(s => `${s.name}: ${s.val}%`).join(' • ');
 
-  let archetype = 'The Balanced 4D Integrator';
-  let summary = '';
-  let edge = '';
-  let emotionalProfile = '';
+  const vals = scores.map(s => s.val);
+  const spread = Math.max(...vals) - Math.min(...vals);
+  const balanceType = spread <= 20 ? 'Well-Rounded Generalist' : 'Spiky Specialist';
+  const sorted = [...scores].sort((a, b) => b.val - a.val);
+  const topStrength = sorted[0].key;
+  const growthArea = sorted[sorted.length - 1].key;
 
-  if (compositeAvg >= 124 && scores.length >= 3) {
-    archetype = 'The Transcendent 4D Polymath';
-    summary = `With an exceptional composite score of ${compositeAvg} pts across your completed assessments (${scoreBreakdownText}), you place well into the Top 5% worldwide compared to the global human baseline of 100. You combine sharp analytical deduction with deep moral grounding, acute emotional perception, and dependable adaptability.`;
-    edge = `Rare multidimensional synergy: You effortlessly bridge high first-principles logic (${iq ? `IQ: ${iq}` : ''}) with existential clarity (${sq ? `SQ: ${sq}` : ''}) and emotional resonance (${eq ? `EQ: ${eq}` : ''}). You can architect complex systems while anchoring teams with purpose and empathy.`;
-    emotionalProfile = `Grounded philosophical equanimity: Master of the dichotomy of control (${sq ? `SQ: ${sq}` : ''}) and high emotional self-regulation (${eq ? `EQ: ${eq}` : ''}). You focus on what you can influence rather than agonizing over external chaos, using your adaptability (${aq ? `AQ: ${aq}` : ''}) to pivot strategies constructively when conditions change.`;
-  } else if ((iq || 0) >= 120 && (sq || 0) >= 120) {
-    archetype = 'The Principled Systems Sage';
-    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you unite deep first-principles logic with unshakeable philosophical grounding. You excel at deconstructing complex technical problems while staying anchored in timeless ethical values.`;
-    edge = `High abstract deduction anchored in immutable principles. You solve intricate architectural dilemmas without losing sight of human purpose and long-term consequences.`;
-    emotionalProfile = `Quiet intellectual composure. Immune to flattery or panic; you evaluate challenges with objective stoic detachment and rational clarity.`;
-  } else if ((iq || 0) >= 120 && (eq || 0) >= 120) {
-    archetype = 'The High-Cognition Empathetic Leader';
-    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you possess the rare combination of high cognitive intelligence and high emotional resonance. You can analyze data rigorously while reading interpersonal dynamics with natural warmth.`;
-    edge = `Bilingual in logic and empathy: You can formulate data-backed technical strategies and articulate them with emotional resonance and clarity.`;
-    emotionalProfile = `High psychological safety and emotional poise. You defuse tension with active listening and collaborative problem solving.`;
-  } else if ((eq || 0) >= 120 && (sq || 0) >= 120) {
-    archetype = 'The Resonant Stoic Visionary';
-    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you possess profound emotional and spiritual maturity. You lead through quiet moral authority, compassionate empathy, and unshakeable inner calm.`;
-    edge = `Unshakeable ethical clarity and restorative emotional leadership. People look to you as a steady harbor during times of friction and ambiguity.`;
-    emotionalProfile = `Serene and deeply grounded. You process criticism without defensiveness and handle interpersonal conflict with restorative grace.`;
-  } else if ((aq || 0) >= 120 && (iq || 0) >= 120) {
-    archetype = 'The Agile Algorithmic Disruptor';
-    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you thrive at the intersection of analytical problem-solving and fast-moving technological change. You assimilate new paradigms (like AI and modern frameworks) effortlessly.`;
-    edge = `Rapid unlearning and relearning coupled with rigorous logical models. You identify structural bottlenecks and test innovative prototypes at speed.`;
-    emotionalProfile = `Fast-paced, resilient, and forward-looking. You treat sudden setbacks as fascinating data points rather than catastrophic roadblocks.`;
-  } else if ((aq || 0) >= 115 && (eq || 0) >= 115) {
-    archetype = 'The Fluid Crisis Leader';
-    summary = `Holding a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you shine when conditions are volatile. You keep your team calm, adapt your strategy on the fly, and transform organizational confusion into focused execution.`;
-    edge = `De-escalation under uncertainty and agile consensus-building. You help others feel secure while navigating rapid operational pivots.`;
-    emotionalProfile = `Inspiring, flexible, and unflappable under shifting priorities.`;
-  } else if (compositeAvg >= 115) {
-    archetype = 'The Multidimensional Strategist';
-    summary = `With a strong composite score of ${compositeAvg} pts (${scoreBreakdownText}), you are comfortably above the global human average of 100. You demonstrate a healthy, dependable balance across analytical reasoning, empathy, stoic stability, and adaptability.`;
-    edge = `Well-rounded cognitive versatility: You adapt your thinking style smoothly depending on whether a situation demands logic, emotional support, ethical conviction, or quick pivoting.`;
-    emotionalProfile = `Calm, steady, and constructive. You handle everyday responsibilities and transitions with confidence and composure.`;
-  } else if (compositeAvg >= 95) {
-    archetype = 'The Balanced 4D Integrator';
-    summary = `Your composite score of ${compositeAvg} pts (${scoreBreakdownText}) places you right in the healthy world average range (World Average: 100). You have solid, practical everyday capabilities across thinking, relating to others, and handling change.`;
-    edge = `Practical common-sense problem solving and dependable day-to-day execution. Regular training in the Cognitive Gym will help you unlock high-tier mastery.`;
-    emotionalProfile = `Generally steady in standard environments; taking short pauses before reacting helps you stay composed during unexpected stress.`;
-  } else {
-    archetype = 'The Developing Multidimensional Explorer';
-    summary = `With a composite score of ${compositeAvg} pts (${scoreBreakdownText}), you are building your cognitive foundations. Targeted practice in the Cognitive Gym and daily reflective habits will create rapid gains across all four intelligence areas.`;
-    edge = `Eager to learn and improve. Focus on foundational logic puzzles, active listening, and daily calm breathing to strengthen your resilience.`;
-    emotionalProfile = `Can feel overwhelmed by sudden pressure; benefits from building structured routines and daily reflection.`;
+  // Top-2 Archetype Matrix
+  let archetype = 'The Holistic Integrator';
+  if (scores.length >= 2) {
+    const pair = [sorted[0].key, sorted[1].key].sort().join('+');
+    const archetypeMatrix = {
+      'AQ+IQ': 'The Resilient Strategist',
+      'EQ+IQ': 'The Empathetic Analyst',
+      'IQ+SQ': 'The Tactical Communicator',
+      'EQ+SQ': 'The People Catalyst',
+      'AQ+EQ': 'The Grounded Anchor',
+      'AQ+SQ': 'The Crisis Leader'
+    };
+    if (spread <= 12) {
+      archetype = 'The Holistic Integrator';
+    } else {
+      archetype = archetypeMatrix[pair] || 'The Holistic Integrator';
+    }
   }
+
+  const tierName = compositeAvg >= 85 ? 'Exceptional' : compositeAvg >= 65 ? 'Proficient' : compositeAvg >= 40 ? 'Balanced' : 'Developing';
+
+  const summary = `Holding an overall composite score of ${compositeAvg}% (${tierName}) across your completed assessments (${scoreBreakdownText}), your cognitive architecture exhibits a ${balanceType.toLowerCase()} profile with a ${spread}% score spread. Your leading dimension is ${topStrength} (${scores.find(s=>s.key===topStrength)?.val}%), while targeted development in ${growthArea} (${scores.find(s=>s.key===growthArea)?.val}%) provides the highest leverage for expansion.`;
+
+  const edge = `Dominant Strength: ${topStrength} (${scores.find(s=>s.key===topStrength)?.val}%) • Dynamic Balance: ${balanceType} (Spread: ${spread}%)`;
+  const emotionalProfile = `Primary Growth Catalyst: ${growthArea} (${scores.find(s=>s.key===growthArea)?.val}%) • Overall Performance Tier: ${tierName}`;
 
   const growthHabits = [
     {
@@ -207,7 +197,7 @@ function synthesizeUnified4DProfile(iq, eq, sq, aq) {
     }
   ];
 
-  return { archetype, summary, edge, emotionalProfile, growthHabits };
+  return { archetype, summary, edge, emotionalProfile, growthHabits, compositeAvg, tierName, balanceType, spread, topStrength, growthArea };
 }
 
 export default function Results({ 
@@ -269,11 +259,16 @@ export default function Results({
     }
   }, [completedCount, assessmentResult]);
 
-  // Aggregate scores (with assessmentResult priority)
-  const iqScore = assessmentResult?.rawScores?.IQ !== undefined ? assessmentResult.rawScores.IQ : (iq?.iq_score || null);
-  const eqScore = assessmentResult?.rawScores?.EQ !== undefined ? assessmentResult.rawScores.EQ : (eq?.eq_score || null);
-  const sqScore = assessmentResult?.rawScores?.SQ !== undefined ? assessmentResult.rawScores.SQ : (sq?.sq_score || null);
-  const aqScore = assessmentResult?.rawScores?.AQ !== undefined ? assessmentResult.rawScores.AQ : (aq?.aq_score || null);
+  // Aggregate scores (with assessmentResult priority & normalized to 0-100%)
+  const rawIq = assessmentResult?.rawScores?.IQ !== undefined ? assessmentResult.rawScores.IQ : (iq?.iq_score ?? null);
+  const rawEq = assessmentResult?.rawScores?.EQ !== undefined ? assessmentResult.rawScores.EQ : (eq?.eq_score ?? null);
+  const rawSq = assessmentResult?.rawScores?.SQ !== undefined ? assessmentResult.rawScores.SQ : (sq?.sq_score ?? null);
+  const rawAq = assessmentResult?.rawScores?.AQ !== undefined ? assessmentResult.rawScores.AQ : (aq?.aq_score ?? null);
+
+  const iqScore = normalizeToPercent(rawIq);
+  const eqScore = normalizeToPercent(rawEq);
+  const sqScore = normalizeToPercent(rawSq);
+  const aqScore = normalizeToPercent(rawAq);
 
   const iqBreakdown = iq?.iq_breakdown || (assessmentResult ? { Logic: iqScore, Math: iqScore, Spatial: iqScore } : {});
   const eqBreakdown = eq?.eq_breakdown || (assessmentResult ? { 'Self-Awareness': eqScore, 'Self-Regulation': eqScore, Empathy: eqScore } : {});
@@ -288,15 +283,25 @@ export default function Results({
   let emotionalProfile = combinedSynthesis.emotionalProfile;
   let growthHabits = combinedSynthesis.growthHabits;
 
+  // Display metrics unified across single assessment battery and individual quizzes
+  const displayComposite = assessmentResult?.compositeScore ?? combinedSynthesis.compositeAvg;
+  const displayTier = assessmentResult?.tier ?? combinedSynthesis.tierName;
+  const displayBalanceType = assessmentResult?.balanceType ?? combinedSynthesis.balanceType;
+  const displaySpread = assessmentResult?.spread ?? combinedSynthesis.spread;
+  const displayTopStrength = assessmentResult?.topStrength ?? combinedSynthesis.topStrength;
+  const displayGrowthArea = assessmentResult?.growthArea ?? combinedSynthesis.growthArea;
+  const displayTopVal = assessmentResult?.rawScores?.[displayTopStrength] ?? (displayTopStrength === 'IQ' ? iqScore : displayTopStrength === 'EQ' ? eqScore : displayTopStrength === 'SQ' ? sqScore : aqScore) ?? 0;
+  const displayGrowthVal = assessmentResult?.rawScores?.[displayGrowthArea] ?? (displayGrowthArea === 'IQ' ? iqScore : displayGrowthArea === 'EQ' ? eqScore : displayGrowthArea === 'SQ' ? sqScore : aqScore) ?? 0;
+
   if (assessmentResult && assessmentResult.aiAnalysis) {
     const ai = assessmentResult.aiAnalysis;
     archetype = ai.archetypeTitle || combinedSynthesis.archetype;
     summary = ai.overallSummary || combinedSynthesis.summary;
-    edge = `Dominant Strength: ${assessmentResult.topStrength} (${assessmentResult.rawScores[assessmentResult.topStrength]}%) • Balance: ${assessmentResult.balanceType}`;
-    emotionalProfile = `Primary Growth Catalyst: ${assessmentResult.growthArea} (${assessmentResult.rawScores[assessmentResult.growthArea]}%) • Tier: ${assessmentResult.tier}`;
+    edge = `Dominant Strength: ${displayTopStrength} (${displayTopVal}%) • Balance: ${displayBalanceType}`;
+    emotionalProfile = `Primary Growth Catalyst: ${displayGrowthArea} (${displayGrowthVal}%) • Tier: ${displayTier}`;
     if (Array.isArray(ai.actionableAdvice) && ai.actionableAdvice.length > 0) {
       growthHabits = ai.actionableAdvice.map((adv, idx) => ({
-        habit: `Strategic Recommendation ${idx + 1} (${assessmentResult.growthArea})`,
+        habit: `Strategic Recommendation ${idx + 1} (${displayGrowthArea})`,
         frequency: 'High-Leverage Habit',
         action: adv
       }));
@@ -476,7 +481,8 @@ export default function Results({
       );
     }
 
-    const score = testData[`${type.toLowerCase()}_score`];
+    const rawScore = testData[`${type.toLowerCase()}_score`];
+    const score = normalizeToPercent(rawScore) ?? 50;
     const rawBreakdown = testData[`${type.toLowerCase()}_breakdown`] || {};
     const CANONICAL_SUBS = {
       IQ: ['Logic', 'Math', 'Spatial'],
@@ -488,7 +494,7 @@ export default function Results({
     const breakdown = {};
     canonicalSubs.forEach((subKey) => {
       if (rawBreakdown[subKey] !== undefined) {
-        breakdown[subKey] = rawBreakdown[subKey];
+        breakdown[subKey] = normalizeToPercent(rawBreakdown[subKey]) ?? score;
       } else {
         const matching = Object.entries(rawBreakdown).filter(([k]) => {
           const lk = k.toLowerCase();
@@ -508,10 +514,10 @@ export default function Results({
           return lk.includes(ls);
         });
         if (matching.length > 0) {
-          const avg = Math.round(matching.reduce((acc, [, v]) => acc + v, 0) / matching.length);
+          const avg = Math.round(matching.reduce((acc, [, v]) => acc + (normalizeToPercent(v) ?? score), 0) / matching.length);
           breakdown[subKey] = avg;
         } else {
-          breakdown[subKey] = Math.round(Math.min(100, Math.max(50, ((score || 100) / 140) * 100)));
+          breakdown[subKey] = score;
         }
       }
     });
@@ -535,16 +541,16 @@ export default function Results({
               </div>
               <div className="flex flex-wrap items-center gap-3 mb-2">
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  Score: <span className="font-mono text-indigo-400">{score}</span>
+                  Score: <span className="font-mono text-indigo-400">{score}%</span>
                 </h2>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border ${metrics.badgeColor}`}>
                   {metrics.classification}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mb-2">
-                <span>World Average: <strong>100</strong></span>
+                <span>Evaluation Tier: <strong className="text-white">{metrics.tier}</strong></span>
                 <span>•</span>
-                <span className="font-mono text-indigo-300">Z-Score: {metrics.zScore}σ</span>
+                <span>Balanced Baseline: <strong>60%</strong></span>
               </div>
               <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
                 {ai.core_summary || `Evaluates your psychometric performance across ${domains}.`}
@@ -556,16 +562,16 @@ export default function Results({
 
             <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-slate-800 min-w-[145px] text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                Percentile Rank
+                Performance Tier
               </span>
-              <span className="text-3xl font-black text-white font-mono">
-                {metrics.percentile}th
+              <span className="text-2xl font-black text-white font-mono">
+                {metrics.tier}
               </span>
               <span className="text-[11px] text-slate-300 mt-1 font-semibold">
-                {score >= 100 ? `Top ${Math.max(1, 100 - metrics.percentile)}% Globally` : `${metrics.percentile}% Below Median`}
+                {score}% Mastery
               </span>
               <span className="text-[10px] text-slate-500 mt-0.5">
-                Baseline Median: 50th
+                Baseline: 60%
               </span>
             </div>
           </div>
@@ -758,7 +764,7 @@ export default function Results({
             }`}
           >
             <Brain className="w-3.5 h-3.5 text-blue-400" />
-            <span>IQ Cognitive {iqScore ? `(${iqScore})` : ''}</span>
+            <span>IQ Cognitive {iqScore !== null ? `(${iqScore}%)` : ''}</span>
           </button>
 
           <button
@@ -770,7 +776,7 @@ export default function Results({
             }`}
           >
             <Award className="w-3.5 h-3.5 text-rose-400" />
-            <span>EQ Emotional {eqScore ? `(${eqScore})` : ''}</span>
+            <span>EQ Emotional {eqScore !== null ? `(${eqScore}%)` : ''}</span>
           </button>
 
           <button
@@ -782,7 +788,7 @@ export default function Results({
             }`}
           >
             <Compass className="w-3.5 h-3.5 text-amber-400" />
-            <span>SQ Spiritual {sqScore ? `(${sqScore})` : ''}</span>
+            <span>SQ Spiritual {sqScore !== null ? `(${sqScore}%)` : ''}</span>
           </button>
 
           <button
@@ -794,7 +800,7 @@ export default function Results({
             }`}
           >
             <Zap className="w-3.5 h-3.5 text-emerald-400" />
-            <span>AQ Adaptability {aqScore ? `(${aqScore})` : ''}</span>
+            <span>AQ Adaptability {aqScore !== null ? `(${aqScore}%)` : ''}</span>
           </button>
         </div>
       </div>
@@ -818,43 +824,25 @@ export default function Results({
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                     <span>{assessmentResult ? '80-Item Psychometric Matrix Engine' : 'Unified 4D Intelligence Synthesis'}</span>
                   </div>
-                  {assessmentResult && (
-                    <>
-                      <span className="px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/60 text-xs font-bold font-mono">
-                        Composite: {assessmentResult.compositeScore}% • {assessmentResult.tier}
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700/60 text-xs font-bold">
-                        {assessmentResult.balanceType} (Spread: {assessmentResult.spread}%)
-                      </span>
-                    </>
-                  )}
+                  <span className="px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/60 text-xs font-bold font-mono">
+                    Composite: {displayComposite}% • {displayTier}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700/60 text-xs font-bold">
+                    {displayBalanceType} (Spread: {displaySpread}%)
+                  </span>
                 </div>
                 <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
                   {archetype}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 my-3 text-xs">
-                  {assessmentResult ? (
-                    <>
-                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-emerald-300 font-semibold flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>Dominant Strength: <strong>{assessmentResult.topStrength} ({assessmentResult.rawScores[assessmentResult.topStrength]}%)</strong></span>
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-amber-300 font-semibold flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                        <span>Primary Growth Area: <strong>{assessmentResult.growthArea} ({assessmentResult.rawScores[assessmentResult.growthArea]}%)</strong></span>
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span>World Average: <strong>100</strong></span>
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-indigo-300 font-mono font-semibold">
-                        Composite Average: {Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} pts
-                      </span>
-                    </>
-                  )}
+                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-emerald-300 font-semibold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>Dominant Strength: <strong>{displayTopStrength} ({displayTopVal}%)</strong></span>
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-amber-300 font-semibold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                    <span>Primary Growth Area: <strong>{displayGrowthArea} ({displayGrowthVal}%)</strong></span>
+                  </span>
                 </div>
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
                   {summary}
@@ -890,7 +878,7 @@ export default function Results({
           {/* Overall Unified 4D Score Spectrum Ruler (Where You Stand Across All 4 Dimensions) */}
           <div className="mb-8">
             <ScoreSpectrumRuler 
-              score={Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} 
+              score={displayComposite} 
               title="Unified 4D Composite Intelligence" 
               isOverall={true} 
             />
@@ -906,9 +894,9 @@ export default function Results({
                     <Brain className="w-5 h-5" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    iqScore ? 'bg-blue-950 text-blue-300 border border-blue-800/50' : 'bg-slate-800 text-slate-400'
+                    iqScore !== null ? 'bg-blue-950 text-blue-300 border border-blue-800/50' : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {iqScore ? 'Completed' : 'Pending'}
+                    {iqScore !== null ? 'Completed' : 'Pending'}
                   </span>
                 </div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">
@@ -916,11 +904,11 @@ export default function Results({
                 </h4>
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-3xl font-black text-white font-mono">
-                    {iqScore || '--'}
+                    {iqScore !== null ? `${iqScore}%` : '--'}
                   </span>
-                  {iqScore && (
+                  {iqScore !== null && (
                     <span className="text-xs text-slate-400">
-                      {iqScore >= 125 ? 'Top 5%' : iqScore >= 110 ? 'High' : 'Average'}
+                      {iqScore >= 85 ? 'Exceptional' : iqScore >= 65 ? 'Proficient' : iqScore >= 40 ? 'Balanced' : 'Developing'}
                     </span>
                   )}
                 </div>
@@ -934,7 +922,7 @@ export default function Results({
                 )}
               </div>
               <div className="space-y-2">
-                {iqScore ? (
+                {iqScore !== null ? (
                   <button
                     onClick={() => setActiveTab('IQ')}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-blue-600/20 text-blue-300 border border-blue-500/40 hover:bg-blue-600/30 transition-all"
@@ -962,9 +950,9 @@ export default function Results({
                     <Award className="w-5 h-5" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    eqScore ? 'bg-rose-950 text-rose-300 border border-rose-800/50' : 'bg-slate-800 text-slate-400'
+                    eqScore !== null ? 'bg-rose-950 text-rose-300 border border-rose-800/50' : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {eqScore ? 'Completed' : 'Pending'}
+                    {eqScore !== null ? 'Completed' : 'Pending'}
                   </span>
                 </div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400 mb-1">
@@ -972,11 +960,11 @@ export default function Results({
                 </h4>
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-3xl font-black text-white font-mono">
-                    {eqScore || '--'}
+                    {eqScore !== null ? `${eqScore}%` : '--'}
                   </span>
-                  {eqScore && (
+                  {eqScore !== null && (
                     <span className="text-xs text-slate-400">
-                      {eqScore >= 125 ? 'Top 5%' : eqScore >= 110 ? 'High' : 'Average'}
+                      {eqScore >= 85 ? 'Exceptional' : eqScore >= 65 ? 'Proficient' : eqScore >= 40 ? 'Balanced' : 'Developing'}
                     </span>
                   )}
                 </div>
@@ -991,7 +979,7 @@ export default function Results({
               </div>
 
               <div className="space-y-2">
-                {eqScore ? (
+                {eqScore !== null ? (
                   <button
                     onClick={() => setActiveTab('EQ')}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-rose-600/20 text-rose-300 border border-rose-500/40 hover:bg-rose-600/30 transition-all"
@@ -1019,9 +1007,9 @@ export default function Results({
                     <Compass className="w-5 h-5" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    sqScore ? 'bg-amber-950 text-amber-300 border border-amber-800/50' : 'bg-slate-800 text-slate-400'
+                    sqScore !== null ? 'bg-amber-950 text-amber-300 border border-amber-800/50' : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {sqScore ? 'Completed' : 'Pending'}
+                    {sqScore !== null ? 'Completed' : 'Pending'}
                   </span>
                 </div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">
@@ -1029,11 +1017,11 @@ export default function Results({
                 </h4>
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-3xl font-black text-white font-mono">
-                    {sqScore || '--'}
+                    {sqScore !== null ? `${sqScore}%` : '--'}
                   </span>
-                  {sqScore && (
+                  {sqScore !== null && (
                     <span className="text-xs text-slate-400">
-                      {sqScore >= 125 ? 'Top 5%' : sqScore >= 110 ? 'High' : 'Average'}
+                      {sqScore >= 85 ? 'Exceptional' : sqScore >= 65 ? 'Proficient' : sqScore >= 40 ? 'Balanced' : 'Developing'}
                     </span>
                   )}
                 </div>
@@ -1047,7 +1035,7 @@ export default function Results({
                 )}
               </div>
               <div className="space-y-2">
-                {sqScore ? (
+                {sqScore !== null ? (
                   <button
                     onClick={() => setActiveTab('SQ')}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-amber-600/20 text-amber-300 border border-amber-500/40 hover:bg-amber-600/30 transition-all"
@@ -1075,9 +1063,9 @@ export default function Results({
                     <Zap className="w-5 h-5" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    aqScore ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/50' : 'bg-slate-800 text-slate-400'
+                    aqScore !== null ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/50' : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {aqScore ? 'Completed' : 'Pending'}
+                    {aqScore !== null ? 'Completed' : 'Pending'}
                   </span>
                 </div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">
@@ -1085,11 +1073,11 @@ export default function Results({
                 </h4>
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-3xl font-black text-white font-mono">
-                    {aqScore || '--'}
+                    {aqScore !== null ? `${aqScore}%` : '--'}
                   </span>
-                  {aqScore && (
+                  {aqScore !== null && (
                     <span className="text-xs text-slate-400">
-                      {aqScore >= 125 ? 'Top 5%' : aqScore >= 110 ? 'High' : 'Average'}
+                      {aqScore >= 85 ? 'Exceptional' : aqScore >= 65 ? 'Proficient' : aqScore >= 40 ? 'Balanced' : 'Developing'}
                     </span>
                   )}
                 </div>
@@ -1104,7 +1092,7 @@ export default function Results({
               </div>
 
               <div className="space-y-2">
-                {aqScore ? (
+                {aqScore !== null ? (
                   <button
                     onClick={() => setActiveTab('AQ')}
                     className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition-all"

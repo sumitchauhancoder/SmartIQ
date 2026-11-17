@@ -23,6 +23,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const normalizeScore = (val) => {
+  if (val === null || val === undefined) return null;
+  const num = Number(val);
+  if (isNaN(num)) return null;
+  if (num <= 100) return Math.max(0, Math.min(100, Math.round(num)));
+  return Math.max(0, Math.min(100, Math.round(((num - 85) / 60) * 100)));
+};
+
 export default function Home({ onStartQuiz }) {
   const { user } = useAuth();
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -265,7 +273,7 @@ export default function Home({ onStartQuiz }) {
                 <h3 className="text-xl sm:text-2xl font-bold text-white">Cognitive Intelligence (IQ)</h3>
                 {iqRecord && (
                   <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/50">
-                    Score: {iqRecord.iq_score}
+                    Score: {normalizeScore(iqRecord.iq_score)}%
                   </span>
                 )}
               </div>
@@ -319,7 +327,7 @@ export default function Home({ onStartQuiz }) {
                 <h3 className="text-xl sm:text-2xl font-bold text-white">Emotional Quotient (EQ)</h3>
                 {eqRecord && (
                   <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/50">
-                    Score: {eqRecord.eq_score}
+                    Score: {normalizeScore(eqRecord.eq_score)}%
                   </span>
                 )}
               </div>
@@ -373,7 +381,7 @@ export default function Home({ onStartQuiz }) {
                 <h3 className="text-xl sm:text-2xl font-bold text-white">Spiritual Quotient (SQ)</h3>
                 {sqRecord && (
                   <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/50">
-                    Score: {sqRecord.sq_score}
+                    Score: {normalizeScore(sqRecord.sq_score)}%
                   </span>
                 )}
               </div>
@@ -427,7 +435,7 @@ export default function Home({ onStartQuiz }) {
                 <h3 className="text-xl sm:text-2xl font-bold text-white">Adaptability Quotient (AQ)</h3>
                 {aqRecord && (
                   <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50">
-                    Score: {aqRecord.aq_score}
+                    Score: {normalizeScore(aqRecord.aq_score)}%
                   </span>
                 )}
               </div>

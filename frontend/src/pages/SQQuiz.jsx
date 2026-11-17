@@ -147,9 +147,8 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       totalMaxPossible += maxPts;
     });
 
-    // Score scale: 85 baseline + scaled dynamic points -> 85 to 145
-    const maxPossible = Math.max(1, totalMaxPossible);
-    const sqScore = Math.min(145, Math.round(85 + (totalPoints / maxPossible) * 55));
+    // Percentage score (0 - 100%) as per Psychometric Assessment Bank specification: ((rawSum - 10) / 40) * 100
+    const sqScore = Math.max(0, Math.min(100, Math.round(((totalPoints - answers.length) / (answers.length * 4)) * 100)));
 
     const sqBreakdown = {};
     Object.keys(subTotals).forEach((cat) => {
@@ -287,7 +286,13 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   // =========================================================================
   if (completedData) {
     const { sq_score, sq_breakdown, ai_analysis } = completedData;
-    const percentile = Math.min(99, Math.round(50 + ((sq_score - 100) / 15) * 34));
+    const getTier = (s) => {
+      if (s < 40) return { name: 'Developing', color: 'border-rose-500/50 text-rose-300 bg-rose-950/60', range: '0–39%' };
+      if (s < 65) return { name: 'Balanced', color: 'border-amber-500/50 text-amber-300 bg-amber-950/60', range: '40–64%' };
+      if (s < 85) return { name: 'Proficient', color: 'border-blue-500/50 text-blue-300 bg-blue-950/60', range: '65–84%' };
+      return { name: 'Exceptional', color: 'border-emerald-500/50 text-emerald-300 bg-emerald-950/60', range: '85–100%' };
+    };
+    const tier = getTier(sq_score);
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -302,22 +307,22 @@ export default function SQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
                 <span>Spiritual Quotient Module Completed (10/10 Questions)</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
-                SQ Score: <span className="text-amber-400 font-mono">{sq_score}</span>
+                SQ Score: <span className="text-amber-400 font-mono">{sq_score}%</span>
               </h1>
               <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
                 {ai_analysis?.core_summary || 'You demonstrate deep existential grounding, resilient inner wholeness, and a principled moral compass.'}
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-amber-500/30 min-w-[130px] text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-                Percentile Rank
+            <div className={`flex flex-col items-center justify-center p-4 rounded-2xl glass-card border ${tier.color} min-w-[140px] text-center`}>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-1">
+                Standardized Tier
               </span>
-              <span className="text-3xl font-black text-white font-mono">
-                {percentile}%
+              <span className="text-2xl font-black text-white font-mono">
+                {tier.name}
               </span>
               <span className="text-[11px] text-slate-400 mt-1">
-                Top {Math.max(1, 100 - percentile)}% of cohort
+                {tier.range} Band
               </span>
             </div>
           </div>

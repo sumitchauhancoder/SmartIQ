@@ -46,11 +46,19 @@ export default function IntelligenceChatbot() {
       const sq = JSON.parse(localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null');
       const aq = JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null');
 
+      const normalizeScore = (val) => {
+        if (val === null || val === undefined) return null;
+        const num = Number(val);
+        if (isNaN(num)) return null;
+        if (num <= 100) return Math.max(0, Math.min(100, Math.round(num)));
+        return Math.max(0, Math.min(100, Math.round(((num - 85) / 60) * 100)));
+      };
+
       setUserContext({
-        iq_score: iq?.iq_score || null,
-        eq_score: eq?.eq_score || null,
-        sq_score: sq?.sq_score || null,
-        aq_score: aq?.aq_score || null,
+        iq_score: normalizeScore(iq?.iq_score),
+        eq_score: normalizeScore(eq?.eq_score),
+        sq_score: normalizeScore(sq?.sq_score),
+        aq_score: normalizeScore(aq?.aq_score),
         archetype_title: aq?.ai_analysis?.archetype_title || sq?.ai_analysis?.archetype_title || eq?.ai_analysis?.archetype_title || iq?.ai_analysis?.archetype_title || null
       });
     } catch (e) {}
@@ -224,22 +232,22 @@ export default function IntelligenceChatbot() {
               <div className="flex items-center gap-2 whitespace-nowrap font-mono text-[10px]">
                 {userContext.iq_score && (
                   <span className="text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40 font-bold">
-                    IQ: {userContext.iq_score}
+                    IQ: {userContext.iq_score}%
                   </span>
                 )}
                 {userContext.eq_score && (
                   <span className="text-rose-400 bg-rose-950/60 px-2 py-0.5 rounded border border-rose-800/40 font-bold">
-                    EQ: {userContext.eq_score}
+                    EQ: {userContext.eq_score}%
                   </span>
                 )}
                 {userContext.sq_score && (
                   <span className="text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40 font-bold">
-                    SQ: {userContext.sq_score}
+                    SQ: {userContext.sq_score}%
                   </span>
                 )}
                 {userContext.aq_score && (
                   <span className="text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 font-bold">
-                    AQ: {userContext.aq_score}
+                    AQ: {userContext.aq_score}%
                   </span>
                 )}
               </div>

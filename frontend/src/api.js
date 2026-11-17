@@ -698,13 +698,18 @@ export function computeLocalAssessmentResult(responses) {
   const topStrength = Object.keys(rawScores).reduce((a, b) => rawScores[a] >= rawScores[b] ? a : b);
   const growthArea = Object.keys(rawScores).reduce((a, b) => rawScores[a] <= rawScores[b] ? a : b);
 
-  const archetypes = {
-    IQ: 'Analytical Strategist',
-    EQ: 'Empathetic Navigator',
-    SQ: 'Anchored Sage',
-    AQ: 'Adaptive Pioneer'
+  // Top-2 Strengths Archetype Matrix
+  const sortedCats = Object.keys(rawScores).sort((a, b) => rawScores[b] - rawScores[a]);
+  const pairKey = [sortedCats[0], sortedCats[1]].sort().join('+');
+  const archetypeMatrix = {
+    'AQ+IQ': 'The Resilient Strategist',
+    'EQ+IQ': 'The Empathetic Analyst',
+    'IQ+SQ': 'The Tactical Communicator',
+    'EQ+SQ': 'The People Catalyst',
+    'AQ+EQ': 'The Grounded Anchor',
+    'AQ+SQ': 'The Crisis Leader'
   };
-  const archetypeTitle = spread <= 12 ? 'Holistic Integrator' : (archetypes[topStrength] || 'Holistic Integrator');
+  const archetypeTitle = spread <= 12 ? 'The Holistic Integrator' : (archetypeMatrix[pairKey] || 'The Holistic Integrator');
 
   const overallSummary = `Demonstrating a ${balanceType.toLowerCase()} profile, you achieved an overall composite of ${compositeScore}% (${tier}). Your leading dimension is ${topStrength} (${rawScores[topStrength]}%), while targeted expansion in ${growthArea} (${rawScores[growthArea]}%) unlocks your highest growth potential.`;
 

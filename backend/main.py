@@ -134,230 +134,236 @@ class ChatRequest(BaseModel):
 # =============================================================================
 # Local Deterministic Fallback Engine (IQ, EQ, SQ, AQ & 4D Synthesis)
 # =============================================================================
+def normalize_score_pct(val: Optional[int]) -> int:
+    if val is None:
+        return 50
+    if val <= 100:
+        return max(0, min(100, int(val)))
+    return max(0, min(100, int(round(((val - 85) / 60.0) * 100))))
+
+
 def generate_deterministic_archetype(submission: QuizSubmission) -> Dict[str, Any]:
     """
-    Empirical psychometric calculation engine grounded in standardized Gaussian norms (mu=100, sigma=15).
-    Delivers honest, unvarnished scientific evaluations without subjective flattery or unfounded assumptions.
+    Standardized 4-tier psychometric engine (0-39% Developing, 40-64% Balanced, 65-84% Proficient, 85-100% Exceptional).
+    Delivers clear, encouraging, and actionable evaluations on the 0-100% percentage scale.
     """
     test_type = (submission.test_type or "COMBINED").upper()
-    iq = submission.iq_score or 100
-    eq = submission.eq_score or 100
-    sq = submission.sq_score or 100
-    aq = submission.aq_score or 100
+    iq = normalize_score_pct(submission.iq_score)
+    eq = normalize_score_pct(submission.eq_score)
+    sq = normalize_score_pct(submission.sq_score)
+    aq = normalize_score_pct(submission.aq_score)
 
-    def calc_z(val: float) -> str:
-        z = (val - 100) / 15.0
-        return f"+{z:.2f}σ" if z >= 0 else f"{z:.2f}σ"
-
-    # 1. SQ Independent Evaluation (Zohar-Marshall & Epictetian Stoic Norms)
+    # 1. SQ Independent Evaluation (Stoic Equanimity & Meaning)
     if test_type == "SQ":
-        z_str = calc_z(sq)
-        if sq >= 125:
-            archetype = "Grounded & Purpose-Driven"
-            summary = f"With a score of {sq} (Top 5% worldwide), you have outstanding inner calm and strong principles. You focus on what you can control and stay steady even when things around you are chaotic."
-            edge = "Focusing on what you can control, staying true to your values, and making calm, thoughtful choices."
-            eq_style = "Strong inner calm; not easily shaken by praise or criticism."
-        elif sq >= 110:
+        if sq >= 85:
+            archetype = "Grounded Stoic Sage"
+            summary = f"With an exceptional score of {sq}%, you exhibit deep existential grounding and unshakeable inner calm. You naturally focus on what is within your control."
+            edge = "Mastery of the dichotomy of control, purposeful action, and unwavering moral grounding."
+            eq_style = "Profound composure; steady and centered under external volatility."
+        elif sq >= 65:
             archetype = "Values-Focused Thinker"
-            summary = f"With a score of {sq} (Top 25% worldwide), you are well above the global average of 100. You have clear personal values and a strong sense of purpose that helps you make sound choices."
-            edge = "Clear personal values, self-awareness, and thoughtful decision-making."
-            eq_style = "Calm under pressure with a steady sense of right and wrong."
-        elif sq >= 90:
+            summary = f"With a proficient score of {sq}%, you operate comfortably above the balanced baseline. You hold clear personal values and make sound, purposeful decisions."
+            edge = "Clear personal values, mindful self-awareness, and thoughtful ethical calibration."
+            eq_style = "Calm under pressure with a strong, dependable moral compass."
+        elif sq >= 40:
             archetype = "Balanced & Practical"
-            summary = f"Your score of {sq} is right in the healthy world average range (World Average: 100). You have practical common sense. When unexpected stress hits, taking a short pause helps you stay calm and centered."
-            edge = "Practical common sense and everyday reliability."
-            eq_style = "Generally calm, but can feel stressed when outside conditions change suddenly."
+            summary = f"Your score of {sq}% places you in the Balanced tier (Baseline: 60%). You maintain reliable everyday perspective and pragmatic composure."
+            edge = "Practical common sense and steady day-to-day equanimity."
+            eq_style = "Generally calm; benefits from short pauses during unexpected disruptions."
         else:
             archetype = "Developing Inner Calm"
-            summary = f"With a score of {sq}, there is great room to build inner calm. You may sometimes feel stressed by sudden changes. Simple daily reflection will help you feel much more grounded."
-            edge = "Good intentions that will benefit from practicing daily mindfulness and calm."
-            eq_style = "Can feel stressed or frustrated under long periods of pressure."
+            summary = f"With a score of {sq}%, there is great opportunity to cultivate inner calm and resilience through daily reflection and Stoic workouts in the Cognitive Gym."
+            edge = "Good intentions that will rapidly expand with regular mindfulness and values alignment."
+            eq_style = "Can feel elevated stress under prolonged pressure."
 
         growth_habits = [
             {
                 "habit": "Epictetian Control Audit",
                 "frequency": "Daily (Evening)",
-                "action": "Write down 3 events from today. Explicitly partition them into 'Within My Will' vs 'Outside My Will' to reinforce internal sovereignty."
+                "action": "Write down 3 events from today. Explicitly partition them into 'Within My Control' vs 'Outside My Control' to reinforce inner serenity."
             },
             {
                 "habit": "Premeditatio Malorum Practice",
                 "frequency": "Weekly",
-                "action": "Mentally rehearse a potential adversity without anxiety, training your psyche to respond with virtue rather than reactive panic."
+                "action": "Mentally rehearse a potential adversity with calm detachment, training yourself to respond with virtue rather than reactive panic."
             },
             {
                 "habit": "Values-Action Alignment Review",
-                "frequency": "Weekly (Sunday)",
-                "action": "Audit your weekly calendar against cardinal virtues (Wisdom, Courage, Justice, Temperance) to identify moral friction."
+                "frequency": "Weekly",
+                "action": "Audit your weekly calendar against cardinal virtues (Wisdom, Courage, Justice, Temperance) to resolve friction."
             }
         ]
 
-    # 2. AQ Independent Evaluation (Paul Stoltz CORE & Antifragility Models)
+    # 2. AQ Independent Evaluation (Adaptability Quotient)
     elif test_type == "AQ":
-        z_str = calc_z(aq)
-        if aq >= 125:
-            archetype = "Quick & Flexible Thinker"
-            summary = f"With a score of {aq} (Top 5% worldwide), you adapt to changes with impressive speed and confidence. You bounce back from surprises easily and enjoy learning new ways of doing things."
-            edge = "Quickly learning new skills, letting go of outdated methods, and staying flexible."
-            eq_style = "Naturally flexible and resilient; turns unexpected changes into positive opportunities."
-        elif aq >= 110:
+        if aq >= 85:
+            archetype = "Agile Paradigm Disruptor"
+            summary = f"With an exceptional score of {aq}%, you adapt to volatility with impressive speed. You embrace new tools, pivot effortlessly, and learn continuously."
+            edge = "Rapid unlearning, high crisis velocity, and proactive agility."
+            eq_style = "Flexible and antifragile; turns unexpected disruptions into creative opportunities."
+        elif aq >= 65:
             archetype = "Open-Minded & Adaptable"
-            summary = f"With a score of {aq} (Top 25% worldwide), you are well above the global average of 100. You adjust smoothly to new tools and unexpected changes with an open mind."
-            edge = "Easily adapting to new tools and workflows with an open mind."
-            eq_style = "Comfortable with change, with minor hesitation when leaving familiar routines."
-        elif aq >= 90:
+            summary = f"With a proficient score of {aq}%, you adjust smoothly to new environments and unexpected changes with an open mind."
+            edge = "Fast assimilation of modern tools, resilient problem-solving, and constructive pivoting."
+            eq_style = "Comfortable with change, showing quick recovery after sudden shifts."
+        elif aq >= 40:
             archetype = "Steady & Dependable"
-            summary = f"Your score of {aq} is right in the healthy world average range (World Average: 100). You handle everyday updates comfortably. In sudden surprises, you prefer taking a steady, step-by-step approach."
-            edge = "Reliable and steady once a clear plan is in place."
-            eq_style = "Careful and steady; doing well when steps are clear and organized."
+            summary = f"Your score of {aq}% is in the Balanced tier (Baseline: 60%). You manage routine transitions well and benefit from structured step-by-step changes."
+            edge = "Reliable execution once a clear roadmap is established."
+            eq_style = "Careful and methodical; thrives best when objectives are well-defined."
         else:
-            archetype = "Structured & Routine-Focused"
-            summary = f"With a score of {aq}, you prefer familiar routines and clear instructions. When sudden changes happen, you might feel a bit hesitant. Practicing small daily changes will build your flexibility."
-            edge = "High fidelity to rigid, established workflows, but vulnerable to technological or market obsolescence."
-            eq_style = "Paralysis and defensive resistance when forced to operate outside established routines."
+            archetype = "Structured Routine Thinker"
+            summary = f"With a score of {aq}%, you prefer familiar routines and clear procedures. Daily micro-disruptions in the Cognitive Gym will strengthen your flexibility."
+            edge = "High fidelity to established protocols with significant opportunity to build agile instincts."
+            eq_style = "Prefers predictable environments; benefits from proactive scenario rehearsals."
 
         growth_habits = [
             {
                 "habit": "Assumption Inversion Drill",
                 "frequency": "Bi-Weekly",
-                "action": "Identify one core workflow assumption and intentionally design a viable alternative assuming that rule is completely revoked."
+                "action": "Identify one habitual workflow assumption and intentionally design an alternative assuming that tool is revoked."
             },
             {
                 "habit": "Deliberate Novelty Immersion",
                 "frequency": "Weekly",
-                "action": "Engage with an unfamiliar software tool or intellectual domain for 30 minutes to exercise neuroplastic cognitive flexibility."
+                "action": "Engage with an unfamiliar software tool or skill for 20 minutes to exercise neuroplastic cognitive flexibility."
             },
             {
                 "habit": "Rapid Lean Prototyping",
                 "frequency": "Monthly",
-                "action": "Test an emerging concept with a zero-cost 24-hour prototype rather than waiting for 100% data certainty."
+                "action": "Test an emerging concept with a lightweight 24-hour prototype rather than waiting for 100% certainty."
             }
         ]
 
-    # 3. IQ Independent Evaluation (Cattell-Horn-Carroll Gf & Gq Theory)
+    # 3. IQ Independent Evaluation (Cognitive Intelligence)
     elif test_type == "IQ":
-        z_str = calc_z(iq)
-        if iq >= 125:
-            archetype = "Sharp Problem Solver"
-            summary = f"With a score of {iq} (Top 5% worldwide), you solve tricky logic puzzles and spot number patterns with exceptional speed. You think clearly and reason through tough problems with ease."
-            edge = "Spotting patterns quickly, solving math problems, and thinking through steps logically."
-            eq_style = "Clear, logical, and focused on facts."
-        elif iq >= 110:
+        if iq >= 85:
+            archetype = "Exceptional Analytical Strategist"
+            summary = f"With an exceptional score of {iq}%, you solve complex logic puzzles and abstract patterns with outstanding speed and precision."
+            edge = "Rapid pattern deduction, algorithmic decomposition, and high abstract problem solving."
+            eq_style = "Objective, fact-driven, and razor-sharp under time pressure."
+        elif iq >= 65:
             archetype = "Clear Logical Thinker"
-            summary = f"With a score of {iq} (Top 25% worldwide), your logical thinking is well above the global average of 100. You are dependable at solving problems and analyzing facts clearly."
-            edge = "Good with numbers, logical puzzles, and practical analysis."
-            eq_style = "Organized, clear-headed, and practical."
-        elif iq >= 90:
-            archetype = "Practical Everyday Thinker"
-            summary = f"Your score of {iq} is right in the healthy world average range (World Average: 100). You have solid, practical problem-solving skills for everyday tasks."
+            summary = f"With a proficient score of {iq}%, your logical deduction is dependable and robust, placing you comfortably above the balanced baseline."
+            edge = "Strong mathematical and spatial deduction, structured reasoning, and practical logic."
+            eq_style = "Organized, clear-headed, and systematic."
+        elif iq >= 40:
+            archetype = "Practical Problem Solver"
+            summary = f"Your score of {iq}% falls in the Balanced tier (Baseline: 60%). You possess solid, practical everyday deduction for standard problem solving."
             edge = "Pragmatic, real-world reasoning and dependable standard execution."
-            eq_style = "Direct and focused on tangible outcomes; vulnerable to heuristic cognitive shortcuts under strain."
+            eq_style = "Direct and focused on tangible outcomes."
         else:
-            archetype = "Hands-On Practical Thinker"
-            summary = f"With a score of {iq}, you learn best through hands-on practice rather than fast abstract puzzles. Doing a few fun math drills in our Cognitive Gym will sharpen your speed."
-            edge = "Practical execution in familiar hands-on tasks with minimal theoretical convolution."
-            eq_style = "Prefers concrete examples over abstract symbolic logic."
+            archetype = "Hands-On Practical Learner"
+            summary = f"With a score of {iq}%, you learn best through hands-on practice. Regular speed logic sprints in the Cognitive Gym will sharpen your speed and mental reflexes."
+            edge = "Practical execution in familiar hands-on tasks."
+            eq_style = "Prefers concrete examples over abstract theoretical logic."
 
         growth_habits = [
             {
-                "habit": "Working Memory Matrix Training",
+                "habit": "Working Memory Puzzle Training",
                 "frequency": "Daily (15 mins)",
-                "action": "Train on combinatorial puzzles, dual n-back exercises, or chess endgames to expand working memory capacity."
+                "action": "Train on combinatorial puzzles, mental arithmetic sprints, or chess tactics to expand working memory."
             },
             {
                 "habit": "First-Principles Deconstruction",
                 "frequency": "Weekly",
-                "action": "Break one complex problem down into its irreducible factual axioms before generating prospective solutions."
+                "action": "Break complex dilemmas down into irreducible factual axioms before proposing solutions."
             },
             {
-                "habit": "Bayesian Calibration Audit",
+                "habit": "Hypothesis Falsification Drill",
                 "frequency": "Weekly",
-                "action": "Assign numerical confidence percentages (e.g. 80%) to your weekly analytical forecasts and track accuracy against outcomes."
+                "action": "Actively formulate one test that could disprove your primary working hypothesis."
             }
         ]
 
-    # 4. EQ Independent Evaluation (Mayer-Salovey-Caruso & Bar-On EQ-i)
+    # 4. EQ Independent Evaluation (Emotional Quotient)
     elif test_type == "EQ":
-        z_str = calc_z(eq)
-        if eq >= 125:
+        if eq >= 85:
             archetype = "Empathetic Leader"
-            summary = f"With a score of {eq} (Top 5% worldwide), you have outstanding emotional awareness. You listen deeply, understand how people feel, and naturally calm tense situations."
-            edge = "Great at reading people, listening with care, and calming tense conversations."
-            eq_style = "Warm, reassuring, and helps others feel comfortable and supported."
-        elif eq >= 110:
-            archetype = "Great Communicator"
-            summary = f"With a score of {eq} (Top 25% worldwide), your emotional skills are well above the global average of 100. You communicate clearly, listen actively, and build trust easily."
-            edge = "Attentive listening, resolving disagreements peacefully, and understanding others."
-            eq_style = "Patient, friendly, and easy to work with across different teams."
-        elif eq >= 90:
+            summary = f"With an exceptional score of {eq}%, you possess acute emotional perception, somatic self-regulation, and natural interpersonal resonance."
+            edge = "Deep empathetic listening, de-escalation of friction, and high social attunement."
+            eq_style = "Warm, reassuring, and fosters psychological safety effortlessly."
+        elif eq >= 65:
+            archetype = "Skillful Communicator"
+            summary = f"With a proficient score of {eq}%, your emotional attunement is strong and dependable, helping you communicate and collaborate smoothly."
+            edge = "Attentive listening, constructive conflict resolution, and solid emotional regulation."
+            eq_style = "Patient, collaborative, and easy to connect with across diverse teams."
+        elif eq >= 40:
             archetype = "Warm & Relatable"
-            summary = f"Your score of {eq} is right in the healthy world average range (World Average: 100). You get along well with others in daily life. Taking a calm pause during disagreements will keep conversations smooth."
-            edge = "Good teamwork and everyday helpfulness in comfortable settings."
-            eq_style = "Friendly and cooperative; can sometimes feel defensive when criticized, which improves with a quick pause."
+            summary = f"Your score of {eq}% is in the Balanced tier (Baseline: 60%). You cooperate well in daily settings and maintain healthy relationships."
+            edge = "Good teamwork, approachable communication, and everyday empathy."
+            eq_style = "Friendly and cooperative; taking a quick pause during friction keeps dialogues positive."
         else:
-            archetype = "Developing Social Confidence"
-            summary = f"With a score of {eq}, you may sometimes feel defensive or stressed during tense conversations. Practicing active listening and calm breathing will help you feel much more confident."
-            edge = "Direct communication, but requires active training in somatic regulation and perspective-taking."
-            eq_style = "Prone to reactive defensiveness, guilt-tripping, or emotional stonewalling under pressure."
+            archetype = "Developing Social Resonance"
+            summary = f"With a score of {eq}%, tense dialogues can sometimes feel stressful. Practicing active listening and calm breathing will rapidly build your confidence."
+            edge = "Direct communication with high leverage to grow through perspective-taking."
+            eq_style = "Benefits from emotional pauses and somatic regulation under pressure."
 
         growth_habits = [
             {
                 "habit": "Somatic Reset Protocol",
                 "frequency": "When Triggered",
-                "action": "Execute 3 physiological sighs (double inhale, slow exhale) to disengage the sympathetic fight-or-flight response before speaking."
+                "action": "Execute 2 physiological sighs (double nasal inhale, slow mouth exhale) to disengage fight-or-flight before speaking."
             },
             {
                 "habit": "Active Empathetic Mirroring",
                 "frequency": "Daily",
-                "action": "In conflict, accurately reflect the other party's emotional state ('It sounds like you are feeling overwhelmed...') before offering logic."
+                "action": "In disagreement, accurately reflect the other person's emotional state before offering logical solutions."
             },
             {
                 "habit": "Nightly Emotional Calibration",
                 "frequency": "Daily (Night)",
-                "action": "Journal for 10 minutes on today's social interactions, identifying triggers where ego defensiveness superseded empathy."
+                "action": "Journal for 5 minutes on today's social interactions, identifying triggers where defensiveness superseded empathy."
             }
         ]
 
     # 5. Holistic 4D Matrix Synthesis (Combined IQ, EQ, SQ, AQ)
     else:
-        avg_score = (iq + eq + sq + aq) / 4.0
-        z_str = calc_z(avg_score)
-
-        if avg_score >= 120 and (sq >= 115 and aq >= 115):
-            archetype = "Well-Rounded Thinker"
-            summary = f"With an overall composite score of {avg_score:.1f} (Top 9% worldwide), you have a strong, well-balanced mind. You combine sharp thinking (IQ: {iq}), emotional warmth (EQ: {eq}), inner calm (SQ: {sq}), and quick adaptability (AQ: {aq})."
-            edge = "Great balance across all areas: clear thinking, emotional warmth, inner calm, and quick learning."
-            eq_style = "Calm, well-rounded, and adaptable in almost any situation."
-        elif avg_score >= 110:
-            archetype = "Balanced Problem Solver"
-            summary = f"With an overall composite score of {avg_score:.1f} (Top 25% worldwide), you are comfortably above the global average of 100. You are dependable, clear-headed, and handle new situations with confidence."
-            edge = "Disciplined structural deduction and constructive operational adaptability across varying conditions."
-            eq_style = "Consistently composed with solid situational awareness and grounded ethical alignment."
-        elif avg_score >= 90:
-            archetype = "Balanced Everyday Thinker"
-            summary = f"Your overall score of {avg_score:.1f} is right in the healthy world average range (World Average: 100). You have reliable everyday abilities across thinking, relating to others, and adapting to change. Daily drills in our Cognitive Gym will help you level up even further."
-            edge = "Dependable common-sense problem solving and steady execution within established, predictable domains."
-            eq_style = "Functionally steady in standard conditions; prone to cognitive fatigue, defensive reactivity, or pivot latency under severe volatility."
+        scores_dict = {"IQ": iq, "EQ": eq, "SQ": sq, "AQ": aq}
+        avg_score = round(sum(scores_dict.values()) / 4.0, 1)
+        spread = max(scores_dict.values()) - min(scores_dict.values())
+        balance_type = "Well-Rounded Generalist" if spread <= 20 else "Spiky Specialist"
+        sorted_cats = sorted(scores_dict.keys(), key=lambda k: scores_dict[k], reverse=True)
+        top1, top2 = sorted_cats[0], sorted_cats[1]
+        pair = frozenset([top1, top2])
+        archetype_matrix = {
+            frozenset(["IQ", "AQ"]): "The Resilient Strategist",
+            frozenset(["IQ", "EQ"]): "The Empathetic Analyst",
+            frozenset(["IQ", "SQ"]): "The Tactical Communicator",
+            frozenset(["EQ", "SQ"]): "The People Catalyst",
+            frozenset(["EQ", "AQ"]): "The Grounded Anchor",
+            frozenset(["SQ", "AQ"]): "The Crisis Leader",
+        }
+        if spread <= 12:
+            archetype = "The Holistic Integrator"
         else:
-            archetype = "Curious Explorer"
-            summary = f"With an overall score of {avg_score:.1f}, you have plenty of room to grow. Practice makes all the difference! Try a few speed drills in the Cognitive Gym to build your speed, confidence, and mental reflexes."
-            edge = "Practical hands-on execution that requires systematic cognitive and emotional fortification."
-            eq_style = "Elevated reactivity and stress vulnerability when operational or interpersonal demands escalate."
+            archetype = archetype_matrix.get(pair, "The Holistic Integrator")
+
+        tier_name = "Exceptional" if avg_score >= 85 else "Proficient" if avg_score >= 65 else "Balanced" if avg_score >= 40 else "Developing"
+
+        summary = (
+            f"Demonstrating a {balance_type.lower()} cognitive architecture, you achieved an overall composite score of {avg_score}% ({tier_name}). "
+            f"Your leading dimension is {top1} ({scores_dict[top1]}%), while targeted development in {sorted_cats[-1]} ({scores_dict[sorted_cats[-1]]}%) "
+            f"offers your highest leverage for expansion."
+        )
+        edge = f"Dominant Strength: {top1} ({scores_dict[top1]}%) • Balance: {balance_type} (Spread: {spread}%)"
+        eq_style = f"Primary Growth Catalyst: {sorted_cats[-1]} ({scores_dict[sorted_cats[-1]]}%) • Evaluation Tier: {tier_name}"
 
         growth_habits = [
             {
                 "habit": "4D Cognitive Audit",
                 "frequency": "Weekly",
-                "action": "Evaluate your week across 4 metrics: Logic accuracy (IQ), Empathic regulation (EQ), Stoic control (SQ), and Pivot velocity (AQ)."
+                "action": f"Track weekly progress across IQ ({iq}%), EQ ({eq}%), SQ ({sq}%), and AQ ({aq}%)."
             },
             {
                 "habit": "Cognitive Gym Sprint Drill",
                 "frequency": "3x Weekly",
-                "action": "Complete the 10-question shuffled sprint in the Gym to build neuroplastic processing speed and working memory."
+                "action": "Complete a 10-question sprint drill in the Gym to build processing speed and working memory."
             },
             {
-                "habit": "Stoic Crisis Simulation",
+                "habit": "Crisis & Agility Simulation",
                 "frequency": "Bi-Weekly",
-                "action": "Simulate a severe potential disruption: plan your tactical pivot (AQ) while anchoring your inner peace (SQ)."
+                "action": "Simulate an unexpected disruption: plan your tactical pivot (AQ) while anchoring your inner peace (SQ)."
             }
         ]
 
@@ -417,33 +423,34 @@ async def analyze_with_groq(submission: QuizSubmission) -> Optional[Dict[str, An
         prompt = f"""
 You are a helpful and honest cognitive mentor analyzing the user's test scores across IQ, EQ, SQ, and AQ.
 
-POPULATION BENCHMARKS:
-- World Average: 100 (Most people score between 90 and 110)
-- Scores 110-119: Above Average (Solid, noticeable strength)
-- Scores 120-129: High Ability (Top 10% in the world)
-- Scores 130+: Exceptional (Top 2% in the world)
-- Scores 80-89: A bit below average (Room to improve with practice)
-- Scores under 80: Needs practice in the Cognitive Gym
+STANDARDIZED PERFORMANCE TIERS (0–100% SCALE):
+- 85–100%: Exceptional (Rare speed, deep synthesis, fluid execution)
+- 65–84%: Proficient (Strong, dependable capability across complex tasks)
+- 40–64%: Balanced (Solid everyday baseline, balanced benchmark around 60%)
+- 0–39%: Developing (Foundational development area; responsive to training)
 
 USER ASSESSMENT RESULTS:
 - Test Evaluated: {submission.test_type or "COMBINED"}
-- IQ (Thinking & Logic): {submission.iq_score or "N/A"}
-- EQ (Emotional Awareness & Composure): {submission.eq_score or "N/A"}
-- SQ (Inner Calm & Principles): {submission.sq_score or "N/A"}
-- AQ (Adaptability & Learning from Change): {submission.aq_score or "N/A"}
+- IQ (Thinking & Logic): {normalize_score_pct(submission.iq_score)}%
+- EQ (Emotional Awareness & Composure): {normalize_score_pct(submission.eq_score)}%
+- SQ (Inner Calm & Principles): {normalize_score_pct(submission.sq_score)}%
+- AQ (Adaptability & Learning from Change): {normalize_score_pct(submission.aq_score)}%
 - Tab Switch Count: {submission.tab_switch_count}
 - Questions Missed: {json.dumps(submission.incorrect_questions[:4])}
+
+ARCHETYPE TITLES:
+- For 4D Combined assessment, assign an archetype based on top strengths: 'The Resilient Strategist' (IQ+AQ), 'The Empathetic Analyst' (IQ+EQ), 'The Tactical Communicator' (IQ+SQ), 'The People Catalyst' (EQ+SQ), 'The Grounded Anchor' (EQ+AQ), 'The Crisis Leader' (SQ+AQ), or 'The Holistic Integrator' (if spread <= 12%).
+- For single quotient, choose an inspiring title matching their tier.
 
 WRITING STYLE GUIDELINES (VERY IMPORTANT):
 1. USE SIMPLE, CLEAN, EVERYDAY ENGLISH.
 2. DO NOT use complicated, intimidating academic or medical words (strictly avoid terms like 'neuroplastic', 'somatic', 'heuristic', 'dichotomy', 'psychometric', 'inertia', 'upheavals', 'unvarnished', 'paradigm').
-3. Be HONEST, CLEAR, and ENCOURAGING. Compare their score simply to the average score of 100.
-4. If a score is average (90-110), say in plain words that it is healthy and normal, and give 1 or 2 practical tips to improve.
-5. Keep explanations warm, conversational, and direct.
+3. Be HONEST, CLEAR, and ENCOURAGING. Reference their performance tier (Developing, Balanced, Proficient, Exceptional) and compare gently to the balanced benchmark of 60%.
+4. Keep explanations warm, conversational, and direct.
 
 Output ONLY valid JSON matching this schema:
-- archetype_title: string (Friendly, inspiring title, e.g. "Practical Problem Solver", "Calm & Thoughtful Thinker", "Quick Learner & Explorer", "Steady Leader")
-- core_summary: string (3 friendly, clear sentences explaining what their score means compared to the average of 100)
+- archetype_title: string (e.g. "The Empathetic Analyst", "The Resilient Strategist", "Clear Logical Thinker")
+- core_summary: string (2-3 friendly, clear sentences explaining what their score and tier mean)
 - cognitive_edge: string (Their key mental strengths in plain, everyday English)
 - emotional_profile: string (How they handle stress, change, and people in simple words)
 - growth_habits: array of {{"habit": string, "frequency": string, "action": string}} (3 simple daily habits anyone can easily follow)
@@ -580,16 +587,20 @@ def generate_deterministic_assessment_report(
     growth_area: str
 ) -> Dict[str, Any]:
     """100% deterministic psychometric evaluation fallback conforming strictly to required JSON schema."""
-    archetypes = {
-        "IQ": "Analytical Strategist",
-        "EQ": "Empathetic Navigator",
-        "SQ": "Anchored Sage",
-        "AQ": "Adaptive Pioneer"
+    sorted_cats = sorted(raw_scores.keys(), key=lambda k: raw_scores[k], reverse=True)
+    pair = frozenset([sorted_cats[0], sorted_cats[1]]) if len(sorted_cats) >= 2 else frozenset(["IQ", "AQ"])
+    archetype_matrix = {
+        frozenset(["IQ", "AQ"]): "The Resilient Strategist",
+        frozenset(["IQ", "EQ"]): "The Empathetic Analyst",
+        frozenset(["IQ", "SQ"]): "The Tactical Communicator",
+        frozenset(["EQ", "SQ"]): "The People Catalyst",
+        frozenset(["EQ", "AQ"]): "The Grounded Anchor",
+        frozenset(["SQ", "AQ"]): "The Crisis Leader",
     }
-    if spread <= 12 or list(raw_scores.values()).count(max(raw_scores.values())) > 1:
-        archetype_title = "Holistic Integrator"
+    if spread <= 12:
+        archetype_title = "The Holistic Integrator"
     else:
-        archetype_title = archetypes.get(top_strength, "Holistic Integrator")
+        archetype_title = archetype_matrix.get(pair, "The Holistic Integrator")
 
     overall_summary = (
         f"Demonstrating a {balance_type.lower()} cognitive profile, you achieved an overall composite score of {composite_score}% ({tier}). "
@@ -664,9 +675,18 @@ Detailed Scores:
 - SQ (Stoic/Spiritual): {raw_scores['SQ']}% ({calculate_assessment_tier(raw_scores['SQ'])})
 - AQ (Adaptability): {raw_scores['AQ']}% ({calculate_assessment_tier(raw_scores['AQ'])})
 
+ARCHETYPE MATRIX (Assign archetypeTitle using top 2 strengths, or 'The Holistic Integrator' if Spread <= 12%):
+- IQ + AQ: "The Resilient Strategist"
+- IQ + EQ: "The Empathetic Analyst"
+- IQ + SQ: "The Tactical Communicator"
+- EQ + SQ: "The People Catalyst"
+- EQ + AQ: "The Grounded Anchor"
+- SQ + AQ: "The Crisis Leader"
+- If Spread <= 12%: "The Holistic Integrator"
+
 Return ONLY valid JSON matching this exact schema:
 {{
-  "archetypeTitle": "2-4 word evocative archetype name",
+  "archetypeTitle": "Archetype title matching the matrix above",
   "overallSummary": "2-3 sentences synthesizing profile, balance type, and cognitive dynamics",
   "categoryInsights": {{
     "IQ": "1-2 sentence specific insight referencing score and tier",

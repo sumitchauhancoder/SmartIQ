@@ -151,9 +151,9 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       }
     });
 
-    // Score scale: baseline 95 + scaled across 10 questions -> 95 to 145
+    // Percentage score (0 - 100%) as per Psychometric Assessment Bank specification
     const totalQ = Math.max(1, answers.length);
-    const iqScore = Math.min(145, Math.round(95 + (correctCount / totalQ) * 50));
+    const iqScore = Math.max(0, Math.min(100, Math.round((correctCount / totalQ) * 100)));
 
     const iqBreakdown = {};
     Object.keys(subTotals).forEach((cat) => {
@@ -292,7 +292,13 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
   // =========================================================================
   if (completedData) {
     const { iq_score, iq_breakdown, ai_analysis, incorrect_questions } = completedData;
-    const percentile = Math.min(99, Math.round(50 + ((iq_score - 100) / 15) * 34));
+    const getTier = (s) => {
+      if (s < 40) return { name: 'Developing', color: 'border-rose-500/50 text-rose-300 bg-rose-950/60', range: '0–39%' };
+      if (s < 65) return { name: 'Balanced', color: 'border-amber-500/50 text-amber-300 bg-amber-950/60', range: '40–64%' };
+      if (s < 85) return { name: 'Proficient', color: 'border-blue-500/50 text-blue-300 bg-blue-950/60', range: '65–84%' };
+      return { name: 'Exceptional', color: 'border-emerald-500/50 text-emerald-300 bg-emerald-950/60', range: '85–100%' };
+    };
+    const tier = getTier(iq_score);
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -307,22 +313,22 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
                 <span>Cognitive Intelligence Module Completed (10/10 Questions)</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
-                IQ Score: <span className="text-indigo-400 font-mono">{iq_score}</span>
+                IQ Score: <span className="text-indigo-400 font-mono">{iq_score}%</span>
               </h1>
               <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
                 {ai_analysis?.core_summary || 'Your cognition excels at structural mechanics, logic trees, and technical precision.'}
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center p-4 rounded-2xl glass-card border border-indigo-500/30 min-w-[130px] text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-1">
-                Percentile Rank
+            <div className={`flex flex-col items-center justify-center p-4 rounded-2xl glass-card border ${tier.color} min-w-[140px] text-center`}>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 mb-1">
+                Standardized Tier
               </span>
-              <span className="text-3xl font-black text-white font-mono">
-                {percentile}%
+              <span className="text-2xl font-black text-white font-mono">
+                {tier.name}
               </span>
               <span className="text-[11px] text-slate-400 mt-1">
-                Top {Math.max(1, 100 - percentile)}% of cohort
+                {tier.range} Band
               </span>
             </div>
           </div>

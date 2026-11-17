@@ -17,6 +17,14 @@ import {
 } from 'recharts';
 import { Radar as RadarIcon, BarChart2, Shield } from 'lucide-react';
 
+const normalizeToPercent = (s) => {
+  if (s === null || s === undefined) return 50;
+  const num = Number(s);
+  if (isNaN(num)) return 50;
+  if (num <= 100) return Math.max(0, Math.min(100, Math.round(num)));
+  return Math.max(0, Math.min(100, Math.round(((num - 85) / 60) * 100)));
+};
+
 export default function PerformanceChart({
   iqScore = null,
   eqScore = null,
@@ -29,70 +37,70 @@ export default function PerformanceChart({
 }) {
   const [chartType, setChartType] = useState('radar'); // 'radar' or 'bar'
 
-  // Default benchmarks if scores not yet recorded
-  const safeIQ = iqScore || 100;
-  const safeEQ = eqScore || 100;
-  const safeSQ = sqScore || 100;
-  const safeAQ = aqScore || 100;
+  // Standardized 0-100% scores
+  const safeIQ = normalizeToPercent(iqScore);
+  const safeEQ = normalizeToPercent(eqScore);
+  const safeSQ = normalizeToPercent(sqScore);
+  const safeAQ = normalizeToPercent(aqScore);
 
-  // 8-Axis Full Spectrum Radar Data
+  // 8-Axis Full Spectrum Radar Data (0-100% Scale, 60% Balanced Benchmark)
   const radarData = [
     {
       dimension: 'Deductive Logic (IQ)',
-      score: iqBreakdown['Logic'] || Math.round((safeIQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(iqBreakdown['Logic']) || safeIQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Spatial & Math (IQ)',
-      score: Math.round(((iqBreakdown['Math'] || 70) + (iqBreakdown['Spatial'] || 70)) / 2),
-      benchmark: 70,
+      score: Math.round(((normalizeToPercent(iqBreakdown['Math']) || safeIQ) + (normalizeToPercent(iqBreakdown['Spatial']) || safeIQ)) / 2),
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Affective Empathy (EQ)',
-      score: eqBreakdown['Empathy'] || Math.round((safeEQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(eqBreakdown['Empathy']) || safeEQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Self-Regulation (EQ)',
-      score: eqBreakdown['Self-Regulation'] || Math.round((safeEQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(eqBreakdown['Self-Regulation']) || safeEQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Stoic Equanimity (SQ)',
-      score: sqBreakdown['Philosophy & Stoicism'] || Math.round((safeSQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(sqBreakdown['Philosophy & Stoicism']) || safeSQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Purpose & Values (SQ)',
-      score: sqBreakdown['Purpose & Meaning'] || Math.round((safeSQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(sqBreakdown['Purpose & Meaning']) || safeSQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
       dimension: 'Crisis Velocity (AQ)',
-      score: aqBreakdown['Crisis Management & Resilience'] || Math.round((safeAQ / 140) * 100),
-      benchmark: 70,
+      score: normalizeToPercent(aqBreakdown['Crisis Management & Resilience']) || safeAQ,
+      benchmark: 60,
       fullMark: 100,
     },
     {
-      dimension: 'Unlearning & AI (AQ)',
-      score: Math.round(((aqBreakdown['AI & Tech Disruption'] || 75) + (aqBreakdown['Unlearning & Agility'] || 75)) / 2),
-      benchmark: 70,
+      dimension: 'Unlearning & Agility (AQ)',
+      score: Math.round(((normalizeToPercent(aqBreakdown['AI & Tech Disruption']) || safeAQ) + (normalizeToPercent(aqBreakdown['Unlearning & Agility']) || safeAQ)) / 2),
+      benchmark: 60,
       fullMark: 100,
     },
   ];
 
   // 4 Primary Pillars Bar Data
   const barData = [
-    { name: 'IQ (Cognitive)', score: safeIQ, benchmark: 100, color: '#38bdf8' },
-    { name: 'EQ (Emotional)', score: safeEQ, benchmark: 100, color: '#f43f5e' },
-    { name: 'SQ (Spiritual)', score: safeSQ, benchmark: 100, color: '#f59e0b' },
-    { name: 'AQ (Adaptability)', score: safeAQ, benchmark: 100, color: '#10b981' },
+    { name: 'IQ (Cognitive)', score: safeIQ, benchmark: 60, color: '#38bdf8' },
+    { name: 'EQ (Emotional)', score: safeEQ, benchmark: 60, color: '#f43f5e' },
+    { name: 'SQ (Spiritual)', score: safeSQ, benchmark: 60, color: '#f59e0b' },
+    { name: 'AQ (Adaptability)', score: safeAQ, benchmark: 60, color: '#10b981' },
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -102,7 +110,7 @@ export default function PerformanceChart({
           <p className="font-semibold text-slate-200 mb-1">{label || payload[0]?.payload?.dimension}</p>
           {payload.map((entry, index) => (
             <p key={`item-${index}`} style={{ color: entry.color || entry.fill }}>
-              {entry.name}: <span className="font-mono font-bold">{Math.round(entry.value)}</span>
+              {entry.name}: <span className="font-mono font-bold">{Math.round(entry.value)}%</span>
             </p>
           ))}
         </div>
@@ -122,7 +130,7 @@ export default function PerformanceChart({
             </span>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Cross-mapping Cognitive (IQ), Emotional (EQ), Spiritual (SQ), and Adaptability (AQ) vectors
+            Cross-mapping Cognitive (IQ), Emotional (EQ), Spiritual (SQ), and Adaptability (AQ) vectors (0–100%)
           </p>
         </div>
 
@@ -171,7 +179,7 @@ export default function PerformanceChart({
                 fillOpacity={0.3}
               />
               <Radar
-                name="Population Norm (Median)"
+                name="Balanced Baseline (60%)"
                 dataKey="benchmark"
                 stroke="#64748b"
                 strokeDasharray="4 4"
@@ -189,7 +197,7 @@ export default function PerformanceChart({
             <BarChart data={barData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
               <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-              <YAxis domain={[0, 160]} stroke="#64748b" fontSize={11} />
+              <YAxis domain={[0, 100]} stroke="#64748b" fontSize={11} tickFormatter={(val) => `${val}%`} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: '11px', color: '#94a3b8' }} />
               <Bar name="Your Score" dataKey="score" radius={[6, 6, 0, 0]}>
@@ -197,7 +205,7 @@ export default function PerformanceChart({
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Bar>
-              <Bar name="Population Baseline (100)" dataKey="benchmark" fill="#334155" radius={[6, 6, 0, 0]} />
+              <Bar name="Balanced Baseline (60%)" dataKey="benchmark" fill="#334155" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
