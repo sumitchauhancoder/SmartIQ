@@ -92,9 +92,9 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     if (selectedOption === null && !timedOut) return;
 
     const currentQ = questions[currentIndex];
-    const pointsList = currentQ.points || [1, 2, 3, 4];
-    const chosenIndex = timedOut ? 0 : selectedOption;
-    const earnedPoints = pointsList[chosenIndex] !== undefined ? pointsList[chosenIndex] : 2;
+    const pointsList = currentQ.points || [1, 2, 3, 4, 5];
+    const chosenIndex = timedOut ? 2 : selectedOption;
+    const earnedPoints = pointsList[chosenIndex] !== undefined ? pointsList[chosenIndex] : 3;
 
     const answerRecord = {
       question_id: currentQ.id,
@@ -103,6 +103,7 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       user_index: chosenIndex,
       user_option: chosenIndex >= 0 ? currentQ.options[chosenIndex] : 'Time Expired',
       points_earned: earnedPoints,
+      max_points: Math.max(...pointsList),
       explanation: currentQ.explanation
     };
 
@@ -121,6 +122,7 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     setAnalyzing(true);
 
     let totalPoints = 0;
+    let totalMaxPossible = 0;
     const subTotals = {
       'Crisis Management & Resilience': { earned: 0, max: 0 },
       'AI & Tech Disruption': { earned: 0, max: 0 },
@@ -131,21 +133,23 @@ export default function AQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       let sub = ans.sub_category || 'Crisis Management & Resilience';
       if (!['Crisis Management & Resilience', 'AI & Tech Disruption', 'Unlearning & Agility'].includes(sub)) {
         const lower = sub.toLowerCase();
-        if (['crisis', 'resilience', 'fallback', 'interruption', 'prioritization', 'ambiguity', 'disruption'].some(k => lower.includes(k))) {
+        if (['crisis', 'resilience', 'fallback', 'interruption', 'prioritization', 'ambiguity', 'disruption', 'tenacity'].some(k => lower.includes(k))) {
           sub = 'Crisis Management & Resilience';
-        } else if (['ai', 'tech', 'environment', 'upskilling', 'cloud', 'novel'].some(k => lower.includes(k))) {
+        } else if (['ai', 'tech', 'environment', 'upskilling', 'cloud', 'novel', 'ownership'].some(k => lower.includes(k))) {
           sub = 'AI & Tech Disruption';
         } else {
           sub = 'Unlearning & Agility';
         }
       }
+      const maxPts = ans.max_points || 5;
       subTotals[sub].earned += ans.points_earned;
-      subTotals[sub].max += 4;
+      subTotals[sub].max += maxPts;
       totalPoints += ans.points_earned;
+      totalMaxPossible += maxPts;
     });
 
     // Score scale: 85 baseline + scaled dynamic points -> 85 to 145
-    const maxPossible = Math.max(1, answers.length * 4);
+    const maxPossible = Math.max(1, totalMaxPossible);
     const aqScore = Math.min(145, Math.round(85 + (totalPoints / maxPossible) * 55));
 
     const aqBreakdown = {};

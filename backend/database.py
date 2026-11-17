@@ -204,7 +204,7 @@ def init_postgres_db():
                         "diagram_svg": q.get("diagram_svg"),
                         "options": json.dumps(q["options"]),
                         "correct_answer_index": q["correct_answer_index"],
-                        "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                        "points": json.dumps(q.get("points", [1, 2, 3, 4, 5] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
                         "explanation": q["explanation"],
                         "image_url": q.get("image_url"),
                         "is_spatial": bool(q.get("is_spatial", False))
@@ -346,7 +346,7 @@ def init_sqlite_db():
                 q.get("diagram_svg"),
                 json.dumps(q["options"]),
                 q["correct_answer_index"],
-                json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                json.dumps(q.get("points", [1, 2, 3, 4, 5] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
                 q["explanation"],
                 q.get("image_url"),
                 1 if q.get("is_spatial") else 0
@@ -1059,7 +1059,7 @@ def reset_pool_to_seed() -> bool:
                     "diagram_svg": q.get("diagram_svg"),
                     "options": json.dumps(q["options"]),
                     "correct_answer_index": q["correct_answer_index"],
-                    "points": json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+                    "points": json.dumps(q.get("points", [1, 2, 3, 4, 5] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
                     "explanation": q["explanation"],
                     "image_url": q.get("image_url"),
                     "is_spatial": bool(q.get("is_spatial", False))
@@ -1084,7 +1084,7 @@ def reset_pool_to_seed() -> bool:
             q.get("diagram_svg"),
             json.dumps(q["options"]),
             q["correct_answer_index"],
-            json.dumps(q.get("points", [1, 2, 3, 4] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
+            json.dumps(q.get("points", [1, 2, 3, 4, 5] if q["category_type"] in ("EQ", "SQ", "AQ") else [0, 0, 0, 0])),
             q["explanation"],
             q.get("image_url"),
             1 if q.get("is_spatial") else 0,

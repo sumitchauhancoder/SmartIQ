@@ -91,9 +91,9 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     if (selectedOption === null && !timedOut) return;
 
     const currentQ = questions[currentIndex];
-    const pointsList = currentQ.points || [1, 2, 3, 4];
-    const chosenIndex = timedOut ? 0 : selectedOption;
-    const earnedPoints = pointsList[chosenIndex] !== undefined ? pointsList[chosenIndex] : 2;
+    const pointsList = currentQ.points || [1, 2, 3, 4, 5];
+    const chosenIndex = timedOut ? 2 : selectedOption;
+    const earnedPoints = pointsList[chosenIndex] !== undefined ? pointsList[chosenIndex] : 3;
 
     const answerRecord = {
       question_id: currentQ.id,
@@ -102,6 +102,7 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       user_index: chosenIndex,
       user_option: chosenIndex >= 0 ? currentQ.options[chosenIndex] : 'Time Expired',
       points_earned: earnedPoints,
+      max_points: Math.max(...pointsList),
       explanation: currentQ.explanation
     };
 
@@ -120,6 +121,7 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
     setAnalyzing(true);
 
     let totalPoints = 0;
+    let totalMaxPossible = 0;
     const subTotals = {
       'Self-Awareness': { earned: 0, max: 0 },
       'Self-Regulation': { earned: 0, max: 0 },
@@ -138,13 +140,15 @@ export default function EQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
           sub = 'Self-Awareness';
         }
       }
+      const maxPts = ans.max_points || 5;
       subTotals[sub].earned += ans.points_earned;
-      subTotals[sub].max += 4;
+      subTotals[sub].max += maxPts;
       totalPoints += ans.points_earned;
+      totalMaxPossible += maxPts;
     });
 
     // Score scale: baseline 85 + scaled dynamic points -> 85 to 145
-    const maxPossible = Math.max(1, answers.length * 4);
+    const maxPossible = Math.max(1, totalMaxPossible);
     const eqScore = Math.min(145, Math.round(85 + (totalPoints / maxPossible) * 55));
 
     const eqBreakdown = {};

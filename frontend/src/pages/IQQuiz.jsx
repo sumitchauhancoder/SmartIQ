@@ -128,9 +128,9 @@ export default function IQQuiz({ onComplete, onNavigate, onTabSwitch, tabSwitchC
       let sub = ans.sub_category || 'Logic';
       if (!['Logic', 'Math', 'Spatial'].includes(sub)) {
         const lower = sub.toLowerCase();
-        if (lower.includes('spatial') || lower.includes('dice') || lower.includes('geometry') || lower.includes('symmetry')) {
+        if (lower.includes('spatial') || lower.includes('dice') || lower.includes('geometry') || lower.includes('symmetry') || lower.includes('direction') || lower.includes('clock')) {
           sub = 'Spatial';
-        } else if (lower.includes('arithmetic') || lower.includes('math') || lower.includes('number')) {
+        } else if (lower.includes('arithmetic') || lower.includes('math') || lower.includes('number') || lower.includes('sequence') || lower.includes('series')) {
           sub = 'Math';
         } else {
           sub = 'Logic';
