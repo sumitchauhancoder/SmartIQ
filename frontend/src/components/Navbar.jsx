@@ -12,7 +12,9 @@ import {
   LogIn, 
   Compass, 
   Zap, 
-  Dumbbell 
+  Dumbbell,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +22,31 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { user, role, isAdmin, signOut } = useAuth();
+
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('enigma_theme') || 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  });
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem('enigma_theme', nextTheme);
+      if (nextTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {
+      console.error('Failed to toggle theme:', e);
+    }
+  };
 
   // Navigation Items according to strict RBAC rules:
   // When logged out: only link to landing dashboard
@@ -113,7 +140,21 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
         </div>
 
         {/* Right Action Cluster - Stable width anchor */}
-        <div className="hidden lg:flex items-center justify-end flex-shrink-0 min-w-[140px]">
+        <div className="hidden lg:flex items-center justify-end gap-2.5 flex-shrink-0 min-w-[140px]">
+          {/* Theme Toggle Button (Sun / Moon) */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 border border-slate-800 transition-all flex items-center justify-center select-none"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-300 transition-transform duration-200 hover:rotate-45" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-500 transition-transform duration-200 hover:-rotate-12" />
+            )}
+          </button>
+
           {user ? (
             <div className="relative">
               <button
@@ -177,6 +218,19 @@ export default function Navbar({ currentRoute, onRouteChange, onOpenAuth }) {
 
         {/* Mobile menu trigger (< lg screens) */}
         <div className="lg:hidden flex items-center gap-2">
+          {/* Mobile Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-amber-300 border border-slate-800 focus:outline-none transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-amber-300" />
+            ) : (
+              <Moon className="w-4 h-4 text-indigo-500" />
+            )}
+          </button>
           {!user ? (
             <button
               onClick={() => onOpenAuth(false)}
