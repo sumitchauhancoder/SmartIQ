@@ -243,11 +243,21 @@ export default function Results({
     try { return JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'); } catch(e) { return null; }
   })();
 
-  const completedCount = [iq, eq, sq, aq].filter(Boolean).length;
+  const assessmentResult = (function() {
+    try {
+      if (resultsData?.rawScores || resultsData?.compositeScore) return resultsData;
+      const saved = sessionStorage.getItem('enigma_assessment_result') || localStorage.getItem('enigma_assessment_result');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const completedCount = assessmentResult ? 4 : [iq, eq, sq, aq].filter(Boolean).length;
 
   // Trigger celebration confetti on mount if any test completed
   useEffect(() => {
-    if (completedCount > 0) {
+    if (completedCount > 0 || assessmentResult) {
       try {
         confetti({
           particleCount: 80,
@@ -257,21 +267,20 @@ export default function Results({
         });
       } catch (e) {}
     }
-  }, [completedCount]);
+  }, [completedCount, assessmentResult]);
 
-  // Aggregate scores
-  const iqScore = iq?.iq_score || null;
-  const eqScore = eq?.eq_score || null;
-  const sqScore = sq?.sq_score || null;
-  const aqScore = aq?.aq_score || null;
+  // Aggregate scores (with assessmentResult priority)
+  const iqScore = assessmentResult?.rawScores?.IQ !== undefined ? assessmentResult.rawScores.IQ : (iq?.iq_score || null);
+  const eqScore = assessmentResult?.rawScores?.EQ !== undefined ? assessmentResult.rawScores.EQ : (eq?.eq_score || null);
+  const sqScore = assessmentResult?.rawScores?.SQ !== undefined ? assessmentResult.rawScores.SQ : (sq?.sq_score || null);
+  const aqScore = assessmentResult?.rawScores?.AQ !== undefined ? assessmentResult.rawScores.AQ : (aq?.aq_score || null);
 
-  const iqBreakdown = iq?.iq_breakdown || {};
-  const eqBreakdown = eq?.eq_breakdown || {};
-  const sqBreakdown = sq?.sq_breakdown || {};
-  const aqBreakdown = aq?.aq_breakdown || {};
+  const iqBreakdown = iq?.iq_breakdown || (assessmentResult ? { Logic: iqScore, Math: iqScore, Spatial: iqScore } : {});
+  const eqBreakdown = eq?.eq_breakdown || (assessmentResult ? { 'Self-Awareness': eqScore, 'Self-Regulation': eqScore, Empathy: eqScore } : {});
+  const sqBreakdown = sq?.sq_breakdown || (assessmentResult ? { 'Philosophy & Stoicism': sqScore, 'Purpose & Meaning': sqScore, 'Core Values & Wholeness': sqScore } : {});
+  const aqBreakdown = aq?.aq_breakdown || (assessmentResult ? { 'Crisis Management & Resilience': aqScore, 'AI & Tech Disruption': aqScore, 'Unlearning & Agility': aqScore } : {});
 
   // Unified 4D Archetype Synthesis:
-  // When viewing the Unified 4D Matrix, analyze ALL completed tests TOGETHER as a holistic synthesis!
   const combinedSynthesis = synthesizeUnified4DProfile(iqScore, eqScore, sqScore, aqScore);
   let archetype = combinedSynthesis.archetype;
   let summary = combinedSynthesis.summary;
@@ -279,7 +288,20 @@ export default function Results({
   let emotionalProfile = combinedSynthesis.emotionalProfile;
   let growthHabits = combinedSynthesis.growthHabits;
 
-  if (resultsData?.test_type === 'COMBINED' && resultsData?.ai_analysis) {
+  if (assessmentResult && assessmentResult.aiAnalysis) {
+    const ai = assessmentResult.aiAnalysis;
+    archetype = ai.archetypeTitle || combinedSynthesis.archetype;
+    summary = ai.overallSummary || combinedSynthesis.summary;
+    edge = `Dominant Strength: ${assessmentResult.topStrength} (${assessmentResult.rawScores[assessmentResult.topStrength]}%) • Balance: ${assessmentResult.balanceType}`;
+    emotionalProfile = `Primary Growth Catalyst: ${assessmentResult.growthArea} (${assessmentResult.rawScores[assessmentResult.growthArea]}%) • Tier: ${assessmentResult.tier}`;
+    if (Array.isArray(ai.actionableAdvice) && ai.actionableAdvice.length > 0) {
+      growthHabits = ai.actionableAdvice.map((adv, idx) => ({
+        habit: `Strategic Recommendation ${idx + 1} (${assessmentResult.growthArea})`,
+        frequency: 'High-Leverage Habit',
+        action: adv
+      }));
+    }
+  } else if (resultsData?.test_type === 'COMBINED' && resultsData?.ai_analysis) {
     const ai = resultsData.ai_analysis;
     archetype = ai.archetype_title || combinedSynthesis.archetype;
     summary = ai.core_summary || combinedSynthesis.summary;
@@ -287,7 +309,6 @@ export default function Results({
     emotionalProfile = ai.emotional_profile || combinedSynthesis.emotionalProfile;
     growthHabits = ai.growth_habits || combinedSynthesis.growthHabits;
   } else if (completedCount === 1) {
-    // Only fall back to single test analysis if user has completed exactly 1 test
     const singleSource = aq?.ai_analysis || sq?.ai_analysis || eq?.ai_analysis || iq?.ai_analysis;
     if (singleSource) {
       archetype = singleSource.archetype_title || combinedSynthesis.archetype;
@@ -297,6 +318,7 @@ export default function Results({
       growthHabits = singleSource.growth_habits || combinedSynthesis.growthHabits;
     }
   }
+
 
   // Fallback default habits if empty
   if (growthHabits.length === 0) {
@@ -412,7 +434,28 @@ export default function Results({
       retakeRoute = 'aq';
     }
 
+    if (!testData && assessmentResult?.rawScores?.[type] !== undefined) {
+      testData = {
+        [`${type.toLowerCase()}_score`]: assessmentResult.rawScores[type],
+        [`${type.toLowerCase()}_breakdown`]: {
+          [type === 'IQ' ? 'Logic' : type === 'EQ' ? 'Self-Awareness' : type === 'SQ' ? 'Philosophy & Stoicism' : 'Crisis Management & Resilience']: assessmentResult.rawScores[type]
+        },
+        ai_analysis: {
+          archetype_title: assessmentResult.aiAnalysis?.archetypeTitle,
+          core_summary: assessmentResult.aiAnalysis?.categoryInsights?.[type] || assessmentResult.aiAnalysis?.overallSummary,
+          cognitive_edge: assessmentResult.aiAnalysis?.categoryInsights?.[type],
+          emotional_profile: `Profile evaluation for ${type} placed in tier: ${assessmentResult.tier}`,
+          growth_habits: (assessmentResult.aiAnalysis?.actionableAdvice || []).map(adv => ({
+            habit: `${type} High-Leverage Protocol`,
+            frequency: 'Daily Practice',
+            action: adv
+          }))
+        }
+      };
+    }
+
     if (!testData) {
+
       return (
         <div className="glass-panel p-8 sm:p-12 rounded-3xl border border-slate-800 text-center max-w-2xl mx-auto my-8">
           <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-4">
@@ -770,29 +813,54 @@ export default function Results({
 
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
               <div>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-indigo-300 text-xs font-semibold mb-3">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Unified 4D Intelligence Synthesis • {completedCount}/4 Modules Completed</span>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-indigo-300 text-xs font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{assessmentResult ? '80-Item Psychometric Matrix Engine' : 'Unified 4D Intelligence Synthesis'}</span>
+                  </div>
+                  {assessmentResult && (
+                    <>
+                      <span className="px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/60 text-xs font-bold font-mono">
+                        Composite: {assessmentResult.compositeScore}% • {assessmentResult.tier}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-700/60 text-xs font-bold">
+                        {assessmentResult.balanceType} (Spread: {assessmentResult.spread}%)
+                      </span>
+                    </>
+                  )}
                 </div>
                 <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
                   {archetype}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 my-3 text-xs">
-                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>World Average: <strong>100</strong></span>
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-indigo-300 font-mono font-semibold">
-                    Composite Average: {Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} pts
-                  </span>
-                  <span className="text-slate-400">
-                    Standardized Global Benchmark (Average: 100)
-                  </span>
+                  {assessmentResult ? (
+                    <>
+                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-emerald-300 font-semibold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>Dominant Strength: <strong>{assessmentResult.topStrength} ({assessmentResult.rawScores[assessmentResult.topStrength]}%)</strong></span>
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-amber-300 font-semibold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span>Primary Growth Area: <strong>{assessmentResult.growthArea} ({assessmentResult.rawScores[assessmentResult.growthArea]}%)</strong></span>
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 font-semibold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>World Average: <strong>100</strong></span>
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-indigo-300 font-mono font-semibold">
+                        Composite Average: {Math.round(([iqScore, eqScore, sqScore, aqScore].filter(Boolean).reduce((a, b) => a + b, 0)) / (completedCount || 1))} pts
+                      </span>
+                    </>
+                  )}
                 </div>
                 <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
                   {summary}
                 </p>
               </div>
+
             </div>
 
             {/* Cognitive Edge & Emotional Demeanor */}
@@ -856,9 +924,14 @@ export default function Results({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
+                <p className="text-xs text-slate-400 mb-2">
                   10 questions • Logic, math, and spatial mechanics.
                 </p>
+                {assessmentResult?.aiAnalysis?.categoryInsights?.IQ && (
+                  <p className="text-[11px] text-blue-200/90 italic bg-blue-950/40 p-2.5 rounded-xl border border-blue-800/40 mb-3">
+                    💡 {assessmentResult.aiAnalysis.categoryInsights.IQ}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 {iqScore ? (
@@ -907,10 +980,16 @@ export default function Results({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
+                <p className="text-xs text-slate-400 mb-2">
                   10 scenarios • Managing emotions and active empathy.
                 </p>
+                {assessmentResult?.aiAnalysis?.categoryInsights?.EQ && (
+                  <p className="text-[11px] text-rose-200/90 italic bg-rose-950/40 p-2.5 rounded-xl border border-rose-800/40 mb-3">
+                    💡 {assessmentResult.aiAnalysis.categoryInsights.EQ}
+                  </p>
+                )}
               </div>
+
               <div className="space-y-2">
                 {eqScore ? (
                   <button
@@ -958,9 +1037,14 @@ export default function Results({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
+                <p className="text-xs text-slate-400 mb-2">
                   10 dilemmas • Stoic equanimity and inner wholeness.
                 </p>
+                {assessmentResult?.aiAnalysis?.categoryInsights?.SQ && (
+                  <p className="text-[11px] text-amber-200/90 italic bg-amber-950/40 p-2.5 rounded-xl border border-amber-800/40 mb-3">
+                    💡 {assessmentResult.aiAnalysis.categoryInsights.SQ}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 {sqScore ? (
@@ -1009,10 +1093,16 @@ export default function Results({
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mb-4">
+                <p className="text-xs text-slate-400 mb-2">
                   10 disruptions • Learning velocity and crisis pivoting.
                 </p>
+                {assessmentResult?.aiAnalysis?.categoryInsights?.AQ && (
+                  <p className="text-[11px] text-emerald-200/90 italic bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-800/40 mb-3">
+                    💡 {assessmentResult.aiAnalysis.categoryInsights.AQ}
+                  </p>
+                )}
               </div>
+
               <div className="space-y-2">
                 {aqScore ? (
                   <button
@@ -1079,8 +1169,30 @@ export default function Results({
               ))}
             </div>
           </div>
+
+          {/* Assessment Action Bar */}
+          <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-slate-900/60 to-purple-950/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+            <div>
+              <h4 className="text-sm font-bold text-white mb-1">
+                {assessmentResult ? 'Re-calibrate Your 4D Cognitive Architecture' : 'Take the Full 4D Psychometric Assessment'}
+              </h4>
+              <p className="text-xs text-slate-400">
+                Randomized 40-item battery (10 per dimension) evaluated across Gaussian norms with Groq AI mind archetype analytics.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => onNavigate('assessment')}
+                className="px-6 py-3 rounded-2xl text-xs font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white shadow-xl shadow-indigo-600/30 transition-all flex items-center gap-2"
+              >
+                <span>{assessmentResult ? 'Retake 4D Assessment (40 Qs)' : 'Start 4D Assessment (40 Qs)'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 }

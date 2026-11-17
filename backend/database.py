@@ -96,6 +96,7 @@ def init_db():
         init_postgres_db()
     else:
         init_sqlite_db()
+    init_assessment_tables()
 
 
 def init_postgres_db():
@@ -1092,3 +1093,295 @@ def reset_pool_to_seed() -> bool:
     conn.commit()
     conn.close()
     return True
+
+
+# =============================================================================
+# 80-Question Psychometric Assessment Bank Database Functions
+# =============================================================================
+
+def init_assessment_tables():
+    """Initializes tables for the 80-question assessment bank and seeds them if empty."""
+    json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assessment_bank.json")
+    bank_data = {}
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                bank_data = json.load(f)
+        except Exception as e:
+            print(f"[Assessment DB] Could not read assessment_bank.json: {e}")
+
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        try:
+            with _engine.begin() as conn:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS assessment_questions (
+                        id TEXT PRIMARY KEY,
+                        category TEXT NOT NULL CHECK (category IN ('IQ', 'EQ', 'SQ', 'AQ')),
+                        question_type TEXT NOT NULL CHECK (question_type IN ('mcq', 'likert')),
+                        prompt_text TEXT NOT NULL,
+                        options JSONB,
+                        correct_answer TEXT,
+                        is_reverse BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMPTZ DEFAULT NOW()
+                    );
+                """))
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS assessment_results (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        user_id UUID,
+                        raw_scores JSONB NOT NULL,
+                        composite_score FLOAT NOT NULL,
+                        tier TEXT NOT NULL,
+                        ai_analysis JSONB NOT NULL,
+                        responses JSONB,
+                        created_at TIMESTAMPTZ DEFAULT NOW()
+                    );
+                """))
+
+                count = conn.execute(text("SELECT COUNT(*) FROM assessment_questions")).scalar()
+                if count == 0 and bank_data:
+                    insert_stmt = text("""
+                        INSERT INTO assessment_questions (id, category, question_type, prompt_text, options, correct_answer, is_reverse)
+                        VALUES (:id, :category, :question_type, :prompt_text, :options, :correct_answer, :is_reverse)
+                        ON CONFLICT (id) DO NOTHING
+                    """)
+                    for item in bank_data.get("IQ", []):
+                        correct_str = item["options"][item.get("correctIndex", 0)]
+                        conn.execute(insert_stmt, {
+                            "id": item["id"],
+                            "category": "IQ",
+                            "question_type": "mcq",
+                            "prompt_text": item["question"],
+                            "options": json.dumps(item["options"]),
+                            "correct_answer": correct_str,
+                            "is_reverse": False
+                        })
+                    for cat in ["EQ", "SQ", "AQ"]:
+                        for item in bank_data.get(cat, []):
+                            conn.execute(insert_stmt, {
+                                "id": item["id"],
+                                "category": cat,
+                                "question_type": "likert",
+                                "prompt_text": item["statement"],
+                                "options": None,
+                                "correct_answer": None,
+                                "is_reverse": bool(item.get("isReverse", False))
+                            })
+                    print("[Assessment DB] Seeded 80 questions into PostgreSQL assessment_questions.")
+        except Exception as e:
+            print(f"[Assessment DB] Error initializing PostgreSQL assessment tables: {e}")
+    else:
+        conn = get_sqlite_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS assessment_questions (
+                id TEXT PRIMARY KEY,
+                category TEXT NOT NULL,
+                question_type TEXT NOT NULL,
+                prompt_text TEXT NOT NULL,
+                options TEXT,
+                correct_answer TEXT,
+                is_reverse INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS assessment_results (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                raw_scores TEXT NOT NULL,
+                composite_score REAL NOT NULL,
+                tier TEXT NOT NULL,
+                ai_analysis TEXT NOT NULL,
+                responses TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cur.execute("PRAGMA table_info(assessment_results)")
+        res_cols = [c[1] for c in cur.fetchall()]
+        if "raw_scores" not in res_cols:
+            cur.execute("DROP TABLE IF EXISTS assessment_results")
+            cur.execute("""
+                CREATE TABLE assessment_results (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    raw_scores TEXT NOT NULL,
+                    composite_score REAL NOT NULL,
+                    tier TEXT NOT NULL,
+                    ai_analysis TEXT NOT NULL,
+                    responses TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+        conn.commit()
+
+
+        cur.execute("SELECT COUNT(*) FROM assessment_questions")
+        row = cur.fetchone()
+        count = row[0] if row else 0
+        if count == 0 and bank_data:
+            for item in bank_data.get("IQ", []):
+                correct_str = item["options"][item.get("correctIndex", 0)]
+                cur.execute("""
+                    INSERT OR REPLACE INTO assessment_questions (id, category, question_type, prompt_text, options, correct_answer, is_reverse)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (item["id"], "IQ", "mcq", item["question"], json.dumps(item["options"]), correct_str, 0))
+            for cat in ["EQ", "SQ", "AQ"]:
+                for item in bank_data.get(cat, []):
+                    cur.execute("""
+                        INSERT OR REPLACE INTO assessment_questions (id, category, question_type, prompt_text, options, correct_answer, is_reverse)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (item["id"], cat, "likert", item["statement"], None, None, 1 if item.get("isReverse", False) else 0))
+            conn.commit()
+            print("[Assessment DB] Seeded 80 questions into SQLite assessment_questions.")
+        conn.close()
+
+
+def get_assessment_questions_for_start() -> List[Dict[str, Any]]:
+    """Fetches 10 randomly sampled questions per category (40 total) with correct_answer and is_reverse stripped and IQ options shuffled."""
+    import random
+    categories = ["IQ", "EQ", "SQ", "AQ"]
+    result_questions = []
+
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        with _engine.connect() as conn:
+            for cat in categories:
+                rows = conn.execute(
+                    text("SELECT id, category, question_type, prompt_text, options FROM assessment_questions WHERE category = :cat ORDER BY RANDOM() LIMIT 10"),
+                    {"cat": cat}
+                ).fetchall()
+                for r in rows:
+                    opts = r[4]
+                    if isinstance(opts, str):
+                        try:
+                            opts = json.loads(opts)
+                        except Exception:
+                            pass
+                    if r[1] == "IQ" and isinstance(opts, list):
+                        opts = list(opts)
+                        random.shuffle(opts)
+                    result_questions.append({
+                        "id": r[0],
+                        "category": r[1],
+                        "question_type": r[2],
+                        "prompt_text": r[3],
+                        "options": opts
+                    })
+    else:
+        conn = get_sqlite_conn()
+        cur = conn.cursor()
+        for cat in categories:
+            cur.execute(
+                "SELECT id, category, question_type, prompt_text, options FROM assessment_questions WHERE category = ? ORDER BY RANDOM() LIMIT 10",
+                (cat,)
+            )
+            rows = cur.fetchall()
+            for r in rows:
+                opts = None
+                if r["options"]:
+                    try:
+                        opts = json.loads(r["options"])
+                    except Exception:
+                        opts = r["options"]
+                if r["category"] == "IQ" and isinstance(opts, list):
+                    opts = list(opts)
+                    random.shuffle(opts)
+                result_questions.append({
+                    "id": r["id"],
+                    "category": r["category"],
+                    "question_type": r["question_type"],
+                    "prompt_text": r["prompt_text"],
+                    "options": opts
+                })
+        conn.close()
+
+    return result_questions
+
+
+def get_assessment_bank_dict() -> Dict[str, Dict[str, Any]]:
+    """Returns all assessment questions mapped by id for scoring."""
+    bank_map = {}
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        with _engine.connect() as conn:
+            rows = conn.execute(
+                text("SELECT id, category, question_type, prompt_text, options, correct_answer, is_reverse FROM assessment_questions")
+            ).fetchall()
+            for r in rows:
+                bank_map[r[0]] = {
+                    "id": r[0],
+                    "category": r[1],
+                    "question_type": r[2],
+                    "prompt_text": r[3],
+                    "options": r[4],
+                    "correct_answer": r[5],
+                    "is_reverse": bool(r[6])
+                }
+    else:
+        conn = get_sqlite_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT id, category, question_type, prompt_text, options, correct_answer, is_reverse FROM assessment_questions")
+        rows = cur.fetchall()
+        for r in rows:
+            bank_map[r["id"]] = {
+                "id": r["id"],
+                "category": r["category"],
+                "question_type": r["question_type"],
+                "prompt_text": r["prompt_text"],
+                "options": r["options"],
+                "correct_answer": r["correct_answer"],
+                "is_reverse": bool(r["is_reverse"])
+            }
+        conn.close()
+    return bank_map
+
+
+def save_assessment_submission(user_id: Optional[str], raw_scores: Dict[str, float], composite_score: float, tier: str, ai_analysis: Dict[str, Any], responses: List[Dict[str, Any]]) -> str:
+    """Saves assessment result and returns the record ID."""
+    import uuid
+    record_id = str(uuid.uuid4())
+
+    if _use_postgres and _engine:
+        from sqlalchemy import text
+        try:
+            with _engine.begin() as conn:
+                conn.execute(
+                    text("""
+                        INSERT INTO assessment_results (id, user_id, raw_scores, composite_score, tier, ai_analysis, responses)
+                        VALUES (:id, :user_id, :raw_scores, :composite_score, :tier, :ai_analysis, :responses)
+                    """),
+                    {
+                        "id": record_id,
+                        "user_id": user_id if user_id else None,
+                        "raw_scores": json.dumps(raw_scores),
+                        "composite_score": composite_score,
+                        "tier": tier,
+                        "ai_analysis": json.dumps(ai_analysis),
+                        "responses": json.dumps(responses)
+                    }
+                )
+            return record_id
+        except Exception as e:
+            print(f"[Assessment DB] Error saving to PostgreSQL: {e}")
+
+    # SQLite
+    conn = get_sqlite_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO assessment_results (id, user_id, raw_scores, composite_score, tier, ai_analysis, responses)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        record_id,
+        user_id,
+        json.dumps(raw_scores),
+        composite_score,
+        tier,
+        json.dumps(ai_analysis),
+        json.dumps(responses)
+    ))
+    conn.commit()
+    conn.close()
+    return record_id
+

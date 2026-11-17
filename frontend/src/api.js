@@ -5,6 +5,7 @@
  */
 
 import { getFallbackQuestions } from './data/fallbackQuestions';
+import assessmentBank from './data/assessmentBank.json';
 import { supabase } from './supabaseClient';
 
 let RAW_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'https://smartiq-9ilb.onrender.com';
@@ -548,3 +549,254 @@ export async function sendChatMessage(messages, userContext = {}) {
     source: 'local'
   };
 }
+
+// =============================================================================
+// 80-Question Multidimensional Assessment Client Functions
+// =============================================================================
+
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+/**
+ * Local fallback generator for the 40 assessment questions (10 IQ, 10 EQ, 10 SQ, 10 AQ).
+ */
+export function getLocalAssessmentQuestions() {
+  const questions = [];
+  const categories = ['IQ', 'EQ', 'SQ', 'AQ'];
+
+  for (const cat of categories) {
+    const pool = assessmentBank[cat] || [];
+    const shuffledPool = shuffleArray(pool).slice(0, 10);
+
+    for (const item of shuffledPool) {
+      if (cat === 'IQ') {
+        questions.push({
+          id: item.id,
+          category: 'IQ',
+          question_type: 'mcq',
+          prompt_text: item.question,
+          options: shuffleArray(item.options || [])
+        });
+      } else {
+        questions.push({
+          id: item.id,
+          category: cat,
+          question_type: 'likert',
+          prompt_text: item.statement,
+          options: null
+        });
+      }
+    }
+  }
+
+  return questions;
+}
+
+/**
+ * Fetches 40 randomly sampled assessment questions from the server or falls back locally.
+ */
+export async function startAssessment() {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const res = await fetch(`${API_BASE_URL}/api/assessment/start`, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data && Array.isArray(data.questions) && data.questions.length > 0) {
+      return data.questions;
+    }
+  } catch (err) {
+    console.warn(`[Enigma Assessment] Remote questions fetch unavailable (${err.message}). Using local bank.`);
+  }
+
+  return getLocalAssessmentQuestions();
+}
+
+/**
+ * Evaluates assessment results locally if the backend is unreachable.
+ */
+export function computeLocalAssessmentResult(responses) {
+  const bankMap = {};
+  for (const item of assessmentBank.IQ || []) {
+    bankMap[item.id] = { ...item, category: 'IQ', question_type: 'mcq', correct_answer: item.options[item.correctIndex] };
+  }
+  for (const cat of ['EQ', 'SQ', 'AQ']) {
+    for (const item of assessmentBank[cat] || []) {
+      bankMap[item.id] = { ...item, category: cat, question_type: 'likert', is_reverse: !!item.isReverse };
+    }
+  }
+
+  const ansMap = {};
+  responses.forEach(r => { ansMap[r.question_id] = r.answer; });
+
+  let iqRaw = 0;
+  let iqCount = 0;
+  const likertSums = { EQ: 0, SQ: 0, AQ: 0 };
+  const catCounts = { EQ: 0, SQ: 0, AQ: 0 };
+
+  Object.keys(bankMap).forEach(qid => {
+    if (ansMap[qid] === undefined) return;
+    const ans = ansMap[qid];
+    const q = bankMap[qid];
+    const cat = q.category;
+
+    if (cat === 'IQ') {
+      iqCount++;
+      if (ans && q.correct_answer && String(ans).trim().toLowerCase() === String(q.correct_answer).trim().toLowerCase()) {
+        iqRaw++;
+      }
+    } else if (likertSums[cat] !== undefined) {
+      catCounts[cat]++;
+      let val = 3;
+      if (ans !== null && ans !== undefined) {
+        let num = parseInt(ans, 10);
+        if (isNaN(num)) num = 3;
+        num = Math.max(1, Math.min(5, num));
+        val = q.is_reverse ? (6 - num) : num;
+      }
+      likertSums[cat] += val;
+    }
+  });
+
+  const iqPercent = Math.round((iqRaw / Math.max(1, iqCount || 10)) * 100);
+  const rawScores = { IQ: Math.max(0, Math.min(100, iqPercent)) };
+
+  ['EQ', 'SQ', 'AQ'].forEach(cat => {
+    const raw = likertSums[cat];
+    const cnt = catCounts[cat] || 10;
+    const pct = Math.round(((raw - cnt) / (cnt * 4)) * 100);
+    rawScores[cat] = Math.max(0, Math.min(100, pct));
+  });
+
+  const compositeScore = Math.round((rawScores.IQ + rawScores.EQ + rawScores.SQ + rawScores.AQ) / 4);
+
+  const getTier = (s) => {
+    if (s < 40) return 'Developing';
+    if (s < 65) return 'Balanced';
+    if (s < 85) return 'Proficient';
+    return 'Exceptional';
+  };
+
+  const tier = getTier(compositeScore);
+  const scoresArr = Object.values(rawScores);
+  const spread = Math.max(...scoresArr) - Math.min(...scoresArr);
+  const balanceType = spread <= 20 ? 'Well-Rounded Generalist' : 'Spiky Specialist';
+
+  const topStrength = Object.keys(rawScores).reduce((a, b) => rawScores[a] >= rawScores[b] ? a : b);
+  const growthArea = Object.keys(rawScores).reduce((a, b) => rawScores[a] <= rawScores[b] ? a : b);
+
+  const archetypes = {
+    IQ: 'Analytical Strategist',
+    EQ: 'Empathetic Navigator',
+    SQ: 'Anchored Sage',
+    AQ: 'Adaptive Pioneer'
+  };
+  const archetypeTitle = spread <= 12 ? 'Holistic Integrator' : (archetypes[topStrength] || 'Holistic Integrator');
+
+  const overallSummary = `Demonstrating a ${balanceType.toLowerCase()} profile, you achieved an overall composite of ${compositeScore}% (${tier}). Your leading dimension is ${topStrength} (${rawScores[topStrength]}%), while targeted expansion in ${growthArea} (${rawScores[growthArea]}%) unlocks your highest growth potential.`;
+
+  const categoryInsights = {
+    IQ: `Cognitive intelligence score of ${rawScores.IQ}% reflects ${getTier(rawScores.IQ)} deductive logical reasoning.`,
+    EQ: `Emotional quotient score of ${rawScores.EQ}% places your social resonance and regulation in the ${getTier(rawScores.EQ)} tier.`,
+    SQ: `Spiritual intelligence score of ${rawScores.SQ}% highlights ${getTier(rawScores.SQ)} stoic composure and values clarity.`,
+    AQ: `Adaptability quotient score of ${rawScores.AQ}% demonstrates ${getTier(rawScores.AQ)} responsiveness to unexpected pivots.`
+  };
+
+  const adviceMap = {
+    IQ: [
+      'Deconstruct complex multi-variable problems into first-principles trees.',
+      'Practice rapid spatial and numerical pattern recognition drills.',
+      'Actively formulate falsification tests for your primary hypotheses.'
+    ],
+    EQ: [
+      'Take a 5-second emotional pause before reacting in tense dialogues.',
+      'Practice reflective perspective-taking during team disagreements.',
+      'Conduct weekly self-regulation reflections to monitor emotional triggers.'
+    ],
+    SQ: [
+      'Apply Epictetus’ Dichotomy of Control strictly each morning.',
+      'Dedicate 10 minutes daily to quiet values alignment.',
+      'Anchor daily decisions to an overarching personal mission.'
+    ],
+    AQ: [
+      'Deliberately introduce micro-disruptions to habitual routines.',
+      'Run pre-mortem scenarios to practice fast strategic pivoting.',
+      'Embrace rapid unlearning when old workflows become obsolete.'
+    ]
+  };
+
+  return {
+    status: 'success',
+    id: 'local_' + Math.random().toString(36).substring(2, 9),
+    compositeScore,
+    tier,
+    balanceType,
+    spread,
+    topStrength,
+    growthArea,
+    rawScores,
+    aiAnalysis: {
+      archetypeTitle,
+      overallSummary,
+      categoryInsights,
+      actionableAdvice: adviceMap[growthArea] || adviceMap.AQ
+    },
+    isFallback: true,
+    createdAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Submits user responses for the 40 questions to /api/assessment/submit.
+ */
+export async function submitAssessment(responses, userId = null, token = null) {
+  const payload = {
+    responses,
+    user_id: userId
+  };
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE_URL}/api/assessment/submit`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data && data.status === 'success') {
+      return data;
+    }
+    return data;
+  } catch (err) {
+    console.warn(`[Enigma Assessment] Remote submit failed (${err.message}). Activating local engine.`);
+    return computeLocalAssessmentResult(responses);
+  }
+}
+

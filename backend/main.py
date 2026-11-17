@@ -8,6 +8,7 @@ Supabase PostgreSQL persistence, Supabase Auth validation, and Admin CRUD operat
 import os
 import json
 import re
+import asyncio
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 
@@ -71,6 +72,17 @@ class QuizSubmission(BaseModel):
     aq_breakdown: Dict[str, int] = Field(default_factory=dict)
     incorrect_questions: List[Dict[str, Any]] = Field(default_factory=list)
     tab_switch_count: int = 0
+
+
+class AssessmentAnswerItem(BaseModel):
+    question_id: str
+    answer: Optional[Any] = None  # string choice (IQ), integer 1-5 (Likert), or None
+
+
+class AssessmentSubmissionRequest(BaseModel):
+    responses: List[AssessmentAnswerItem]
+    user_id: Optional[str] = None
+
 
 
 class AdminQuestion(BaseModel):
@@ -543,8 +555,304 @@ async def analyze_submission(submission: QuizSubmission):
 
 
 # =============================================================================
+# 80-Question Multidimensional Assessment Pipeline (IQ, EQ, SQ, AQ)
+# =============================================================================
+
+def calculate_assessment_tier(score: float) -> str:
+    """Standardized tier mapping: 0-39 Developing, 40-64 Balanced, 65-84 Proficient, 85-100 Exceptional."""
+    if score < 40:
+        return "Developing"
+    elif score < 65:
+        return "Balanced"
+    elif score < 85:
+        return "Proficient"
+    else:
+        return "Exceptional"
+
+
+def generate_deterministic_assessment_report(
+    raw_scores: Dict[str, float],
+    composite_score: float,
+    tier: str,
+    balance_type: str,
+    spread: float,
+    top_strength: str,
+    growth_area: str
+) -> Dict[str, Any]:
+    """100% deterministic psychometric evaluation fallback conforming strictly to required JSON schema."""
+    archetypes = {
+        "IQ": "Analytical Strategist",
+        "EQ": "Empathetic Navigator",
+        "SQ": "Anchored Sage",
+        "AQ": "Adaptive Pioneer"
+    }
+    if spread <= 12 or list(raw_scores.values()).count(max(raw_scores.values())) > 1:
+        archetype_title = "Holistic Integrator"
+    else:
+        archetype_title = archetypes.get(top_strength, "Holistic Integrator")
+
+    overall_summary = (
+        f"Demonstrating a {balance_type.lower()} cognitive profile, you achieved an overall composite score of {composite_score}% ({tier}). "
+        f"Your highest operational dimension is {top_strength} ({raw_scores[top_strength]}%), evidencing natural command in this area, "
+        f"while targeted expansion in {growth_area} ({raw_scores[growth_area]}%) offers your greatest developmental leverage."
+    )
+
+    category_insights = {
+        "IQ": f"Scoring {raw_scores['IQ']}% places your cognitive and logical problem solving in the {calculate_assessment_tier(raw_scores['IQ'])} tier, indicating structured deductive precision.",
+        "EQ": f"At {raw_scores['EQ']}%, your interpersonal resonance and emotional regulation fall in the {calculate_assessment_tier(raw_scores['EQ'])} tier, showing solid affective awareness.",
+        "SQ": f"With {raw_scores['SQ']}%, your purpose alignment and stoic equanimity rank as {calculate_assessment_tier(raw_scores['SQ'])}, reflecting grounded perspective under pressure.",
+        "AQ": f"Attaining {raw_scores['AQ']}% reflects a {calculate_assessment_tier(raw_scores['AQ'])} adaptability quotient, determining your speed and flexibility when facing unexpected shifts."
+    }
+
+    advice_bank = {
+        "IQ": [
+            "Deconstruct complex multi-variable problems into first-principles logic trees before jumping to conclusions.",
+            "Practice rapid spatial and numerical pattern recognition drills to sharpen algorithmic mental models.",
+            "Challenge cognitive biases by actively formulating falsification tests for your primary hypotheses."
+        ],
+        "EQ": [
+            "Integrate a 5-second emotional appraisal pause before responding during high-stakes conversational friction.",
+            "Practice affective perspective-taking by articulating a peer's counter-argument with genuine empathy.",
+            "Conduct weekly social audit reflections to monitor non-verbal cues and micro-expressions in team dynamics."
+        ],
+        "SQ": [
+            "Adopt the Stoic Dichotomy of Control daily, delineating strictly between what is within your influence and what is not.",
+            "Dedicate 10 minutes each morning to deliberate solitude and ethical priority calibration.",
+            "Anchor daily actions to an overarching purpose statement to resist transient dopamine distractions."
+        ],
+        "AQ": [
+            "Deliberately introduce micro-disruptions into habitual routines to reinforce neural plasticity.",
+            "Conduct pre-mortem analyses on plans to cultivate proactive scenario pivoting and contingency readiness.",
+            "Practice fast unlearning by adopting contrary methodologies when standard frameworks face friction."
+        ]
+    }
+    actionable_advice = advice_bank.get(growth_area, advice_bank["AQ"])
+
+    return {
+        "archetypeTitle": archetype_title,
+        "overallSummary": overall_summary,
+        "categoryInsights": category_insights,
+        "actionableAdvice": actionable_advice
+    }
+
+
+async def generate_assessment_ai_analysis(
+    raw_scores: Dict[str, float],
+    composite_score: float,
+    tier: str,
+    balance_type: str,
+    spread: float,
+    top_strength: str,
+    growth_area: str
+) -> tuple[Dict[str, Any], bool]:
+    """
+    Invokes Groq LLM (llama-3.3-70b-versatile) with strict 6.0s timeout and JSON schema validation.
+    Falls back gracefully to deterministic engine if rate limited, timed out, or unavailable.
+    """
+    if not GROQ_API_KEY:
+        return (generate_deterministic_assessment_report(raw_scores, composite_score, tier, balance_type, spread, top_strength, growth_area), True)
+
+    prompt = f"""You are an elite psychometric intelligence analyst. Analyze this assessment profile:
+Composite Score: {composite_score}%
+Overall Tier: {tier}
+Balance Type: {balance_type} (Spread: {spread}%)
+Top Strength: {top_strength} ({raw_scores[top_strength]}%)
+Primary Growth Area: {growth_area} ({raw_scores[growth_area]}%)
+Detailed Scores:
+- IQ (Cognitive): {raw_scores['IQ']}% ({calculate_assessment_tier(raw_scores['IQ'])})
+- EQ (Emotional): {raw_scores['EQ']}% ({calculate_assessment_tier(raw_scores['EQ'])})
+- SQ (Stoic/Spiritual): {raw_scores['SQ']}% ({calculate_assessment_tier(raw_scores['SQ'])})
+- AQ (Adaptability): {raw_scores['AQ']}% ({calculate_assessment_tier(raw_scores['AQ'])})
+
+Return ONLY valid JSON matching this exact schema:
+{{
+  "archetypeTitle": "2-4 word evocative archetype name",
+  "overallSummary": "2-3 sentences synthesizing profile, balance type, and cognitive dynamics",
+  "categoryInsights": {{
+    "IQ": "1-2 sentence specific insight referencing score and tier",
+    "EQ": "1-2 sentence specific insight referencing score and tier",
+    "SQ": "1-2 sentence specific insight referencing score and tier",
+    "AQ": "1-2 sentence specific insight referencing score and tier"
+  }},
+  "actionableAdvice": [
+    "High-leverage developmental recommendation 1 tailored to {growth_area}",
+    "High-leverage developmental recommendation 2 tailored to {growth_area}",
+    "High-leverage developmental recommendation 3 tailored to {growth_area}"
+  ]
+}}"""
+
+    async def _call_groq():
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY, timeout=4.5)
+        candidate_models = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "llama3-70b-8192",
+            "mixtral-8x7b-32768"
+        ]
+        for model_id in candidate_models:
+            try:
+                completion = client.chat.completions.create(
+                    model=model_id,
+                    messages=[
+                        {"role": "system", "content": "You are an elite psychometric intelligence analyst. Respond with pure JSON only adhering strictly to the requested schema."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                content = completion.choices[0].message.content
+                data = json.loads(content)
+                if "archetypeTitle" in data and "overallSummary" in data and "categoryInsights" in data and "actionableAdvice" in data:
+                    return data
+            except Exception:
+                continue
+        raise ValueError("Could not complete Groq analysis across candidate models")
+
+
+    try:
+        data = await asyncio.wait_for(_call_groq(), timeout=6.0)
+        return (data, False)
+    except Exception as e:
+        print(f"[Assessment AI] Groq inference notice ({e}). Using deterministic psychometric fallback.")
+        return (generate_deterministic_assessment_report(raw_scores, composite_score, tier, balance_type, spread, top_strength, growth_area), True)
+
+
+@app.get("/api/assessment/start")
+def get_assessment_start():
+    """
+    Fetches 10 randomly sampled questions per category (40 questions total).
+    Strips correct_answer and is_reverse for security.
+    Shuffles options for IQ MCQs.
+    """
+    questions = database.get_assessment_questions_for_start()
+    return {
+        "status": "success",
+        "count": len(questions),
+        "questions": questions
+    }
+
+
+@app.post("/api/assessment/submit")
+async def submit_assessment(payload: AssessmentSubmissionRequest):
+    """
+    Server-side evaluation of the 40-question psychometric assessment bank.
+    Scoring:
+    - IQ: 1 point if answer matches correct_answer, 0 for wrong/null -> (raw / 10) * 100
+    - EQ/SQ/AQ: Likert (1-5, null -> 3, inverted if is_reverse) -> ((sum - 10) / 40) * 100
+    - Overall composite: mean of 4 categories
+    - Tiers: 0-39 Developing, 40-64 Balanced, 65-84 Proficient, 85-100 Exceptional
+    - Balance type: Spread <= 20 -> Well-Rounded Generalist else Spiky Specialist
+    - AI narrative with 6.0s Groq timeout + deterministic fallback
+    - Persists to assessment_results table
+    """
+    bank_map = database.get_assessment_bank_dict()
+
+    user_answers = {r.question_id: r.answer for r in payload.responses}
+
+    # Group responses by category
+    iq_raw = 0
+    iq_count = 0
+
+    category_likert_sums = {"EQ": 0, "SQ": 0, "AQ": 0}
+    category_counts = {"EQ": 0, "SQ": 0, "AQ": 0}
+
+    for qid, q in bank_map.items():
+        if qid not in user_answers:
+            continue
+        ans = user_answers[qid]
+        cat = q["category"]
+
+        if cat == "IQ":
+            iq_count += 1
+            corr = q.get("correct_answer")
+            if ans is not None and corr is not None:
+                if str(ans).strip().lower() == str(corr).strip().lower():
+                    iq_raw += 1
+        elif cat in category_likert_sums:
+            category_counts[cat] += 1
+            if ans is None:
+                val = 3
+            else:
+                try:
+                    ans_int = int(ans)
+                except (ValueError, TypeError):
+                    ans_int = 3
+                ans_int = max(1, min(5, ans_int))
+                val = (6 - ans_int) if q.get("is_reverse") else ans_int
+            category_likert_sums[cat] += val
+
+    # Normalization formulas:
+    iq_total = max(1, iq_count if iq_count > 0 else 10)
+    iq_percent = round((iq_raw / float(iq_total)) * 100.0)
+    iq_percent = max(0, min(100, iq_percent))
+
+    scores = {"IQ": float(iq_percent)}
+
+    for cat in ["EQ", "SQ", "AQ"]:
+        raw_sum = category_likert_sums[cat]
+        cnt = category_counts[cat] if category_counts[cat] > 0 else 10
+        min_possible = cnt * 1
+        max_possible = cnt * 5
+        range_possible = max_possible - min_possible
+        if range_possible <= 0:
+            pct = 50.0
+        else:
+            pct = round(((raw_sum - min_possible) / float(range_possible)) * 100.0)
+        scores[cat] = float(max(0, min(100, pct)))
+
+    composite_score = round(sum(scores.values()) / 4.0, 1)
+    tier = calculate_assessment_tier(composite_score)
+
+    spread = round(max(scores.values()) - min(scores.values()), 1)
+    balance_type = "Well-Rounded Generalist" if spread <= 20 else "Spiky Specialist"
+
+    top_strength = max(scores, key=scores.get)
+    growth_area = min(scores, key=scores.get)
+
+    ai_analysis, is_fallback = await generate_assessment_ai_analysis(
+        raw_scores=scores,
+        composite_score=composite_score,
+        tier=tier,
+        balance_type=balance_type,
+        spread=spread,
+        top_strength=top_strength,
+        growth_area=growth_area
+    )
+
+    # Persist in assessment_results table
+    responses_log = [{"question_id": r.question_id, "answer": r.answer} for r in payload.responses]
+    record_id = database.save_assessment_submission(
+        user_id=payload.user_id,
+        raw_scores=scores,
+        composite_score=composite_score,
+        tier=tier,
+        ai_analysis=ai_analysis,
+        responses=responses_log
+    )
+
+    from datetime import datetime, timezone
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    return {
+        "status": "success",
+        "id": record_id,
+        "compositeScore": composite_score,
+        "tier": tier,
+        "balanceType": balance_type,
+        "spread": spread,
+        "topStrength": top_strength,
+        "growthArea": growth_area,
+        "rawScores": scores,
+        "aiAnalysis": ai_analysis,
+        "isFallback": is_fallback,
+        "createdAt": created_at
+    }
+
+
+# =============================================================================
 # Direct Chatbot Endpoint (Powered by Groq LLM with Resilient Local Engine)
 # =============================================================================
+
 def generate_smart_chat_fallback(query: str, context: Optional[Dict[str, Any]] = None) -> str:
     """Local high-intellect fallback responses when Groq API key is absent or offline."""
     q = (query or "").lower()

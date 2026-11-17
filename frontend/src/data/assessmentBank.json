@@ -1,0 +1,623 @@
+{
+  "meta": {
+    "totalQuestions": 80,
+    "questionsPerCategory": 20,
+    "questionsServedPerAssessment": 10,
+    "timerSecondsPerQuestion": 45,
+    "likertScale": {
+      "1": "Strongly Disagree",
+      "2": "Disagree",
+      "3": "Neutral",
+      "4": "Agree",
+      "5": "Strongly Agree"
+    }
+  },
+  "IQ": [
+    {
+      "id": "IQ_01",
+      "category": "IQ",
+      "question": "Sequence: B2, E6, I12, N20, ?",
+      "options": [
+        "T30",
+        "S30",
+        "T28",
+        "U30"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_02",
+      "category": "IQ",
+      "question": "Analogy: ORBIT : PLANET :: MATRIX : ?",
+      "options": [
+        "ELEMENT",
+        "NUMBER",
+        "SPACE",
+        "GRID"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_03",
+      "category": "IQ",
+      "question": "Logic: No A are B. All C are B. Which statement must be true?",
+      "options": [
+        "No A are C",
+        "Some A are C",
+        "All B are C",
+        "Some C are A"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_04",
+      "category": "IQ",
+      "question": "Number Pattern: 4 (18) 5 | 6 (28) 5 | 7 (?) 4",
+      "options": [
+        "26",
+        "28",
+        "30",
+        "24"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_05",
+      "category": "IQ",
+      "question": "Odd One Out: 121, 169, 225, 289",
+      "options": [
+        "225",
+        "121",
+        "169",
+        "289"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_06",
+      "category": "IQ",
+      "question": "Code: If MIND = 13-9-14-4, what word is 20-18-21-5?",
+      "options": [
+        "TRUE",
+        "TREE",
+        "TUNE",
+        "TIRE"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_07",
+      "category": "IQ",
+      "question": "Direction: Face North, turn 135\u00b0 clockwise, then 225\u00b0 counter-\nclockwise. Final direction?",
+      "options": [
+        "West",
+        "East",
+        "South-West",
+        "North-West"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_08",
+      "category": "IQ",
+      "question": "Sequence: 3, 5, 11, 29, 83, ?",
+      "options": [
+        "245",
+        "249",
+        "241",
+        "253"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_09",
+      "category": "IQ",
+      "question": "Logic: All coders drink coffee. Some artists are coders. Therefore:",
+      "options": [
+        "Some artists drink coffee",
+        "All coffee drinkers are artists",
+        "All artists drink coffee",
+        "No artists drink coffee"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_10",
+      "category": "IQ",
+      "question": "Pattern: Z1A, X4C, V9E, T16G, ?",
+      "options": [
+        "R25I",
+        "S25I",
+        "R25H",
+        "Q25I"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_11",
+      "category": "IQ",
+      "question": "Sequence: 2, 6, 12, 20, 30, ?",
+      "options": [
+        "42",
+        "40",
+        "44",
+        "36"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_12",
+      "category": "IQ",
+      "question": "Analogy: CATALYST : REACTION :: SPARK : ?",
+      "options": [
+        "IGNITION",
+        "FLAME",
+        "SMOKE",
+        "HEAT"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_13",
+      "category": "IQ",
+      "question": "Math Logic: If 3 * 4 = 19 and 5 * 2 = 17, what is 4 * 6?",
+      "options": [
+        "34",
+        "24",
+        "30",
+        "28"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_14",
+      "category": "IQ",
+      "question": "Clock Logic: What is the smaller angle between clock hands at 3:30?",
+      "options": [
+        "75\u00b0",
+        "90\u00b0",
+        "60\u00b0",
+        "80\u00b0"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_15",
+      "category": "IQ",
+      "question": "Series: AZ, GT, MN, ?, YB",
+      "options": [
+        "SH",
+        "RI",
+        "TH",
+        "SG"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_16",
+      "category": "IQ",
+      "question": "Logic: If it rains, the ground gets wet. The ground is dry. Therefore:",
+      "options": [
+        "It did not rain",
+        "It rained lightly",
+        "It will rain soon",
+        "Cannot be determined"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_17",
+      "category": "IQ",
+      "question": "Number Grid: 8 (20) 4 | 10 (25) 5 | 12 (?) 6",
+      "options": [
+        "30",
+        "28",
+        "36",
+        "24"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_18",
+      "category": "IQ",
+      "question": "Odd One Out: 27, 64, 125, 144",
+      "options": [
+        "144",
+        "27",
+        "64",
+        "125"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_19",
+      "category": "IQ",
+      "question": "Sequence: 1, 1, 2, 3, 5, 8, 13, ?",
+      "options": [
+        "21",
+        "19",
+        "24",
+        "20"
+      ],
+      "correctIndex": 0
+    },
+    {
+      "id": "IQ_20",
+      "category": "IQ",
+      "question": "Code: If FAST = 43 and SLOW = 69, what is STOP?",
+      "options": [
+        "70",
+        "68",
+        "72",
+        "66"
+      ],
+      "correctIndex": 0
+    }
+  ],
+  "EQ": [
+    {
+      "id": "EQ_01",
+      "category": "EQ",
+      "statement": "I know exactly why my mood changes.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_02",
+      "category": "EQ",
+      "statement": "I stay calm when others around me panic.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_03",
+      "category": "EQ",
+      "statement": "I easily sense what others are feeling.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_04",
+      "category": "EQ",
+      "statement": "I separate harsh tone from useful feedback.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_05",
+      "category": "EQ",
+      "statement": "I pause and think before reacting when angry.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_06",
+      "category": "EQ",
+      "statement": "I admit my mistakes openly without defensiveness.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_07",
+      "category": "EQ",
+      "statement": "I notice subtle shifts in a friend's tone of voice.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_08",
+      "category": "EQ",
+      "statement": "I stay composed during heated disagreements.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_09",
+      "category": "EQ",
+      "statement": "I understand how my stress affects people around me.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_10",
+      "category": "EQ",
+      "statement": "I can name the exact emotion I am feeling in tough moments.",
+      "isReverse": false
+    },
+    {
+      "id": "EQ_11",
+      "category": "EQ",
+      "statement": "I get irritated easily when plans go wrong.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_12",
+      "category": "EQ",
+      "statement": "I often say things I regret when upset.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_13",
+      "category": "EQ",
+      "statement": "I take constructive criticism personally.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_14",
+      "category": "EQ",
+      "statement": "I find it hard to calm down once I feel frustrated.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_15",
+      "category": "EQ",
+      "statement": "I often ignore my feelings until they overwhelm me.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_16",
+      "category": "EQ",
+      "statement": "I struggle to understand why people get emotional.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_17",
+      "category": "EQ",
+      "statement": "My mood swings frequently without a clear reason.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_18",
+      "category": "EQ",
+      "statement": "I hold onto resentment long after an argument ends.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_19",
+      "category": "EQ",
+      "statement": "I shut down emotionally during difficult conversations.",
+      "isReverse": true
+    },
+    {
+      "id": "EQ_20",
+      "category": "EQ",
+      "statement": "I let minor inconveniences ruin my entire day.",
+      "isReverse": true
+    }
+  ],
+  "SQ": [
+    {
+      "id": "SQ_01",
+      "category": "SQ",
+      "statement": "I make strangers feel comfortable right away.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_02",
+      "category": "SQ",
+      "statement": "I adapt easily to different social groups.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_03",
+      "category": "SQ",
+      "statement": "I know how to defuse awkward group tension.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_04",
+      "category": "SQ",
+      "statement": "I notice immediately when someone feels excluded in a group.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_05",
+      "category": "SQ",
+      "statement": "I remember small personal details about people I meet.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_06",
+      "category": "SQ",
+      "statement": "I can bridge disagreements between two opposing people.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_07",
+      "category": "SQ",
+      "statement": "I read the unwritten social rules of a new environment fast.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_08",
+      "category": "SQ",
+      "statement": "I ask open questions that keep conversations flowing naturally.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_09",
+      "category": "SQ",
+      "statement": "I tailor my communication style to match my audience.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_10",
+      "category": "SQ",
+      "statement": "I build genuine trust across different types of people.",
+      "isReverse": false
+    },
+    {
+      "id": "SQ_11",
+      "category": "SQ",
+      "statement": "I find it hard to start conversations with new people.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_12",
+      "category": "SQ",
+      "statement": "I often miss subtle social hints from others.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_13",
+      "category": "SQ",
+      "statement": "I feel awkward in large group gatherings.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_14",
+      "category": "SQ",
+      "statement": "I struggle to keep small talk going.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_15",
+      "category": "SQ",
+      "statement": "I often realize too late that I said the wrong thing socially.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_16",
+      "category": "SQ",
+      "statement": "I prefer working alone rather than navigating group dynamics.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_17",
+      "category": "SQ",
+      "statement": "I find it difficult to persuade skeptical people.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_18",
+      "category": "SQ",
+      "statement": "I avoid networking events whenever possible.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_19",
+      "category": "SQ",
+      "statement": "I rarely notice when someone is losing interest in a conversation.",
+      "isReverse": true
+    },
+    {
+      "id": "SQ_20",
+      "category": "SQ",
+      "statement": "I find group politics confusing and exhausting.",
+      "isReverse": true
+    }
+  ],
+  "AQ": [
+    {
+      "id": "AQ_01",
+      "category": "AQ",
+      "statement": "Setbacks motivate me to work smarter.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_02",
+      "category": "AQ",
+      "statement": "I bounce back quickly after a major failure.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_03",
+      "category": "AQ",
+      "statement": "I stay focused on solutions during a crisis.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_04",
+      "category": "AQ",
+      "statement": "I adapt quickly when rules or plans change suddenly.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_05",
+      "category": "AQ",
+      "statement": "I keep a setback contained so it does not ruin other areas of life.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_06",
+      "category": "AQ",
+      "statement": "I perform well under tight deadlines and high pressure.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_07",
+      "category": "AQ",
+      "statement": "I view difficult obstacles as temporary challenges to solve.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_08",
+      "category": "AQ",
+      "statement": "I take full ownership of fixing problems even if I did not cause them.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_09",
+      "category": "AQ",
+      "statement": "I stay persistent on long goals even when progress feels slow.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_10",
+      "category": "AQ",
+      "statement": "I extract practical lessons immediately after a rejection.",
+      "isReverse": false
+    },
+    {
+      "id": "AQ_11",
+      "category": "AQ",
+      "statement": "Unexpected obstacles easily discourage me.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_12",
+      "category": "AQ",
+      "statement": "I dwell on mistakes long after they happen.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_13",
+      "category": "AQ",
+      "statement": "I feel overwhelmed when multiple problems happen at once.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_14",
+      "category": "AQ",
+      "statement": "One major failure makes me doubt my overall abilities.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_15",
+      "category": "AQ",
+      "statement": "I struggle to regain momentum after a project gets canceled.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_16",
+      "category": "AQ",
+      "statement": "I procrastinate when a task feels overly complex or uncertain.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_17",
+      "category": "AQ",
+      "statement": "Sudden changes to my routine stress me out significantly.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_18",
+      "category": "AQ",
+      "statement": "I tend to expect the worst outcome during uncertain times.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_19",
+      "category": "AQ",
+      "statement": "I lose motivation quickly if I do not see fast results.",
+      "isReverse": true
+    },
+    {
+      "id": "AQ_20",
+      "category": "AQ",
+      "statement": "High-pressure situations make it hard for me to think clearly.",
+      "isReverse": true
+    }
+  ]
+}

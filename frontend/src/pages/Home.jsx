@@ -32,6 +32,8 @@ export default function Home({ onStartQuiz }) {
   const [eqRecord, setEqRecord] = useState(null);
   const [sqRecord, setSqRecord] = useState(null);
   const [aqRecord, setAqRecord] = useState(null);
+  const [assessmentRecord, setAssessmentRecord] = useState(null);
+
 
   const intelligenceQuotes = [
     {
@@ -90,6 +92,7 @@ export default function Home({ onStartQuiz }) {
       setEqRecord(JSON.parse(localStorage.getItem('enigma_eq_data') || localStorage.getItem('smartiq_eq_data') || sessionStorage.getItem('enigma_eq_data') || sessionStorage.getItem('smartiq_eq_data') || 'null'));
       setSqRecord(JSON.parse(localStorage.getItem('enigma_sq_data') || localStorage.getItem('smartiq_sq_data') || sessionStorage.getItem('enigma_sq_data') || sessionStorage.getItem('smartiq_sq_data') || 'null'));
       setAqRecord(JSON.parse(localStorage.getItem('enigma_aq_data') || localStorage.getItem('smartiq_aq_data') || sessionStorage.getItem('enigma_aq_data') || sessionStorage.getItem('smartiq_aq_data') || 'null'));
+      setAssessmentRecord(JSON.parse(sessionStorage.getItem('enigma_assessment_result') || localStorage.getItem('enigma_assessment_result') || 'null'));
     } catch (e) {}
   }, []);
 
@@ -131,17 +134,18 @@ export default function Home({ onStartQuiz }) {
             <span>Cognitive Gym & Drills</span>
           </button>
 
-          {completedCount > 0 && (
+          {(completedCount > 0 || assessmentRecord) && (
             <button
               onClick={() => onStartQuiz('results')}
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 text-white shadow-md shadow-indigo-600/20 hover:opacity-95 transition-all"
             >
               <BarChart3 className="w-3.5 h-3.5" />
-              <span>View 4D Matrix ({completedCount}/4 Completed)</span>
+              <span>View 4D Matrix {assessmentRecord ? `(${assessmentRecord.compositeScore}%)` : `(${completedCount}/4)`}</span>
             </button>
           )}
         </div>
       </div>
+
 
       {/* 2. Sleek Inspiration Bar */}
       <div className="glass-panel px-5 py-4 rounded-2xl border border-indigo-500/20 shadow-md flex items-center justify-between gap-4">
@@ -174,8 +178,59 @@ export default function Home({ onStartQuiz }) {
         </div>
       </div>
 
+      {/* Featured 4D Psychometric Assessment Card */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/40 bg-gradient-to-r from-indigo-950/50 via-slate-900/60 to-purple-950/40 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+
+        <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-indigo-500/10 via-rose-500/10 via-amber-500/10 to-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 via-rose-500 via-amber-500 to-emerald-500 p-[2px] shrink-0 shadow-lg shadow-indigo-500/20">
+            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-indigo-400" />
+            </div>
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-950/90 text-indigo-300 border border-indigo-700/60">
+                80-Item Psychometric Bank Engine
+              </span>
+              <span className="text-xs font-semibold text-slate-400">40 Questions • 4 Dimensions</span>
+              {assessmentRecord && (
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60">
+                  Score: {assessmentRecord.compositeScore}% • {assessmentRecord.tier}
+                </span>
+              )}
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">Full 4D Cognitive Assessment</h3>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+              Unified psychometric engine evaluating Cognitive Logic (IQ), Emotional Composure (EQ), Stoic Grounding (SQ), and Crisis Velocity (AQ) with server-side Gaussian normalization and Groq AI Mind Archetype analysis.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0 relative z-10">
+          {assessmentRecord && (
+            <button
+              onClick={() => onStartQuiz('results')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 transition-all"
+            >
+              <BarChart3 className="w-4 h-4 text-indigo-400" />
+              <span>View Latest Report</span>
+            </button>
+          )}
+          <button
+            onClick={() => onStartQuiz('assessment')}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-xs bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white shadow-xl shadow-indigo-600/30 transition-all"
+          >
+            <span>{assessmentRecord ? 'Retake 4D Assessment (40 Qs)' : 'Start 4D Assessment (40 Qs)'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* 3. 4 Separate Assessment Modules Grid */}
       <div>
+
         <div className="text-center mb-6">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Choose an Assessment Module

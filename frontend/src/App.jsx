@@ -10,6 +10,7 @@ import AQQuiz from './pages/AQQuiz';
 import Results from './pages/Results';
 import CognitiveGym from './pages/CognitiveGym';
 import Admin from './pages/Admin';
+import AssessmentRunner from './pages/AssessmentRunner';
 import IntelligenceChatbot from './components/IntelligenceChatbot';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -71,7 +72,7 @@ function AppContent() {
   // Normalize initial hash route
   const getInitialRoute = () => {
     const rawHash = window.location.hash.replace('#', '').trim();
-    if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin'].includes(rawHash)) {
+    if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin', 'assessment'].includes(rawHash)) {
       return rawHash;
     }
     return '/';
@@ -130,6 +131,16 @@ function AppContent() {
     }
   });
 
+  const [assessmentResult, setAssessmentResult] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('enigma_assessment_result') || localStorage.getItem('enigma_assessment_result');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+
   const navigateTo = (route, subParam = null) => {
     if (route === 'results' && subParam) {
       setResultsTab(subParam);
@@ -155,7 +166,7 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const rawHash = window.location.hash.replace('#', '').trim();
-      if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin'].includes(rawHash)) {
+      if (['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'admin', 'assessment'].includes(rawHash)) {
         setCurrentRoute(rawHash);
       } else {
         setCurrentRoute('/');
@@ -169,7 +180,7 @@ function AppContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    const protectedRoutes = ['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym'];
+    const protectedRoutes = ['home', 'iq', 'eq', 'sq', 'aq', 'results', 'gym', 'assessment'];
 
     if (!user) {
       if (protectedRoutes.includes(currentRoute) || currentRoute === 'admin') {
@@ -295,9 +306,18 @@ function AppContent() {
           />
         )}
 
+        {user && currentRoute === 'assessment' && (
+          <AssessmentRunner
+            onComplete={(res) => setAssessmentResult(res)}
+            onNavigate={navigateTo}
+            onTabSwitch={handleTabSwitch}
+            tabSwitchCount={tabSwitchCount}
+          />
+        )}
+
         {user && currentRoute === 'results' && (
           <Results
-            resultsData={resultsData}
+            resultsData={assessmentResult || resultsData}
             iqData={iqData}
             eqData={eqData}
             sqData={sqData}
@@ -306,6 +326,7 @@ function AppContent() {
             initialTab={resultsTab}
           />
         )}
+
 
         {user && currentRoute === 'gym' && (
           <CognitiveGym
